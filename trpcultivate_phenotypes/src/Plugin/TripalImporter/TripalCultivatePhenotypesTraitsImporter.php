@@ -659,7 +659,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     foreach (array_keys($messages) as $validator_name) {
       // Check if this validator exists in the failures array, which indicates
-      // that it was run. If it was not run then continue as it is already marked 
+      // that it was run. If it was not run then continue as it is already marked
       // todo in $messages above.
       if (!array_key_exists($validator_name, $failures)) {
         continue;
@@ -669,9 +669,9 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       if (empty($failures[$validator_name])) {
         // Check if $failures[$validator_name] is empty, which indicates there
         // are no errors to report for this validator.
-        // If raw row validation fails at any point, make sure the data row 
-        // validators are not set to 'pass' and remain as 'todo' since they 
-        // haven't been run on every line. This approach works because the 
+        // If raw row validation fails at any point, make sure the data row
+        // validators are not set to 'pass' and remain as 'todo' since they
+        // haven't been run on every line. This approach works because the
         // order of the validators in the default messages array ensures
         // that the raw row validators are checked for failures directly
         // before the data row validators. It also assumes that only data row
@@ -754,8 +754,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Line counter.
     $line_no = 0;
     // Headers.
-    // @TODO: Update this to use the new $headers property which is a defferent format
-    $headers = array_keys($this->old_headers);
+    // Only the header names are needed, so pull them out into a new array
+    $headers = array_column($this->headers, 'name');
     $headers_count = count($headers);
 
     while(!feof($handle)) {
@@ -809,15 +809,15 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   public function describeUploadFileFormat() {
     // A template file has been generated and is ready for download.
     $importer_id = $this->pluginDefinition['id'];
-    // @TODO: Update this to use the new $headers property which is a defferent format
-    $column_headers = array_keys($this->old_headers);
+    // Only the header names are needed for making the template file, so pull them out into a new array
+    $column_headers = array_column($this->headers, 'name');
 
     $file_link = \Drupal::service('trpcultivate_phenotypes.template_generator')
       ->generateFile($importer_id, $column_headers);
 
     // Additional notes to the headers.
     $notes = 'The order of the above columns is important and your file must include a header!
-    If you have a single trait measured in more then one way (i.e. with multiple collection
+    If you have a single trait measured in more than one way (i.e. with multiple collection
     methods), then you should have one line per collection method with the trait repeated.';
 
     // Render the header notes/lists template and use the file link as
