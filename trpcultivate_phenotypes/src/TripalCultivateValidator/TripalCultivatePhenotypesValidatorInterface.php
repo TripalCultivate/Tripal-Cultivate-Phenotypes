@@ -206,19 +206,6 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
   public function loadAssets($project, $genus, $file_id, $headers, $skip);
 
   /**
-   * Validate items in the phenotypic data upload assets.
-   *
-   * @deprecated Remove in issue #91
-   *
-   * @return array
-   *   An associative array with the following keys.
-   *   - title: string, section or title of the validation as it appears in the result window.
-   *   - status: string, pass if it passed the validation check/test, fail string otherwise and todo string if validation was not applied.
-   *   - details: details about the offending field/value.
-   */
-  public function validate();
-
-  /**
    * Traits, method and unit may be created/inserted through
    * the phenotypic data importer using the configuration allow new.
    * This method will fetch the value set for allow new configuration.
@@ -228,7 +215,7 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    *   validation error and will not permit creation of terms.
    */
   public function getConfigAllowNew();
-  
+
   /**
    * Split or explode a data file line/row values into an array using a delimiter.
    *

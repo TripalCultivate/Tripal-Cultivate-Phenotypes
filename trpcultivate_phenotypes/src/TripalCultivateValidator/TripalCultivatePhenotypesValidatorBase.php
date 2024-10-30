@@ -109,15 +109,6 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
   }
 
   /**
-   * {@inheritdoc}
-   * @deprecated Remove in issue #91
-   */
-  public function validate() {
-    $plugin_name = $this->getValidatorName();
-    throw new \Exception("Method validate() from base class called for $plugin_name. This method is being deprecated and should be upgraded to validateMetadata(), validateFile() or validateRow().");
-  }
-
-  /**
    * Project name/title.
    * @deprecated Remove in issue #91
    */
