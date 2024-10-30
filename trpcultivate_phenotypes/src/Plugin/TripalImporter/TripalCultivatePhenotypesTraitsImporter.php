@@ -48,17 +48,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   // system using this variable.
   private $validation_result = 'validation_result';
 
-  // @TODO: Remove this once all dependencies have been updated to use the new
-  //        $headers property below
-  private $old_headers = [
-    'Trait Name' => 'The name of the trait, as you would like it to appear to the user (e.g. Days to Flower)',
-    'Trait Description' => 'A full description of the trait. This is recommended to be at least one paragraph.',
-    'Method Short Name' => 'A full, unique title for the method (e.g. Days till 10% of plants/plot have flowers)',
-    'Collection Method' => 'A full description of how the trait was collected. This is also recommended to be at least one paragraph.',
-    'Unit' => 'The full name of the unit used (e.g. days, centimeters)',
-    'Type' => 'One of "Qualitative" or "Quantitative".'
-  ];
-
   // Headers required by this importer.
   private $headers = [
     [
@@ -825,8 +814,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $build = [
       '#theme' => 'importer_header',
       '#data' => [
-        // @TODO: Update this to use the new $headers property which is a defferent format
-        'headers' => $this->old_headers,
+        'headers' => $this->headers,
         'notes' => $notes,
         'template_file' => $file_link
       ]
