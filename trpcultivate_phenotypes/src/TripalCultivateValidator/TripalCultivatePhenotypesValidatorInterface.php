@@ -56,11 +56,6 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    *      For example, if this validator checks a specific set of form elements,
    *      then this array should be keyed by the form element key and the value
    *      matches what was provided by the user input in form_values.
-   *  The old style keys we are deprecating are:
-   *    @deprecated Remove in issue #91
-   *  - title: the title of the validation (shown both when passes or fails).
-   *  - details: string describing the failure to users with failed items embedded.
-   *  - status: one of 'pass' or 'fail'
    */
   public function validateMetadata(array $form_values);
 
@@ -84,11 +79,6 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    *      For example, if this validator checks the permissions of the file, then
    *      this array might contain the permissions the file actually had that
    *      did not match what was expected.
-   *  The old style keys we are deprecating are:
-   *    @deprecated Remove in issue #91
-   *  - title: the title of the validation (shown both when passes or fails).
-   *  - details: string describing the failure to users with failed items embedded.
-   *  - status: one of 'pass' or 'fail'
    */
   public function validateFile(string $filename, int $fid);
 
@@ -112,11 +102,6 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    *      if this validator checks that a number of indices have values in a
    *      specific list, then this array would use the index as the key and
    *      the value the column actually had, for each failed column.
-   *  The old style keys we are deprecating are:
-   *    @deprecated Remove in issue #91
-   *  - title: the title of the validation (shown both when passes or fails).
-   *  - details: string describing the failure to users with failed items embedded.
-   *  - status: one of 'pass' or 'fail'
    */
   public function validateRow(array $row_values);
 

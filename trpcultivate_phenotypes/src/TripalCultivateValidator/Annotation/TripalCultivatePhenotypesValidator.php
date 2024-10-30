@@ -35,16 +35,6 @@ class TripalCultivatePhenotypesValidator extends Plugin {
   public $validator_name;
 
   /**
-   * The scope a validator will perform a check
-   * ie. FILE level check, Project/Genus level check or Data Values level check.
-   *
-   * @deprecated Remove in issue #91
-   *
-   * @var string.
-   */
-  public $validator_scope;
-
-  /**
    * The type of the data this validator supports validating.
    *
    * This should be one or more of the following:
