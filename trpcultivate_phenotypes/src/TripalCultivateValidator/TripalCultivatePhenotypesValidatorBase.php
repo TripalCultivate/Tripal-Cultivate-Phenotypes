@@ -173,18 +173,6 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
   }
 
   /**
-   * Get validator plugin validator_scope definition annotation value.
-   *
-   * @deprecated Remove in issue #91
-   *
-   * @return string
-   *   The validator plugin scope annotation definition value.
-   */
-  public function getValidatorScope() {
-    return (array_key_exists('validator_scope', $this->pluginDefinition)) ? $this->pluginDefinition['validator_scope'] : NULL;
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function checkIndices($row_values, $indices) {

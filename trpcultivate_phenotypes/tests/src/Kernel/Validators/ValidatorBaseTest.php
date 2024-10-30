@@ -174,11 +174,6 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
     $returned_allownew = $instance->getConfigAllowNew();
     $this->assertEquals($expected_allownew, $returned_allownew,
       "We did not get the status for Allowing New configuration that we expected through the $validator_id validator.");
-
-    // check that the validator scope is not returned when it is not set.
-    // @deprecated Remove in issue #91
-    $scope = $instance->getValidatorScope();
-    $this->assertNull($scope, "The validator scope is not set for the $validator_id therefore no scope should be returned.");
   }
 
   /**
@@ -329,25 +324,6 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
       'Method validateRow() from base class',
       $exception_message,
       "We did not get the exception message we expected when calling BasicallyBase::validateRow()"
-    );
-
-    // Tests Base Class validate().
-    $exception_caught = NULL;
-    $exception_message = NULL;
-    try {
-      $instance->validate();
-    } catch (\Exception $e) {
-      $exception_caught = TRUE;
-      $exception_message = $e->getMessage();
-    }
-    $this->assertTrue(
-      $exception_caught,
-      "We expect to have an exception thrown when calling BasicallyBase::validate() since it should use the base class version."
-    );
-    $this->assertStringContainsString(
-      'Method validate() from base class',
-      $exception_message,
-      "We did not get the exception message we expected when calling BasicallyBase::validate()"
     );
   }
 

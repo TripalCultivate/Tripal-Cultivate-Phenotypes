@@ -174,15 +174,6 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
   public function checkIndices($row_values, $indices);
 
   /**
-   * Return the scope of the validator.
-   *
-   * @deprecated Remove in issue #91
-   *
-   * @return string.
-   */
-  public function getValidatorScope();
-
-  /**
    * Load data file import assets Project title, Genus and Data File Id
    * as entered in the Importer form.
    *
