@@ -174,29 +174,6 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
   public function checkIndices($row_values, $indices);
 
   /**
-   * Load data file import assets Project title, Genus and Data File Id
-   * as entered in the Importer form.
-   *
-   * @deprecated Remove in issue #91
-   *
-   * @param $project
-   *   String, Project name/title - chado.project: name.
-   * @param $genus
-   *   String, Genus - chado.organism: genus.
-   * @param $file_id
-   *   Integer, Drupal file id number.
-   * @param $headers
-   *   Array, required column headers defined in the importer.
-   * @param $skip
-   *   Boolean, skip flag when set to true will skip the validation
-   *   logic and set the validator as upcoming/todo.
-   *   Default: false - execute validation process.
-   *
-   * @return void.
-   */
-  public function loadAssets($project, $genus, $file_id, $headers, $skip);
-
-  /**
    * Traits, method and unit may be created/inserted through
    * the phenotypic data importer using the configuration allow new.
    * This method will fetch the value set for allow new configuration.
