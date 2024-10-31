@@ -253,7 +253,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
     ];
 
     // #6: Contains correct header and one line of correct data,
-    // 2nd line has an empty 'Short Method Name'
+    // 3rd line has an empty 'Short Method Name'
     $scenarios[] = [
       $valid_genus,
       'correct_header_emptycell_method.tsv',
@@ -273,7 +273,29 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
       $num_form_validation_messages
     ];
 
-    // #7: Contains correct header and two lines of data
+    // #7: Contains correct header and one line of correct data,
+    // 3rd line has an empty line (not a validation error)
+    // 4th line has an empty 'Short Method Name'
+    $scenarios[] = [
+      $valid_genus,
+      'correct_header_emptycell_after_empty_line.tsv',
+      [
+        'genus_exists' => ['status' => 'pass'],
+        'valid_data_file' => ['status' => 'pass'],
+        'valid_delimited_file' => ['status' => 'pass'],
+        'valid_header' => ['status' => 'pass'],
+        'empty_cell' => [
+          'title' => 'Required cells contain a value',
+          'status' => 'fail',
+          'details' => 'Empty value found in required column(s) at row #: 4'
+        ],
+        'valid_data_type' => ['status' => 'pass'],
+        'duplicate_traits' => ['status' => 'pass']
+      ],
+      $num_form_validation_messages
+    ];
+
+    // #8: Contains correct header and two lines of data
     // First line has an invalid value for 'Type' column
     $scenarios[] = [
       $valid_genus,
@@ -294,7 +316,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
       $num_form_validation_messages
     ];
 
-    // #8: Contains correct header and a duplicate trait-method-unit combo
+    // #9: Contains correct header and a duplicate trait-method-unit combo
      $scenarios[] = [
       $valid_genus,
       'correct_header_duplicate_traitMethodUnit.tsv',
