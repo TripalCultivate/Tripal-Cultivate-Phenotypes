@@ -8,6 +8,36 @@ use Drupal\tripal\Services\TripalLogger;
 abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase implements TripalCultivatePhenotypesValidatorInterface {
 
   /**
+   * An associative array containing the needed context, which is dependant
+   * on the validator. For example, instead of validating each cell by default,
+   * a validator may need a list of indices which correspond to the columns in
+   * the row for which the validator should act on.
+   *
+   * Key-value pairs are set by the setter methods in ValidatorTraits.
+   */
+  protected array $context = [];
+
+  /**
+   * A mapping of supported file mime-types and their supported delimiters.
+   *
+   * More specifically, the file is split based on the appropriate delimiter
+   * for the mime-type passed in. For example, the mime-type
+   * "text/tab-separated-values" maps to the tab (i.e. "\t") delimiter.
+   *
+   * By using this mapping approach we can actually support a number of different
+   * file types with different delimiters for the same importer while keeping
+   * the performance hit to a minimum. Especially as in many cases, this is a
+   * one-to-one mapping.
+   *
+   * @var array
+   */
+  public static array $mime_to_delimiter_mapping = [
+    'text/tab-separated-values' => ["\t"],
+    'text/csv' => [','],
+    'text/plain' => ["\t", ','],
+  ];
+
+  /**
    * Get validator plugin validator_name definition annotation value.
    *
    * @return string
@@ -44,37 +74,6 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
     }
     return FALSE;
   }
-
-  /**
-   * An associative array containing the needed context, which is dependant
-   * on the validator. For example, instead of validating each cell by default,
-   * a validator may need a list of indices which correspond to the columns in
-   * the row for which the validator should act on.
-   *
-   * Key-value pairs are set by the setter methods in ValidatorTraits.
-   */
-  protected array $context = [];
-
-  /**
-   * A mapping of supported file mime-types and their supported delimiters.
-   *
-   * More specifically, the file is split based on the appropriate delimiter
-   * for the mime-type passed in. For example, the mime-type
-   * "text/tab-separated-values" maps to the tab (i.e. "\t") delimiter.
-   *
-   * By using this mapping approach we can actually support a number of different
-   * file types with different delimiters for the same importer while keeping
-   * the performance hit to a minimum. Especially as in many cases, this is a
-   * one-to-one mapping.
-   *
-   * @var array
-   */
-  public static array $mime_to_delimiter_mapping = [
-    'text/tab-separated-values' => ["\t"],
-    'text/csv' => [','],
-    'text/plain' => ["\t", ','],
-  ];
-
 
   /**
    * {@inheritdoc}

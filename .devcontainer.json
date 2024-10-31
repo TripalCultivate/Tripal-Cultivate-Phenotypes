@@ -23,7 +23,7 @@
         "redhat.vscode-yaml",
         "ms-azuretools.vscode-docker",
         "github.vscode-github-actions",
-        "GitHub.vscode-pull-request-github",
+        "GitHub.vscode-pull-request-github"
         //"valeryanm.vscode-phpsab"
       ],
       "settings": {
@@ -116,7 +116,7 @@
         /* Composer */
         "composer.bin": "/usr/local/bin/composer",
         "tws.trimOnSave": true,
-        "tws.highlightTrailingWhiteSpace": true,
+        "tws.highlightTrailingWhiteSpace": true
       	/* PHP Sniffer & Beautifier */
         /**
       	"phpsab.snifferEnable": true,

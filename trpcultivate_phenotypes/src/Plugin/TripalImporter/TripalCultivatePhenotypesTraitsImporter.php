@@ -147,10 +147,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Grab the genus from our form to use in configuring some validators
     $genus = $form_values['genus'];
 
-    // Make the header columns into a simplified array
+    // Make the header columns into a simplified array for easy reference
     //  - Keyed by the column header name
-    //  - Values are the column header's poition in the $headers property (ie. its
-    //    index if we assume no keys were assigned)
+    //  - Values are the column header's position in the $headers property (ie.
+    //    its index if we assume no keys were assigned)
     $header_index = [];
     $headers = $this->headers;
     $i = 0;
@@ -232,8 +232,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       'Unit' => $header_index['Unit']
     ]);
     $validators['data-row']['duplicate_traits'] = $instance;
-
-    //$this->validatorObjects = $validators;
 
     return $validators;
   }
@@ -338,7 +336,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Keep track of failed items.
     // We expect the first key to be a unique name of the validator instance
     // (as declared by the configureValidators() method) as there can be multiple
-    // instances of one validator. For file-row input-type validators, this will
+    // instances of one validator. For row-level input-type validators, this will
     // be further keyed by line number.
     $failures = [];
 
@@ -486,7 +484,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         // ********************************************************************
         // Data Row Validation
         // ********************************************************************
-        else if ($line_no > 1) {
+        elseif ($line_no > 1) {
           // Split line into an array using the delimiter defined by this
           // importer in the configure values method above.
           $data_row = TripalCultivatePhenotypesValidatorBase::splitRowIntoColumns($line, $file_mime_type);
