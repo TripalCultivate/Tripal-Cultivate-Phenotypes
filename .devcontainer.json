@@ -24,7 +24,7 @@
         "ms-azuretools.vscode-docker",
         "github.vscode-github-actions",
         "GitHub.vscode-pull-request-github",
-        "valeryanm.vscode-phpsab"
+        //"valeryanm.vscode-phpsab"
       ],
       "settings": {
         // This turns off basic PHP suggestions provided by Visual Studio Code (in lieu of Intelephense's).
@@ -118,6 +118,7 @@
         "tws.trimOnSave": true,
         "tws.highlightTrailingWhiteSpace": true,
       	/* PHP Sniffer & Beautifier */
+        /**
       	"phpsab.snifferEnable": true,
       	"phpsab.executablePathCS": "/var/www/drupal/vendor/bin/phpcs",
       	"phpsab.fixerEnable": true,
@@ -131,6 +132,7 @@
       	"phpsab.snifferArguments": [
       		"--extensions=inc,theme,install,module,profile,php,phtml"
       	]
+        */
       }
     }
   },
