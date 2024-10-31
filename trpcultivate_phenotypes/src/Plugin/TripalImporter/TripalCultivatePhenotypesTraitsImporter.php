@@ -340,23 +340,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // be further keyed by line number.
     $failures = [];
 
-    // @TODO:
-    // Compute the total_raw_row_failed and total_row_failed.
-
-    // Keep track of counts pertaining to validators that handle data row.
-    $count = [
-      'total_rows' => 0,      // The total number of rows in the data file.
-      'total_failed' => 0,    // The total number of rows that failed validation. // No need
-      'total_passed'  => 0,   // The total number of rows that passed validation.
-      'total_unchecked' => 0, // Total number of rows that have not been checked. // No need
-      'total_rows_read' => 0, // Total number of rows read.
-    ];
-
-    // @TODO:
-    // Total Failed:
-    // total_raw_row_failed  // The total number of rows that failed validateRawRow() validation.
-    // total_row_failed      // The total number of rows that failed validateRow() validation.
-
     // ************************************************************************
     // Metadata Validation
     // ************************************************************************
@@ -442,11 +425,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         // If any raw-row validators failed, skip further validation and move
         // on to the next row in the data file.
         if ($row_has_failed === TRUE) {
-          if ($line_no > 1) {
-            // @TODO: needs update.
-            $count['total_unchecked']++;
-          }
-
           continue;
         }
 
@@ -500,38 +478,23 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
             $result = $validator->validateRow($data_row);
             // Check if validation failed.
             if (array_key_exists('valid', $result) && $result['valid'] === FALSE) {
-              if (!$row_has_failed) {
-                $row_has_failed = TRUE;
-                // @TODO: needs update.
-                $count['total_failed']++;
-              }
-
+              $row_has_failed = TRUE;
               $failures[$validator_name][$line_no] = $result;
             }
-          }
-
-          if ($row_has_failed === FALSE) {
-            // @TODO: needs update.
-            $count['total_passed']++;
           }
         }
       }
 
-      // @TODO: needs update.
-      // The final line no validated is the total rows.
-      $count['total_rows_read'] = $line_no;
-
       // Close the file.
       fclose($handle);
 
-      if ($count['total_failed'] > 0) {
+      // If a row failed at any point, set the failed_validator flag to true.
+      if ($row_has_failed) {
         $failed_validator = TRUE;
       }
     }
 
-    // @TODO: needs update.
-    $count['total_unchecked'] = $count['total_rows'] - ($count['total_failed'] + $count['total_passed']);
-    $validation_feedback = $this->processValidationMessages($failures, $count);
+    $validation_feedback = $this->processValidationMessages($failures);
 
     // Save all validation results in Drupal storage to create a summary report.
     $storage = $form_state->getStorage();
@@ -553,19 +516,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   An array containing the return values from any failed validators, keyed
    *   by the unique name assigned to each validator-input type combination
    *
-   * @param array $count
-   *   Is an array of relevant counts pertaining to rows evaluated, such as the total
-   *   rows read, total rows that failed etc. The following keys reference each type
-   *   of count values.
-   *    - total_rows: The total number of rows in the data file.
-   *    - total_passed: The total number of rows that passed validation.
-   *    - total_rows_read: Total number of rows read.
-   *    - total_row_failed: The total number of rows that failed validateRow() validation.
-   *    - total_raw_row_failed: The total number of rows that failed validateRawRow() validation.
-   *
-   *   @TODO; At the moment this method does not reference any of the total counts
-   *   but some of the counts have been implemented in the validate method to increment where applicable.
-   *
    * @return array
    *   An array of feedback to provide to the user which summarizes the validation results
    *   reported by the validators in the formValidate (i.e. $failures). This array is keyed
@@ -581,7 +531,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *       the raw return values when validation failed. Essentially, the
    *       contents of $failures['validator_name'].
    */
-  public function processValidationMessages($failures, $count) {
+  public function processValidationMessages($failures) {
     // Array to hold all the user feedback. Currently this includes an entry for each
     // validator. However, in future designs we may combine more then one validator into a
     // single line in the validate UI and, thus, a single entry in this array. Everything is
