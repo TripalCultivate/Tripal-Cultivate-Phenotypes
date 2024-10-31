@@ -24,7 +24,7 @@ use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsServic
  *   id = "trpcultivate-phenotypes-traits-importer",
  *   label = @Translation("Tripal Cultivate: Phenotypic Trait Importer"),
  *   description = @Translation("Loads Traits for phenotypic data into the system. This is useful for large phenotypic datasets to ease the upload process."),
- *   file_types = {"txt","tsv"},
+ *   file_types = {"tsv"},
  *   upload_description = @Translation("Please provide a txt or tsv data file."),
  *   upload_title = @Translation("Phenotypic Trait Data File*"),
  *   use_analysis = FALSE,
@@ -391,14 +391,15 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       // Begin column and row validation.
       while(!feof($handle)) {
         // This variable will indicate if the validator has failed. It is set to
-        // FALSE for every row to indicate the the line is valid to start with,
+        // FALSE for every row to indicate that the line is valid to start with,
         // then execute the tests below to prove otherwise.
         $row_has_failed = FALSE;
 
         // Current row.
         $line = fgets($handle);
-
         $line_no++;
+        // Skip this line if its empty, but line numbers should remain accurate
+        if (empty(trim($line))) { continue; }
 
         // ********************************************************************
         // Raw Row Validation
@@ -414,10 +415,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
           // Check if validation failed and save the results if it did
           if (array_key_exists('valid', $result) && $result['valid'] === FALSE) {
-            if (!$row_has_failed) {
-              $row_has_failed = TRUE;
-            }
-
+            $row_has_failed = TRUE;
             $failures[$validator_name][$line_no] = $result;
           }
         }
@@ -425,6 +423,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         // If any raw-row validators failed, skip further validation and move
         // on to the next row in the data file.
         if ($row_has_failed === TRUE) {
+          $failed_validator = TRUE;
           continue;
         }
 
@@ -479,19 +478,14 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
             // Check if validation failed.
             if (array_key_exists('valid', $result) && $result['valid'] === FALSE) {
               $row_has_failed = TRUE;
+              $failed_validator = TRUE;
               $failures[$validator_name][$line_no] = $result;
             }
           }
         }
       }
-
       // Close the file.
       fclose($handle);
-
-      // If a row failed at any point, set the failed_validator flag to true.
-      if ($row_has_failed) {
-        $failed_validator = TRUE;
-      }
     }
 
     $validation_feedback = $this->processValidationMessages($failures);
