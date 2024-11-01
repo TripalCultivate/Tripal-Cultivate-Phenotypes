@@ -14,6 +14,7 @@ use Drupal\file\Entity\File;
 use Drupal\Core\Url;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService;
+use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService;
 
 /**
  * Tripal Cultivate Phenotypes - Traits Importer.
@@ -44,9 +45,6 @@ use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsServic
  * )
  */
 class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implements ContainerFactoryPluginInterface {
-  // Reference the validation result summary values in Drupal storage
-  // system using this variable.
-  private $validation_result = 'validation_result';
 
   // Headers required by this importer.
   private $headers = [
@@ -82,12 +80,23 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     ]
   ];
 
-  // Service: Make the following services available to all stages.
-  // Genus Ontology configuration service.
-  protected $service_genusontology;
+  /**
+   * Genus Ontology service.
+   *
+   * @var TripalCultivatePhenotypesGenusOntologyService
+   */
+  protected TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology;
 
-  // Traits service.
-  protected $service_traits;
+  /**
+   * Traits service.
+   *
+   * @var TripalCultivatePhenotypesTraitsService
+   */
+  protected TripalCultivatePhenotypesTraitsService $service_PhenoTraits;
+
+  // Reference the validation result summary values in Drupal storage
+  // system using this variable.
+  private $validation_result = 'validation_result';
 
   /**
    * Injection of services through setter methods.
@@ -101,22 +110,22 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     // Service genus ontology.
-    $service_genusontology = $container->get('trpcultivate_phenotypes.genus_ontology');
+    $service_PhenoGenusOntology = $container->get('trpcultivate_phenotypes.genus_ontology');
     // Service traits.
-    $service_traits = $container->get('trpcultivate_phenotypes.traits');
+    $service_PhenoTraits = $container->get('trpcultivate_phenotypes.traits');
 
     $instance = new static(
       $configuration,
       $plugin_id,
       $plugin_definition,
       $container->get('tripal_chado.database'),
-      $service_genusontology,
-      $service_traits
+      $service_PhenoGenusOntology,
+      $service_PhenoTraits
     );
 
     // Call service setter method to set the service.
-    $instance->setServiceGenusOntology($service_genusontology);
-    $instance->setServiceTraits($service_traits);
+    $instance->setServiceGenusOntology($service_PhenoGenusOntology);
+    $instance->setServiceTraits($service_PhenoTraits);
 
     return $instance;
   }
@@ -153,10 +162,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     //    its index if we assume no keys were assigned)
     $header_index = [];
     $headers = $this->headers;
-    $i = 0;
-    foreach ($headers as $column_details) {
+    foreach ($headers as $i => $column_details) {
       $header_index[$column_details['name']] = $i;
-      $i++;
     }
 
     // -----------------------------------------------------
@@ -170,7 +177,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // - File exists and is the expected type
     $instance = $manager->createInstance('valid_data_file');
     // Set supported mime-types using the valid file extensions (file_types) as
-    // defined in the annotation for this importer on line 27
+    // defined in the annotation for this importer on line 28
     $supported_file_extensions = $this->plugin_definition['file_types'];
     $instance->setSupportedMimeTypes($supported_file_extensions);
     $validators['file']['valid_data_file'] = $instance;
@@ -267,7 +274,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     // Field Genus:
     // Prepare select options with only active genus.
-    $all_genus = $this->service_genusontology->getConfiguredGenusList();
+    $all_genus = $this->service_PhenoGenusOntology->getConfiguredGenusList();
     $active_genus = array_combine($all_genus, $all_genus);
 
     if (!$active_genus) {
@@ -776,7 +783,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    */
   public function setServiceGenusOntology($service) {
     if ($service) {
-      $this->service_genusontology = $service;
+      $this->service_PhenoGenusOntology = $service;
     }
   }
 
@@ -791,7 +798,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    */
   public function setServiceTraits($service) {
     if ($service) {
-      $this->service_traits = $service;
+      $this->service_PhenoTraits = $service;
     }
   }
 }
