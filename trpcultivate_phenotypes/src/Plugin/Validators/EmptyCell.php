@@ -1,15 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains validator plugin definition.
- */
-
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ColumnIndices;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -23,7 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class EmptyCell extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
-  /**
+  /*
    * This validator requires the following validator traits:
    * - ColumnIndices: Gets an array of indices corresponding to the cells in
    *     $row_values to act on.
@@ -31,16 +26,9 @@ class EmptyCell extends TripalCultivatePhenotypesValidatorBase implements Contai
   use ColumnIndices;
 
   /**
-   * Constructor.
-   */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-  }
-
-  /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition){
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,

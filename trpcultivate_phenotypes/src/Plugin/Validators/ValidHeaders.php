@@ -1,20 +1,15 @@
 <?php
 
-/**
- * @file
- * Contains validator plugin definition.
- */
-
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ColumnCount;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\Headers;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Validate that the header row is not empty and that all expected column headers exist.
+ * Validate that all expected column headers exist.
  *
  * @TripalCultivatePhenotypesValidator(
  *   id = "valid_headers",
@@ -24,19 +19,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class ValidHeaders extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
-  /**
+  /*
    * This validator requires the following validator traits:
    * - Headers - getHeaders: get all headers.
-   * - ColumnCount - getExpectedColumns: get the expected number of columns and strict comparison flag.
+   * - ColumnCount - getExpectedColumns: get the expected number of columns and
+   *   strict comparison flag.
    */
   use Headers, ColumnCount;
-
-  /**
-   * Constructor.
-   */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-  }
 
   /**
    * {@inheritdoc}

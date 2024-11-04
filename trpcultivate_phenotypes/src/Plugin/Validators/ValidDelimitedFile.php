@@ -1,16 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains validator plugin definition.
- */
-
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
-use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
-use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\FileTypes;
-use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ColumnCount;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
+use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ColumnCount;
+use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\FileTypes;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -24,24 +19,18 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class ValidDelimitedFile extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
-  /**
+  /*
    * This validator requires the following validator traits:
    * - FileTypes - getFileMimeType: get the MIME type of the input file.
-   * - ColumnCount - getExpectedColumns: get the expected number of columns and strict comparison flag.
+   * - ColumnCount - getExpectedColumns: get the expected number of columns and
+   *   strict comparison flag.
    */
   use FileTypes, ColumnCount;
 
   /**
-   * Constructor.
-   */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-  }
-
-  /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition){
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,

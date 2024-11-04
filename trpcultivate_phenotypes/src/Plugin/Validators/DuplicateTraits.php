@@ -1,23 +1,18 @@
 <?php
 
-/**
- * @file
- * Contains validator plugin definition.
- */
-
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\tripal_chado\Database\ChadoConnection;
+use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService;
+use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ColumnIndices;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\GenusConfigured;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService;
-use Drupal\tripal_chado\Database\ChadoConnection;
-use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService;
 
 /**
- * Validate duplicate traits within a file
+ * Validate duplicate traits within a file.
  *
  * @TripalCultivatePhenotypesValidator(
  *   id = "duplicate_traits",
@@ -27,14 +22,15 @@ use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsServic
  */
 class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
-  /**
+  /*
    *   This validator requires the following validator traits:
    *   - GenusConfigured: Gets a string of the configured genus name
-   *   - ColumnIndices => Gets an associative array with the following keys,
-   *       which are column headers of required columns for the Traits Importer:
-   *     - 'Trait Name': int, the index of the trait name column in $row_values
-   *     - 'Method Short Name': int, the index of the method name column in $row_values
-   *     - 'Unit': int, the index of the unit column in $row_values
+   *   - ColumnIndices: Gets an associative array with the following keys,
+   *     which are column headers of required columns for the Traits Importer:
+   *     - 'Trait Name': int, the index of the trait name column in $row_values.
+   *     - 'Method Short Name': int, the index of the method name column in
+   *       $row_values.
+   *     - 'Unit': int, the index of the unit column in $row_values.
    */
   use ColumnIndices;
   use GenusConfigured;
@@ -44,8 +40,8 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
    *   method name + unit combinations that have been encountered by this
    *   validator so far within the input file. More specifically,
    *   - TRAIT-NAME: array of methods associated with this trait.
-   *     - METHOD-NAME: array of units associated with this trait-method combo
-   *       - UNIT-NAME: 1 (indicates this full trait-method-unit combo exists)
+   *     - METHOD-NAME: array of units associated with this trait-method combo.
+   *       - UNIT-NAME: 1 (indicates this full trait-method-unit combo exists).
    *
    *   NOTE: All capital words are intended to be replaced by the actual full
    *   name of the term.
@@ -91,7 +87,7 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition){
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,

@@ -1,17 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains validator plugin definition.
- */
-
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\FileTypes;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * Validate data file.
@@ -24,9 +19,10 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  */
 class ValidDataFile extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
-  /**
+  /*
    * This validator requires the following validator traits:
-   * - FileTypes: Gets an array of all supported MIME types the importer is configured to process.
+   * - FileTypes: Gets an array of all supported MIME types the importer is
+   *   configured to process.
    */
   use FileTypes;
 
@@ -50,7 +46,7 @@ class ValidDataFile extends TripalCultivatePhenotypesValidatorBase implements Co
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition){
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,

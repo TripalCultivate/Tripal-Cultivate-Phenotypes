@@ -1,16 +1,11 @@
 <?php
 
-/**
- * @file
- * Contains validator plugin definition.
- */
-
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ColumnIndices;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ValidValues;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -24,27 +19,20 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class ValueInList extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
-  /**
-   *   This validator requires the following validator traits:
-   *   - ColumnIndices: Gets an array of indices corresponding to the cells in
-   *       $row_values to act on.
-   *   - ValidValues: Gets an array of values that are allowed within the cell(s)
-   *       located at the indices in getIndices().
+  /*
+   * This validator requires the following validator traits:
+   * - ColumnIndices: Gets an array of indices corresponding to the cells in
+   *   $row_values to act on.
+   * - ValidValues: Gets an array of values that are allowed within the cell(s)
+   *   located at the indices in getIndices().
    */
   use ColumnIndices;
   use ValidValues;
 
   /**
-   * Constructor.
-   */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-  }
-
-  /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition){
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
       $plugin_id,
@@ -62,7 +50,7 @@ class ValueInList extends TripalCultivatePhenotypesValidatorBase implements Cont
    * @return array
    *   An associative array with the following keys.
    *   - case: a developer focused string describing the case checked.
-   *   - valid: FALSE if any of the cells being checked contain a value not in the 
+   *   - valid: FALSE if any of the cells being checked contain a value not in the
    *     configured list of approved values and TRUE otherwise.
    *   - failedItems: an array of "items" that failed, to be used in the message
    *     to the user. This is an empty array if the data row input was valid.
