@@ -3,6 +3,7 @@
 namespace Drupal\trpcultivate_phenotypes\TripalCultivateValidator;
 
 use Drupal\Component\Plugin\PluginInspectionInterface;
+use Drupal\tripal\Services\TripalLogger;
 
 /**
  * Defines an interface for data validator plugin.
@@ -20,7 +21,7 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
   /**
    * Returns the input types supported by this validator.
    *
-   * These are defined in the class annotation docblock.
+   * The input types are defined in the class annotation docblock.
    *
    * @return array
    *   The input types supported by this validator.
@@ -28,7 +29,7 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
   public function getSupportedInputTypes();
 
   /**
-   * Confirms whether the given inputType is supported by this validator.
+   * Confirms whether the given input type is supported by this validator.
    *
    * @param string $input_type
    *   The input type to check.
@@ -199,6 +200,12 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    * @return array
    *   An array containing the values extracted from the line after splitting it
    *   based on a delimiter value.
+   *
+   * @throws \Exception
+   *   - If $mime_type is not in static array $mime_to_delimiter_mapping.
+   *   - If $mime_type contains multiple delimiter options (@todo update in
+   *     issue #118).
+   *   - If $row was unable to be split with a supported delimiter.
    */
   public static function splitRowIntoColumns(string $row, string $mime_type);
 
@@ -216,7 +223,33 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    *
    * @return array
    *   The list of delimiters that are supported by the file mime-type.
+   *
+   * @throws \Exception
+   *   - If mime_type is an empty string.
+   *   - If mime_type does not exist as a key in the mime_to_delimiter_mapping
+   *     array.
    */
   public static function getFileDelimiters(string $mime_type);
+
+  /**
+   * Sets the TripalLogger instance for the importer using this validator.
+   *
+   * @param Drupal\tripal\Services\TripalLogger $logger
+   *   The TripalLogger instance. In the case of validation done on the form
+   *   the job will not be set but in the case of any validation done in the
+   *   import run job, the job will be set.
+   */
+  public function setLogger(TripalLogger $logger);
+
+  /**
+   * Gets a configured TripalLogger instance for reporting to site maintainers.
+   *
+   * @return Drupal\tripal\Services\TripalLogger
+   *   An instance of the Tripal logger.
+   *
+   * @throws \Exception
+   *   If the $logger property has not been set by the setLogger() method.
+   */
+  public function getLogger();
 
 }

@@ -5,15 +5,19 @@ namespace Drupal\trpcultivate_phenotypes\TripalCultivateValidator;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\tripal\Services\TripalLogger;
 
+/**
+ * The base class for validator plugins.
+ */
 abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase implements TripalCultivatePhenotypesValidatorInterface {
 
   /**
+   * A context array with key-value pairs set by ValidatorTraits.
+   *
    * An associative array containing the needed context, which is dependant
    * on the validator. For example, instead of validating each cell by default,
    * a validator may need a list of indices which correspond to the columns in
-   * the row for which the validator should act on.
-   *
-   * Key-value pairs are set by the setter methods in ValidatorTraits.
+   * the row for which the validator should act on. This might look like:
+   * $context['indices'] => [1,3,5]
    */
   protected array $context = [];
 
@@ -24,13 +28,15 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
    * for the mime-type passed in. For example, the mime-type
    * "text/tab-separated-values" maps to the tab (i.e. "\t") delimiter.
    *
-   * By using this mapping approach we can actually support a number of different
+   * By using this mapping approach, we can actually support a number of
    * file types with different delimiters for the same importer while keeping
-   * the performance hit to a minimum. Especially as in many cases, this is a
-   * one-to-one mapping.
+   * the performance hit to a minimum. Especially since in many cases this is a
+   * one-to-one mapping. If it is not a one-to-one mapping, then we loop through
+   * the options.
    *
    * @var array
    */
+  // phpcs:ignore
   public static array $mime_to_delimiter_mapping = [
     'text/tab-separated-values' => ["\t"],
     'text/csv' => [','],
@@ -38,33 +44,31 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
   ];
 
   /**
-   * Get validator plugin validator_name definition annotation value.
+   * The TripalLogger service.
    *
-   * @return string
-   *   The validator plugin name annotation definition value.
+   * This is used to report status and errors to both site users and
+   * administrators through the server log.
+   *
+   * @var Drupal\tripal\Services\TripalLogger
+   */
+  public TripalLogger $logger;
+
+  /**
+   * {@inheritdoc}
    */
   public function getValidatorName() {
     return $this->pluginDefinition['validator_name'];
   }
 
   /**
-   * Returns the input types supported by this validator.
-   * These are defined in the class annotation docblock.
-   *
-   * @return array
-   *   The input types supported by this validator.
+   * {@inheritdoc}
    */
   public function getSupportedInputTypes() {
     return $this->pluginDefinition['input_types'];
   }
 
   /**
-   * Confirms whether the given inputType is supported by this validator.
-   *
-   * @param string $input_type
-   *   The input type to check.
-   * @return boolean
-   *   True if the input type is supported and false otherwise.
+   * {@inheritdoc}
    */
   public function checkInputTypeSupported(string $input_type) {
     $supported_types = $this->getSupportedInputTypes();
@@ -112,27 +116,27 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
    */
   public function checkIndices($row_values, $indices) {
 
-    // Report if the indices array is empty
+    // Report if the indices array is empty.
     if (!$indices) {
       throw new \Exception(
         'An empty indices array was provided.'
       );
     }
 
-    // Get the potential range by looking at $row_values
+    // Get the potential range by looking at $row_values.
     $num_values = count($row_values);
-    // Count our indices array
+    // Count our indices array.
     $num_indices = count($indices);
-    if($num_indices > $num_values) {
+    if ($num_indices > $num_values) {
       throw new \Exception(
-        'Too many indices were provided ('. $num_indices .') compared to the number of cells in the provided row (' . $num_values .').'
+        'Too many indices were provided (' . $num_indices . ') compared to the number of cells in the provided row (' . $num_values . ').'
       );
     }
 
-    // Pull out just the keys from $row_values and compare with $indices
+    // Pull out just the keys from $row_values and compare with $indices.
     $row_keys = array_keys($row_values);
     $result = array_diff($indices, $row_keys);
-    if($result) {
+    if ($result) {
       $invalid_indices = implode(', ', $result);
       throw new \Exception(
         'One or more of the indices provided (' . $invalid_indices . ') is not valid when compared to the indices of the provided row.'
@@ -141,13 +145,7 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
   }
 
   /**
-   * Traits, method and unit may be created/inserted through
-   * the phenotypic data importer using the configuration allow new.
-   * This method will fetch the value set for allow new configuration.
-   *
-   * @return boolean
-   *   True, allow trait, method and unit detected in data importer to be created. False will trigger
-   *   validation error and will not permit creation of terms.
+   * {@inheritdoc}
    */
   public function getConfigAllowNew() {
     $allownew = \Drupal::config('trpcultivate_phenotypes.settings')
@@ -157,33 +155,13 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
   }
 
   /**
-   * Split or explode a data file line/row values into an array using a delimiter.
-   *
-   * More specifically, the file is split based on the appropriate delimiter
-   * for the mime type passed in. For example, the mime type text/tab-separated-values
-   * maps to the tab (i.e. "\t") delimiter.
-   *
-   * By using this mapping approach we can actually support a number of different
-   * file types with different delimiters for the same importer while keeping
-   * the performance hit to a minimum. Especially as in many cases this is a
-   * one-to-one mapping. If it is not a one-to-one mapping then we loop through
-   * the options.
-   *
-   * @param string $row
-   *   A line in the data file which has not yet been split into columns.
-   * @param string $mime_type
-   *   The mime type of the file currently being validated or imported (i.e. the
-   *   mime type of the file this line is from).
-   *
-   * @return array
-   *   An array containing the values extracted from the line after splitting it based
-   *   on a delimiter value.
+   * {@inheritdoc}
    */
   public static function splitRowIntoColumns(string $row, string $mime_type) {
 
     $mime_to_delimiter_mapping = self::$mime_to_delimiter_mapping;
 
-    // Ensure that the mime type is in our delimiter mapping...
+    // Ensure that the mime type is in our delimiter mapping.
     if (!array_key_exists($mime_type, $mime_to_delimiter_mapping)) {
       throw new \Exception('The mime type "' . $mime_type . '" passed into splitRowIntoColumns() is not supported. We support the following mime types:' . implode(', ', array_keys($mime_to_delimiter_mapping)) . '.');
     }
@@ -192,14 +170,16 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
     $supported_delimiters = self::getFileDelimiters($mime_type);
 
     $delimiter = NULL;
-    // If there is only one supported delimiter then we can simply split the row!
-    if (sizeof($supported_delimiters) === 1) {
+    // If there is only one supported delimiter then simply split the row!
+    if (count($supported_delimiters) === 1) {
       $delimiter = end($supported_delimiters);
       $columns = str_getcsv($row, $delimiter);
     }
+
+    // @todo Address in issue #118.
     // Otherwise we will have to try to determine which one is "right"?!?
     // Points to remember in the future:
-    //  - We can't use the one that splits into the most columns as a text column
+    // - We can't use the one that splits into the most columns as a text column
     // could include multiple commas which could overpower the overall number of
     // tabs in a tab-delimited plain text file.
     // - It would be good to confirm we are getting the same number of columns
@@ -215,20 +195,22 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
 
       throw new \Exception("We don't currently support splitting mime types with multiple delimiter options as its not trivial to choose the correct one.");
 
-      // $results = [];
-      // $counts = [];
-      // foreach ($supported_delimiters as $delimiter) {
-      //   $results[$delimiter] = str_getcsv($row, $delimiter);
-      //   $counts[$delimiter] = count($results[$delimiter]);
-      // }
+      /*
+      $results = [];
+      $counts = [];
+      foreach ($supported_delimiters as $delimiter) {
+        $results[$delimiter] = str_getcsv($row, $delimiter);
+        $counts[$delimiter] = count($results[$delimiter]);
+      }
 
-      // // Now lets choose the one with the most columns --shrugs-- not ideal
-      // // but I'm not sure there is a better option. asort() is from smallest
-      // // to largest preserving the keys so we want to choose the last element.
-      // asort($counts);
-      // $winning_delimiter = array_key_last($counts);
-      // $columns = $results[ $winning_delimiter ];
-      // $delimiter = $winning_delimiter;
+      // Now lets choose the one with the most columns --shrugs-- not ideal
+      // but I'm not sure there is a better option. asort() is from smallest
+      // to largest preserving the keys so we want to choose the last element.
+      asort($counts);
+      $winning_delimiter = array_key_last($counts);
+      $columns = $results[ $winning_delimiter ];
+      $delimiter = $winning_delimiter;
+       */
     }
 
     // Now lets double check that we got some values...
@@ -238,9 +220,9 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
     }
 
     // Sanitize values.
-    foreach($columns as &$value) {
+    foreach ($columns as &$value) {
       if ($value) {
-        $value = trim(str_replace(['"','\''], '', $value));
+        $value = trim(str_replace(['"', '\''], '', $value));
       }
     }
 
@@ -248,24 +230,7 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
   }
 
   /**
-   * Gets the list of delimiters supported by the input file's mime-type that
-   * was provided to the setter.
-   *
-   * NOTE: This method is static to allow for it to also be used by the static
-   * method splitRowIntoColumns().
-   *
-   * @param string $mime_type
-   *   A string that is the mime-type of the input file.
-   *
-   *   HINT: You can get the mime-type of a file from the 'mime-type' property
-   *   of a file object.
-   *
-   * @return array
-   *   The list of delimiters that are supported by the file mime-type.
-   *
-   * @throws \Exception
-   *   - If mime_type does not exist as a key in the mime_to_delimiter_mapping
-   *     array.
+   * {@inheritdoc}
    */
   public static function getFileDelimiters(string $mime_type) {
 
@@ -284,42 +249,22 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
   }
 
   /**
-   * The TripalLogger service is used to report status and errors to both site users
-   * and administrators through the server log.
-   *
-   * @var TripalLogger
-   */
-  public TripalLogger $logger;
-
-  /**
-   * Sets the TripalLogger instance for the importer using this validator.
-   *
-   * @param TripalLogger $logger
-   *   The TripalLogger instance. In the case of validation done on the form
-   *   the job will not be set but in the case of any validation done in the
-   *   import run job, the job will be set.
+   * {@inheritdoc}
    */
   public function setLogger(TripalLogger $logger) {
     $this->logger = $logger;
   }
 
   /**
-   * Provides a configured TripalLogger instance for reporting things to
-   * site maintainers.
-   *
-   * @return TripalLogger
-   *   An instance of the Tripal logger.
-   *
-   * @throws \Exception
-   *   If the $logger property has not been set by the setLogger() method.
+   * {@inheritdoc}
    */
   public function getLogger() {
-    if(!empty($this->logger)) {
+    if (!empty($this->logger)) {
       return $this->logger;
     }
     else {
       throw new \Exception('Cannot retrieve the Tripal Logger property as one has not been set for this validator using the setLogger() method.');
     }
-
   }
+
 }
