@@ -5,7 +5,7 @@
  *
  * Available variables:
  * - header_notes: array of headers keyed by the header name. Value is description and expected value.
- * - template_file: a file name of a template file. 
+ * - template_file: a file name of a template file.
  */
 #}
 
@@ -13,12 +13,12 @@
 
 <div id="tcp-header-notes">
   <p>This should be a tab-separated file with the following columns:</p>
-  
+
   <ol id="tcp-header-notes">
-    {% for header,description in data.headers %}
+    {% for header in data.headers %}
     <li>
-      <strong>{{header}}</strong>: {{description}}
-    </li>  
+      <strong>{{header['name']}}</strong>: {{header['description']}} ({{header['type']}})
+    </li>
     {% endfor %}
   </ol>
 </div>

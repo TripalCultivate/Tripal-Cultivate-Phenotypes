@@ -8,6 +8,36 @@ use Drupal\tripal\Services\TripalLogger;
 abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase implements TripalCultivatePhenotypesValidatorInterface {
 
   /**
+   * An associative array containing the needed context, which is dependant
+   * on the validator. For example, instead of validating each cell by default,
+   * a validator may need a list of indices which correspond to the columns in
+   * the row for which the validator should act on.
+   *
+   * Key-value pairs are set by the setter methods in ValidatorTraits.
+   */
+  protected array $context = [];
+
+  /**
+   * A mapping of supported file mime-types and their supported delimiters.
+   *
+   * More specifically, the file is split based on the appropriate delimiter
+   * for the mime-type passed in. For example, the mime-type
+   * "text/tab-separated-values" maps to the tab (i.e. "\t") delimiter.
+   *
+   * By using this mapping approach we can actually support a number of different
+   * file types with different delimiters for the same importer while keeping
+   * the performance hit to a minimum. Especially as in many cases, this is a
+   * one-to-one mapping.
+   *
+   * @var array
+   */
+  public static array $mime_to_delimiter_mapping = [
+    'text/tab-separated-values' => ["\t"],
+    'text/csv' => [','],
+    'text/plain' => ["\t", ','],
+  ];
+
+  /**
    * Get validator plugin validator_name definition annotation value.
    *
    * @return string
@@ -46,37 +76,6 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
   }
 
   /**
-   * An associative array containing the needed context, which is dependant
-   * on the validator. For example, instead of validating each cell by default,
-   * a validator may need a list of indices which correspond to the columns in
-   * the row for which the validator should act on.
-   *
-   * Key-value pairs are set by the setter methods in ValidatorTraits.
-   */
-  protected array $context = [];
-
-  /**
-   * A mapping of supported file mime-types and their supported delimiters.
-   *
-   * More specifically, the file is split based on the appropriate delimiter
-   * for the mime-type passed in. For example, the mime-type
-   * "text/tab-separated-values" maps to the tab (i.e. "\t") delimiter.
-   *
-   * By using this mapping approach we can actually support a number of different
-   * file types with different delimiters for the same importer while keeping
-   * the performance hit to a minimum. Especially as in many cases, this is a
-   * one-to-one mapping.
-   *
-   * @var array
-   */
-  public static array $mime_to_delimiter_mapping = [
-    'text/tab-separated-values' => ["\t"],
-    'text/csv' => [','],
-    'text/plain' => ["\t", ','],
-  ];
-
-
-  /**
    * {@inheritdoc}
    */
   public function validateMetadata(array $form_values) {
@@ -106,91 +105,6 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
   public function validateRawRow(string $raw_row) {
     $plugin_name = $this->getValidatorName();
     throw new \Exception("Method validateRawRow() from base class called for $plugin_name. If this plugin wants to support this type of validation then they need to override it.");
-  }
-
-  /**
-   * {@inheritdoc}
-   * @deprecated Remove in issue #91
-   */
-  public function validate() {
-    $plugin_name = $this->getValidatorName();
-    throw new \Exception("Method validate() from base class called for $plugin_name. This method is being deprecated and should be upgraded to validateMetadata(), validateFile() or validateRow().");
-  }
-
-  /**
-   * Project name/title.
-   * @deprecated Remove in issue #91
-   */
-  public $project;
-
-  /**
-   * Genus.
-   * @deprecated Remove in issue #91
-   */
-  public $genus;
-
-  /**
-   * Drupal File ID Number.
-   * @deprecated Remove in issue #91
-   */
-  public $file_id;
-
-  /**
-   * Required column headers as defined in the importer.
-   * @deprecated Remove in issue #91
-   */
-  public $column_headers;
-
-  /**
-   * Skip flag, indicate validator not to execute validation logic and
-   * set the validator as upcoming or todo.
-   * @deprecated Remove in issue #91
-   */
-  public $skip;
-
-  /**
-   * Load phenotypic data upload assets to validated.
-   *
-   * @deprecated Remove in issue #91
-   *
-   * @param $project
-   *   String, Project name/title - chado.project: name.
-   * @param $genus
-   *   String, Genus - chado.organism: genus.
-   * @param $file_id
-   *   Integer, Drupal file id number.
-   * @param $headers
-   *   Array, required column headers defined in the importer.
-   * @param $skip
-   *   Boolean, skip flag when set to true will skip the validation
-   *   logic and set the validator as upcoming/todo.
-   *   Default: false - execute validation process.
-   */
-  public function loadAssets($project, $genus, $file_id, $headers, $skip = 0) {
-    // Prepare assets:
-
-    // Project.
-    $this->project = $project;
-    // Genus.
-    $this->genus = $genus;
-    // File id.
-    $this->file_id = $file_id;
-    // Column Headers.
-    $this->column_headers = $headers;
-    // Skip.
-    $this->skip = $skip;
-  }
-
-  /**
-   * Get validator plugin validator_scope definition annotation value.
-   *
-   * @deprecated Remove in issue #91
-   *
-   * @return string
-   *   The validator plugin scope annotation definition value.
-   */
-  public function getValidatorScope() {
-    return (array_key_exists('validator_scope', $this->pluginDefinition)) ? $this->pluginDefinition['validator_scope'] : NULL;
   }
 
   /**
