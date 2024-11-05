@@ -70,12 +70,12 @@ class ProjectExists extends TripalCultivatePhenotypesValidatorBase implements Co
 
     // Determine what was provided to the project field: project id or name.
     if (is_numeric($project)) {
-      // Value is integer. Project id was provided.
+      // Value is integer, thus project id was provided.
       // Test project by looking up the id to retrieve the project name.
       $project_rec = ChadoProjectAutocompleteController::getProjectName((int) $project);
     }
     else {
-      // Value is string. Project name was provided.
+      // Value is string, thus project name was provided.
       // Test project by looking up the name to retrieve the project id.
       $project_rec = ChadoProjectAutocompleteController::getProjectId($project);
     }
@@ -90,7 +90,8 @@ class ProjectExists extends TripalCultivatePhenotypesValidatorBase implements Co
     return [
       'case' => $case,
       'valid' => $valid,
-      'failedItems' => $failed_items
+      'failedItems' => $failed_items,
     ];
   }
+
 }

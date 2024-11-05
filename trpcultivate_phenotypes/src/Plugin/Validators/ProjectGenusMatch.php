@@ -22,14 +22,20 @@ class ProjectGenusMatch extends TripalCultivatePhenotypesValidatorBase implement
   /**
    * Genus Project Service.
    *
-   * @var TripalCultivatePhenotypesGenusProjectService
+   * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusProjectService TripalCultivatePhenotypesGenusProjectService
    */
+  // phpcs:ignore
   protected TripalCultivatePhenotypesGenusProjectService $service_PhenoGenusProject;
 
   /**
    * Constructor.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, TripalCultivatePhenotypesGenusProjectService $service_genusproject) {
+  public function __construct(
+    array $configuration,
+    $plugin_id,
+    $plugin_definition,
+    TripalCultivatePhenotypesGenusProjectService $service_genusproject,
+  ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     // Genus project service.
@@ -49,11 +55,11 @@ class ProjectGenusMatch extends TripalCultivatePhenotypesValidatorBase implement
   }
 
   /**
-   * Validate that project provided exists and the project-genus set match
-   * the genus provided in the genus field.
+   * Validate that project provided exists and the project-genus set match.
    *
    * @param array $form_values
-   *   The values entered to any form field elements implemented by the importer.
+   *   An array of values from the submitted form where each key maps to a form
+   *   element and the value is what the user entered.
    *   Each form element value can be accessed using the field element key
    *   ie. field name/key project - $form_values['project']
    *       field name/key genus - $form_values['genus']
@@ -62,20 +68,23 @@ class ProjectGenusMatch extends TripalCultivatePhenotypesValidatorBase implement
    *
    * @return array
    *   An associative array with the following keys.
-   *     - case: a developer focused string describing the case checked.
-   *     - valid: either TRUE or FALSE depending on if the project+genus value is valid or not.
-   *     - failedItems: an array of "items" that failed to be used in the message to the user. This is an empty array if the metadata input was valid.
+   *   - 'case': a developer focused string describing the case checked.
+   *   - 'valid': TRUE if the project+genus value is valid, FALSE otherwise.
+   *   - 'failedItems': an array of items that failed with one or more of the
+   *     following keys. This is an empty array if the metadata input was valid.
+   *     - 'genus_provided': The name of the genus provided.
+   *     - 'project_provided': The name of the project provided.
    */
   public function validateMetadata(array $form_values) {
-    // This project genus match validator assumes that fields with name/key project and genus were
+    // This validator assumes that fields with name/key project and genus were
     // implemented in the Importer form.
     $expected_field_key = [
       'fld_project' => 'project',
-      'fld_genus' => 'genus'
+      'fld_genus' => 'genus',
     ];
 
     // Failed to locate the project and genus field element.
-    foreach($expected_field_key as $field) {
+    foreach ($expected_field_key as $field) {
       if (!array_key_exists($field, $form_values)) {
         throw new \Exception('Failed to locate ' . $field . ' field element. ProjectGenusMatch validator expects a form field element name ' . $field . '.');
       }
@@ -86,34 +95,31 @@ class ProjectGenusMatch extends TripalCultivatePhenotypesValidatorBase implement
     $valid = TRUE;
     $failed_items = [];
 
-    // Project.
-    $project = trim($form_values[ $expected_field_key['fld_project'] ]);
-    // Genus.
-    $genus = trim($form_values[ $expected_field_key['fld_genus'] ]);
-
+    $project = trim($form_values[$expected_field_key['fld_project']]);
+    $genus = trim($form_values[$expected_field_key['fld_genus']]);
 
     // Determine what was provided to the project field: project id or name.
     if (is_numeric($project)) {
-      // Value is integer. Project id was provided.
+      // Value is integer, thus project id was provided.
       // Test project by looking up the id to retrieve the project name.
       $project_rec = ChadoProjectAutocompleteController::getProjectName((int) $project);
       $project_id = $project;
     }
     else {
-      // Value is string. Project name was provided.
+      // Value is string, thus project name was provided.
       // Test project by looking up the name to retrieve the project id.
       $project_rec = ChadoProjectAutocompleteController::getProjectId($project);
       $project_id = $project_rec;
     }
 
     if ($project_rec <= 0 || empty($project_rec)) {
-      // The project provided whether the name or project id, does not exist.
+      // The project provided, whether the name or project id, does not exist.
       $case = 'Project does not exist';
       $valid = FALSE;
       $failed_items = ['project_provided' => $project];
     }
     else {
-      // Inspect the set genus to the project and see if it matches
+      // Inspect which genus is set to the project and see if it matches
       // the genus provided in the genus field.
       $project_genus = $this->service_PhenoGenusProject->getGenusOfProject($project_id);
 
@@ -136,7 +142,8 @@ class ProjectGenusMatch extends TripalCultivatePhenotypesValidatorBase implement
     return [
       'case' => $case,
       'valid' => $valid,
-      'failedItems' => $failed_items
+      'failedItems' => $failed_items,
     ];
   }
+
 }
