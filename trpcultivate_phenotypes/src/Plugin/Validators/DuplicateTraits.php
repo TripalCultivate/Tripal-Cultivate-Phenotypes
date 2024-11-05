@@ -23,14 +23,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
   /*
-   *   This validator requires the following validator traits:
-   *   - GenusConfigured: Gets a string of the configured genus name
-   *   - ColumnIndices: Gets an associative array with the following keys,
-   *     which are column headers of required columns for the Traits Importer:
-   *     - 'Trait Name': int, the index of the trait name column in $row_values.
-   *     - 'Method Short Name': int, the index of the method name column in
-   *       $row_values.
-   *     - 'Unit': int, the index of the unit column in $row_values.
+   * This validator requires the following validator traits:
+   * - GenusConfigured: Gets a string of the configured genus name.
+   * - ColumnIndices: Gets an associative array with the following keys,
+   *   which are column headers of required columns for the Traits Importer:
+   *   - 'Trait Name': int, the index of the trait name column in $row_values.
+   *   - 'Method Short Name': int, the index of the method name column in
+   *     $row_values.
+   *   - 'Unit': int, the index of the unit column in $row_values.
    */
   use ColumnIndices;
   use GenusConfigured;
