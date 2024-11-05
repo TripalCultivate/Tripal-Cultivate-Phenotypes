@@ -92,7 +92,7 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    * Validates rows within the data file submitted to an importer.
    *
    * @param array $row_values
-   *   An array of values from a single row/line in the file where each element
+   *   An array of values from a single row/line in the file where each value
    *   is a single column.
    *
    * @return array
