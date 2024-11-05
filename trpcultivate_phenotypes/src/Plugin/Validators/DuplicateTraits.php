@@ -81,7 +81,14 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
   /**
    * Constructor.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ChadoConnection $chado_connection, TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology, TripalCultivatePhenotypesTraitsService $service_traits) {
+  public function __construct(
+    array $configuration,
+    $plugin_id,
+    $plugin_definition,
+    ChadoConnection $chado_connection,
+    TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology,
+    TripalCultivatePhenotypesTraitsService $service_traits,
+  ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->chado_connection = $chado_connection;
