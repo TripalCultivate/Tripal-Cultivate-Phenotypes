@@ -21,11 +21,11 @@ class ValidHeaders extends TripalCultivatePhenotypesValidatorBase implements Con
 
   /*
    * This validator requires the following validator traits:
-   * - Headers - getHeaders: get all headers.
-   * - ColumnCount - getExpectedColumns: get the expected number of columns and
-   *   strict comparison flag.
+   * - Headers: get expected headers (getHeaders)
+   * - ColumnCount: get the expected number of columns (getExpectedColumns)
    */
-  use Headers, ColumnCount;
+  use Headers;
+  use ColumnCount;
 
   /**
    * {@inheritdoc}
@@ -40,67 +40,67 @@ class ValidHeaders extends TripalCultivatePhenotypesValidatorBase implements Con
 
   /**
    * Validate the header row.
+   *
    * Checks include:
-   *  - Each header value is a non-empty string.
-   *  - No header is missing.
-   *  - The order of headers defined by the Importer should match the order of headers array.
+   * - Each header value is not empty.
+   * - No expected header is missing.
+   * - The order of headers defined by the Importer should match the input.
    *
    * @param array $headers
-   *   An array of headers created by splitting the first line of the data file into separate values.
-   *   The index of the header represents the order they appear in the line.
+   *   An array created by splitting the first line of the data file into
+   *   values. The index of each value represents the order it appears in.
    *
    * @return array
    *   An associative array with the following keys.
-   *     - case: a developer focused string describing the case checked.
-   *     - valid: either TRUE or FALSE depending on if the header is valid or not.
-   *     - failedItems: the failed headers. This will be an empty array if the header was valid.
+   *   - 'case': a developer focused string describing the case checked.
+   *   - 'valid': TRUE if the header is valid, FALSE otherwise.
+   *   - 'failedItems': an array of items that failed with any of the following
+   *      keys. This is an empty array if the header passed validation.
+   *      - 'headers': A string indicating the header row is empty.
+   *      - the headers input array.
    */
   public function validateRow($headers) {
     $input_headers = $headers;
 
-    // Parameter check, verify that the headers array input is not an empty array.
+    // Parameter check, verify that the headers array input is not empty.
     if (empty($headers)) {
       // Headers array is an empty array.
       return [
         'case' => 'Header row is an empty value',
         'valid' => FALSE,
-        'failedItems' => ['headers' => 'headers array is an empty array']
+        'failedItems' => [
+          'headers' => 'headers array is an empty array',
+        ],
       ];
     }
 
-    // Reference the list of expected headers.
+    // Get the list of expected headers.
     $expected_headers = $this->getHeaders();
 
     foreach ($expected_headers as $header) {
-      // Each header name in the expected headers array will be verified for both
-      // index order and presence in the headers provided. Terminate varification
-      // on the first instance of failed result.
-
-      // Take one item from the headers input and compare it to
-      // the current expected header.
+      // Compare expected headers and input headers. Return a failed
+      // validation status on the first instance of a mismatch.
       $cur_input_header = array_shift($input_headers);
 
       if ($cur_input_header && $header != trim($cur_input_header)) {
         return [
           'case' => 'Headers do not match expected headers',
           'valid' => FALSE,
-          'failedItems' => $headers
+          'failedItems' => $headers,
         ];
       }
     }
 
-    // Reference the expected number of columns and strict comparison flag.
-    $expected_columns =  $this->getExpectedColumns();
+    // Get the expected number of columns and strict comparison flag.
+    $expected_columns = $this->getExpectedColumns();
 
     if ($expected_columns['strict'] && $expected_columns['number_of_columns'] != count($headers)) {
-      // The importer specified a strict requirement for the headers input array
-      // to have a specific number of elements, and this check found more or less
-      // than the required.
-
+      // The importer specified a strict requirement for number of columns in
+      // the input file, but the header has more or less than that amount.
       return [
         'case' => 'Headers provided does not have the expected number of headers',
         'valid' => FALSE,
-        'failedItems' => $headers
+        'failedItems' => $headers,
       ];
     }
 
@@ -108,7 +108,8 @@ class ValidHeaders extends TripalCultivatePhenotypesValidatorBase implements Con
     return [
       'case' => 'Headers exist and match expected headers',
       'valid' => TRUE,
-      'failedItems' => []
+      'failedItems' => [],
     ];
   }
+
 }

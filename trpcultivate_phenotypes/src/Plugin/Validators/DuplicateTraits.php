@@ -121,7 +121,7 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
    *   An associative array with the following keys.
    *   - 'case': a developer-focused string describing the case checked.
    *   - 'valid': TRUE if the trait is unique and FALSE if it already exists.
-   *   - 'failedItems': an array of "items" that failed with the following keys.
+   *   - 'failedItems': an array of items that failed with the following keys.
    *     This is an empty array if the data row input was valid.
    *     - 'combo_provided': The combination of trait, method, and unit provided
    *       in the file. The keys used are the same name of the column header for

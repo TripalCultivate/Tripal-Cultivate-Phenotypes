@@ -48,7 +48,7 @@ class EmptyCell extends TripalCultivatePhenotypesValidatorBase implements Contai
    *   - 'case': a developer focused string describing the case checked.
    *   - 'valid': FALSE if any of the cells being checked are empty and TRUE
    *     otherwise.
-   *   - 'failedItems': an array of "items" that failed with the following keys.
+   *   - 'failedItems': an array of items that failed with the following keys.
    *     This is an empty array if the data row input was valid.
    *     - 'empty_indices': A list of indices in the row which were checked and
    *       found to be empty.
@@ -78,7 +78,7 @@ class EmptyCell extends TripalCultivatePhenotypesValidatorBase implements Contai
         }
       }
     }
-    // Check if empty values were found that should not be empty.
+    // Report if empty values were found that should not be empty.
     if ($empty) {
       $validator_status = [
         'case' => 'Empty value found in required column(s)',
