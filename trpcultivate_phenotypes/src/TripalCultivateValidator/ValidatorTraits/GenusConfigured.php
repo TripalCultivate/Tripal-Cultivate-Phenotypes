@@ -7,49 +7,48 @@ use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntolog
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService;
 
 /**
- * Provides setters focused on configuring a validator to use a specific genus
- * configured to work with TripalCultivate Phenotypes.
+ * Provides setters/getters regarding configuring a specific genus.
  */
 trait GenusConfigured {
 
   /**
-   * An instance of the Genus Ontology service for use in the methods in this
-   * trait.
+   * An instance of the Genus Ontology service.
    *
-   * Services should be injected via depenency injection in your validator class
-   * and then assigned to this variable in your constructor.
+   * Services should be injected via dependency injection in your validator
+   * class and then assigned to this variable in your constructor.
    *
-   * @var TripalCultivatePhenotypesGenusOntologyService
+   * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService
    */
+  // phpcs:ignore
   protected TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology;
 
   /**
-   * Traits Service
+   * An instance of the Traits Service.
    *
-   * @var TripalCultivatePhenotypesTraitsService
+   * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService
    */
+  // phpcs:ignore
   protected TripalCultivatePhenotypesTraitsService $service_PhenoTraits;
 
   /**
    * A Database query interface for querying Chado using Tripal DBX.
    *
-   * @var ChadoConnection
+   * @var Drupal\tripal_chado\Database\ChadoConnection
    */
+  // phpcs:ignore
   protected ChadoConnection $chado_connection;
 
   /**
-   * Sets the genus configured to work with TripalCultivate Phenotypes for
-   * this validator.
+   * Sets the genus configured to work with this module for this validator.
    *
    * @param string $genus
-   *   The genus of a chado.organism record which has configured
-   *   Trait - Method - Unit cvs + dbs.
-   * @return void
+   *   The genus of a chado.organism record which has been configured for
+   *   controlled vocabulary and databases for Trait, Method, and Unit.
    *
    * @throws \Exception
-   *  - If the PhenoGenusOntology service is not accessible
-   *  - If the PhenoTraits service is not accessible
-   *  - If an instance of ChadoConnection is not accessible
+   *   - If the PhenoGenusOntology service is not accessible.
+   *   - If the PhenoTraits service is not accessible.
+   *   - If an instance of ChadoConnection is not accessible.
    */
   public function setConfiguredGenus(string $genus) {
 
@@ -75,26 +74,27 @@ trait GenusConfigured {
       // instead of thrown as an exception and then checked by a validator so
       // that the error can be passed to the user in a friendly way.
       $this->logger->error("The genus '$genus' does not exist in chado and GenusConfigured Trait requires it both exist and be configured to work with phenotypes. The validators using this trait should not be called if previous validators checking for a configured genus fail.");
-    } else {
+    }
+    else {
       $genus_exists = TRUE;
     }
 
-    // Check that the genus is configured + get that configuration while we are at it.
+    // Check that the genus is configured + get that configuration.
     $configuration_values = $this->service_PhenoGenusOntology->getGenusOntologyConfigValues($genus);
-    if (!is_array($configuration_values) OR empty($configuration_values)) {
+    if (!is_array($configuration_values) or empty($configuration_values)) {
       // Since this is a user-provided value, the error is going to be logged
       // instead of thrown as an exception and then checked by a validator so
       // that the error can be passed to the user in a friendly way.
       $this->logger->error("The genus '$genus' is not configured and GenusConfigured Trait requires it both exist and be configured to work with phenotypes. The validators using this trait should not be called if previous validators checking for a configured genus fail.");
     }
     // Only set the context array if we know that both:
-    // - configuration_values exists
-    // - genus exists
-    else if ($genus_exists) {
-      // Set configured values
+    // a) configuration_values exists
+    // b) genus exists.
+    elseif ($genus_exists) {
+      // Set configured values.
       $this->context['genus']['ontology_terms'] = $configuration_values;
 
-      // Set the configured genus
+      // Set the configured genus.
       $this->context['genus']['name'] = $genus;
 
       // Configure the trait service to use this genus.
@@ -103,17 +103,15 @@ trait GenusConfigured {
   }
 
   /**
-   * Returns a genus which has been configured
+   * Returns a genus which has been configured.
    *
    * @return string
-   *   The genus name
+   *   The genus name.
    *
    * @throws \Exception
-   *  - If the 'genus' key does not exist in the context array (ie. the genus has
-   *    NOT been set)
+   *   - If the genus has NOT been set by setConfiguredGenus().
    */
   public function getConfiguredGenus() {
-
     if (array_key_exists('genus', $this->context)) {
       if (array_key_exists('name', $this->context['genus'])) {
         return $this->context['genus']['name'];
@@ -127,19 +125,18 @@ trait GenusConfigured {
   }
 
   /**
-   * Returns the ontology term IDs that have been configured for a genus
+   * Returns the ontology term IDs that have been configured for a genus.
    *
    * @return array
    *   An array of ontology cvterm IDs associated with the following keys:
-   *     trait,
-   *     unit,
-   *     method,
-   *     crop_ontology,
-   *     database
+   *   - trait
+   *   - unit
+   *   - method
+   *   - crop_ontology
+   *   - database
    *
    * @throws \Exception
-   *  - If the 'genus' key does not exist in the context array (ie. the genus has
-   *    NOT been set)
+   *   - If the genus has NOT been set by setConfiguredGenus().
    */
   public function getConfiguredGenusOntologyTerms() {
     if (array_key_exists('genus', $this->context)) {
@@ -148,10 +145,10 @@ trait GenusConfigured {
       }
     }
 
-
     // If we get here we weren't able to retrieve the genus ontology terms.
     // This could be because no genus details at all are set or it could be
     // that the ontology terms are just not set.
     throw new \Exception("Cannot retrieve the ontology terms of the genus as one has not been set by the setConfiguredGenus() method.");
   }
+
 }
