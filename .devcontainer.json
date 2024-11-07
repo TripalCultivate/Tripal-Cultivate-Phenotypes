@@ -91,7 +91,7 @@
         "php.validate.executablePath": "/usr/local/bin/php",
         "php.validate.run": "onType",
         "[php]": {
-          "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+          "editor.defaultFormatter": "valeryanm.vscode-phpsab"
         },
         /* PHP DocBlocker */
         "php-docblocker.gap": true,
