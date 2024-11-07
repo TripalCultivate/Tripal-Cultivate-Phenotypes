@@ -2,15 +2,16 @@
 
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators;
 
-use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
-use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\GenusConfigured;
+use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService;
-use Drupal\tripal_chado\Database\ChadoConnection;
+use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
+use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\GenusConfigured;
 
 /**
- * Fake Validator that does not implement any of it's own methods.
- * Used to test the base class.
+ * Fake Validator that does not implement any of its own methods.
+ *
+ * Used to test the GenusConfigured trait with NO PhenoTraits service.
  *
  * @TripalCultivatePhenotypesValidator(
  * id = "validator_configured_genus_no_service_trait",
@@ -23,25 +24,28 @@ class ValidatorGenusConfiguredNOServiceTraits extends TripalCultivatePhenotypesV
   use GenusConfigured;
 
   /**
-   * An instance of the Genus Ontology service used by the GenusConfigured trait.
+   * An instance of the Genus Ontology service.
    *
-   * @var TripalCultivatePhenotypesGenusOntologyService
+   * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService
    */
+  // phpcs:ignore
   protected TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology;
+
+  /**
+   * An instance of the Traits Service.
+   *
+   * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService
+   */
+  // phpcs:ignore
+  protected TripalCultivatePhenotypesTraitsService $service_PhenoTraits;
 
   /**
    * A Database query interface for querying Chado using Tripal DBX.
    *
-   * @var ChadoConnection
+   * @var Drupal\tripal_chado\Database\ChadoConnection
    */
+  // phpcs:ignore
   protected ChadoConnection $chado_connection;
-
-  /**
-   * Traits Service
-   *
-   * @var TripalCultivatePhenotypesTraitsService
-   */
-  protected TripalCultivatePhenotypesTraitsService $service_PhenoTraits;
 
   /**
    * Constructor.
@@ -67,4 +71,5 @@ class ValidatorGenusConfiguredNOServiceTraits extends TripalCultivatePhenotypesV
       $container->get('trpcultivate_phenotypes.traits')
     );
   }
+
 }

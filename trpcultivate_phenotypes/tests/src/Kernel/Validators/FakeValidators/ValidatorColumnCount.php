@@ -7,7 +7,8 @@ use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\Colu
 
 /**
  * Fake Validator that does not implement any of its own methods.
- * Used to test the base class.
+ *
+ * Used to test the ColumnCount trait.
  *
  * @TripalCultivatePhenotypesValidator(
  *   id = "validator_requiring_column_count",
@@ -20,13 +21,6 @@ class ValidatorColumnCount extends TripalCultivatePhenotypesValidatorBase {
   use ColumnCount;
 
   /**
-   * Constructor.
-   */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-  }
-
-  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
@@ -36,4 +30,5 @@ class ValidatorColumnCount extends TripalCultivatePhenotypesValidatorBase {
       $plugin_definition
     );
   }
+
 }

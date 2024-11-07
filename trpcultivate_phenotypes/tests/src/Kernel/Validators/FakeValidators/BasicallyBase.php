@@ -5,7 +5,8 @@ namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 
 /**
- * Fake Validator that does not implement any of it's own methods.
+ * Fake Validator that does not implement any of its own methods.
+ *
  * Used to test the base class.
  *
  * @TripalCultivatePhenotypesValidator(
