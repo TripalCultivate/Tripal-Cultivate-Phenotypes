@@ -3,44 +3,44 @@
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators;
 
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
-use Drupal\tripal_chado\Database\ChadoConnection;
-use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
 use Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\ValidatorProject;
+use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
+use Drupal\tripal\Services\TripalLogger;
 
- /**
-  * Tests the project validator trait.
-  *
-  * @group trpcultivate_phenotypes
-  * @group validator_traits
-  */
+/**
+ * Tests the project validator trait.
+ *
+ * @group trpcultivate_phenotypes
+ * @group validator_traits
+ */
 class ValidatorTraitProjectTest extends ChadoTestKernelBase {
 
   use PhenotypeImporterTestTrait;
 
   /**
    * Modules to enable.
+   *
+   * @var array
    */
   protected static $modules = [
     'tripal',
     'tripal_chado',
-    'trpcultivate_phenotypes'
+    'trpcultivate_phenotypes',
   ];
 
   /**
    * The validator instance to use for testing.
    *
-   * @var ValidatorProject
+   * @var \Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\ValidatorProject
    */
   protected ValidatorProject $instance;
 
   /**
-   * Test projects with reference to project id and project name
-   * keyed by project_id and name, respectively.
+   * Test projects keyed by project id ('project_id') and project name ('name').
    *
    * @var array
    */
   protected array $test_project;
-
 
   /**
    * {@inheritdoc}
@@ -54,17 +54,18 @@ class ValidatorTraitProjectTest extends ChadoTestKernelBase {
     // Install module configuration.
     $this->installConfig(['trpcultivate_phenotypes']);
 
-    // Create test projects.
     // Test Chado database.
-    // Create a test chado instance and then set it in the container for use by our service.
+    // Create a test chado instance and then set it in the container for use by
+    // our service.
     $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
     $this->container->set('tripal_chado.database', $this->chado_connection);
 
+    // Create test projects.
     $project_name = 'ATP: A Test Project';
     $project_id = $this->chado_connection
       ->insert('1:project')
       ->fields([
-        'name' => $project_name
+        'name' => $project_name,
       ])
       ->execute();
 
@@ -72,7 +73,7 @@ class ValidatorTraitProjectTest extends ChadoTestKernelBase {
 
     $this->test_project = [
       'project_id' => $project_id,
-      'name' => $project_name
+      'name' => $project_name,
     ];
 
     // Create a fake plugin instance for testing.
@@ -91,20 +92,20 @@ class ValidatorTraitProjectTest extends ChadoTestKernelBase {
     );
 
     // We need to mock the logger to test the progress reporting.
-    $mock_logger = $this->getMockBuilder(\Drupal\tripal\Services\TripalLogger::class)
+    $mock_logger = $this->getMockBuilder(TripalLogger::class)
       ->onlyMethods(['notice', 'error'])
       ->getMock();
     $mock_logger->method('notice')
-    ->willReturnCallback(function ($message, $context, $options) {
-      print str_replace(array_keys($context), $context, $message);
-      return NULL;
-    });
+      ->willReturnCallback(function ($message, $context, $options) {
+        print str_replace(array_keys($context), $context, $message);
+        return NULL;
+      });
     $mock_logger->method('error')
-    ->willReturnCallback(function ($message, $context, $options) {
-      print str_replace(array_keys($context), $context, $message);
-      return NULL;
-    });
-    // Finally, use setLogger() for this validator instance
+      ->willReturnCallback(function ($message, $context, $options) {
+        print str_replace(array_keys($context), $context, $message);
+        return NULL;
+      });
+    // Finally, use setLogger() for this validator instance.
     $instance->setLogger($mock_logger);
 
     $this->assertIsObject(
@@ -116,15 +117,15 @@ class ValidatorTraitProjectTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests the Project::setProject() setter and
-   * Project::getProject() getter.
+   * Tests the project setter and getter.
    *
-   * @return void
+   * Specifically,
+   *   - Project::setProject()
+   *   - Project::getProject()
    */
   public function testProjectSetterGetter() {
     // Test getter will trigger an error when attempting to get a project
     // prior to a call to project setter method.
-
     // Exception message when failed to set a project.
     $exception_caught = FALSE;
     $expected_message = 'Cannot retrieve project from the context array as one has not been set by setProject() method.';
@@ -144,9 +145,8 @@ class ValidatorTraitProjectTest extends ChadoTestKernelBase {
       'Expected exception message does not match the message when trying to get unset project.'
     );
 
-    // Test that invalid projects will log an error
-
-    // Not valid project id: 0
+    // Test that invalid projects will log an error.
+    // Not valid project id: 0.
     $printed_output = '';
     $expected_message = 'The Project Trait requires project id number to be a number greater than 0.';
     ob_start();
@@ -164,7 +164,8 @@ class ValidatorTraitProjectTest extends ChadoTestKernelBase {
 
     try {
       $this->instance->getProject();
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -194,7 +195,8 @@ class ValidatorTraitProjectTest extends ChadoTestKernelBase {
 
     try {
       $this->instance->getProject();
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -224,7 +226,8 @@ class ValidatorTraitProjectTest extends ChadoTestKernelBase {
 
     try {
       $this->instance->getProject();
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -254,7 +257,8 @@ class ValidatorTraitProjectTest extends ChadoTestKernelBase {
 
     try {
       $this->instance->getProject();
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -269,7 +273,6 @@ class ValidatorTraitProjectTest extends ChadoTestKernelBase {
     // Test that with an existing project set, the getter will return
     // back the same value using the getter method. The project name or id
     // has been resolved to correct project id and name.
-
     // Valid project by project id (integer):
     $this->instance->setProject($this->test_project['project_id']);
 
@@ -290,4 +293,5 @@ class ValidatorTraitProjectTest extends ChadoTestKernelBase {
       'The set project does not match the project returned by the project getter method.'
     );
   }
+
 }

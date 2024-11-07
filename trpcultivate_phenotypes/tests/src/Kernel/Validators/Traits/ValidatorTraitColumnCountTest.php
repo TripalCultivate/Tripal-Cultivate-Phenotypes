@@ -7,7 +7,7 @@ use Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\Valida
 use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
 
 /**
- * Tests the headers validator trait.
+ * Tests the ColumnCount validator trait.
  *
  * @group trpcultivate_phenotypes
  * @group validator_traits
@@ -71,20 +71,19 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Data provider: provides test data validator expected column and strict comparison.
+   * Data provider: provides scenarios with expected columns.
    *
    * @return array
    *   Each scenario/element is an array with the following values.
-   *
    *   - A string, human-readable short description of the test scenario.
-   *   - Number of expected colum input (first parameter to the setter method).
+   *   - Number of expected column input (first parameter to the setter method).
    *   - Strict condition flag input (second parameter to the setter method).
    *   - Expected values set:
-   *    - number_of_columns: the number of columns to expect.
-   *    - strict: strict comparison flag.
+   *     - number_of_columns: the number of columns to expect.
+   *     - strict: strict comparison flag.
    *   - Expected exception message for both setter and getter:
-   *    - setter: setter exception message.
-   *    - getter: getter exception message.
+   *     - setter: setter exception message.
+   *     - getter: getter exception message.
    */
   public function provideExpectedColumnsForSetter() {
     return [
@@ -118,8 +117,7 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Test getter method to get expected columns before calling
-   * the setter method first.
+   * Test getter to get expected columns before calling the setter first.
    */
   public function testGetExpectedColumns() {
 

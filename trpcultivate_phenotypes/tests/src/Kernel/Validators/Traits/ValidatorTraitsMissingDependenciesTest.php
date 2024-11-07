@@ -3,11 +3,7 @@
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators;
 
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
-use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
-use Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\ValidatorGenusConfiguredNOConnection;
-use Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\ValidatorGenusConfiguredNOServiceGenusontology;
-use Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\ValidatorGenusConfiguredNOServiceTraits;
 
 /**
  * Tests the GenusConfigured validator trait.
@@ -21,13 +17,15 @@ class ValidatorTraitsMissingDependenciesTest extends ChadoTestKernelBase {
 
   /**
    * Modules to enable.
+   *
+   * @var array
    */
   protected static $modules = [
     'file',
     'user',
     'tripal',
     'tripal_chado',
-    'trpcultivate_phenotypes'
+    'trpcultivate_phenotypes',
   ];
 
   /**
@@ -43,7 +41,8 @@ class ValidatorTraitsMissingDependenciesTest extends ChadoTestKernelBase {
     $this->installConfig(['trpcultivate_phenotypes']);
 
     // Test Chado database.
-    // Create a test chado instance and then set it in the container for use by our service.
+    // Create a test chado instance and then set it in the container for use by
+    // our service.
     $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
     $this->container->set('tripal_chado.database', $this->chado_connection);
   }
@@ -52,12 +51,13 @@ class ValidatorTraitsMissingDependenciesTest extends ChadoTestKernelBase {
    * DATA PROVIDER: provides fake validators to be tested for bad configuration.
    *
    * @return array
-   *   Returns an array of senarios where each one has a 'case', 'validator_defn',
-   *   and 'expected_message'. Specifically.
-   *     - case: a short senario description for the assert fail messages.
-   *     - validator_defn: the plugin definition to use when creating the validator.
-   *       Must include 'id', 'validator_name', 'input_types', 'class'.
-   *     - expected_message: the exception message expected when trying to set
+   *   Returns an array of scenarios where each one has a 'case',
+   *   'validator_defn', and 'expected_message'. Specifically:
+   *     - 'case': a short scenario description for the assert fail messages.
+   *     - 'validator_defn': the plugin definition to use when creating the
+   *       validator. Must include the following keys:
+   *       - 'id', 'validator_name', 'input_types', 'class'.
+   *     - 'expected_message': the exception message expected when trying to set
    *       the genus for a badly configured validator.
    */
   public function provideBadlyConfiguredValidators() {
@@ -99,25 +99,28 @@ class ValidatorTraitsMissingDependenciesTest extends ChadoTestKernelBase {
     return $senarios;
   }
 
-/**
- * Tests the GenusConfigured::setConfiguredGenus() setter
- *       and GenusConfigured::getConfiguredGenus() getter
- *
- * @dataProvider provideBadlyConfiguredValidators
- *
- * @param string $case
- *   A short senario description for the assert fail messages.
- * @param array $validator_defn
- *   The plugin definition to use when creating the validator.
- *   Must include
- *    - id: the fake validator id in the annotation
- *    - validator_name: the name of the validator in the annotation
- *    - input_types: an array of input-types this fake validator supports
- *    - class: the name of the class this fake validator is in with full namespace.
- * @param string $expected_message
- *   The exception message expected when trying to set the genus for a badly
- *   configured validator.
- */
+  /**
+   * Tests the GenusConfigured setter and getter.
+   *
+   * Specifically,
+   *   - setConfiguredGenus()
+   *   - getConfiguredGenus()
+   *
+   * @param string $case
+   *   A short scenario description for the assert fail messages.
+   * @param array $validator_defn
+   *   The plugin definition to use when creating the validator.
+   *   Must include the following keys:
+   *    - 'id': the fake validator id in the annotation
+   *    - 'validator_name': the name of the validator in the annotation
+   *    - 'input_types': an array of input-types this fake validator supports
+   *    - 'class': the full namespace of the class this fake validator is in.
+   * @param string $expected_message
+   *   The exception message expected when trying to set the genus for a badly
+   *   configured validator.
+   *
+   * @dataProvider provideBadlyConfiguredValidators
+   */
   public function testConfiguredGenusBadlyConfigured($case, $validator_defn, $expected_message) {
 
     // Create a fake plugin instance for testing.
@@ -144,7 +147,8 @@ class ValidatorTraitsMissingDependenciesTest extends ChadoTestKernelBase {
     $exception_message = 'NONE';
     try {
       $instance->setConfiguredGenus('Tripalus');
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -158,4 +162,5 @@ class ValidatorTraitsMissingDependenciesTest extends ChadoTestKernelBase {
       "The exception thrown does not have the message we expected for a '$case'."
     );
   }
+
 }
