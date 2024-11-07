@@ -122,7 +122,7 @@
       	"phpsab.executablePathCS": "/var/www/drupal/vendor/bin/phpcs",
       	"phpsab.fixerEnable": true,
       	"phpsab.executablePathCBF": "/var/www/drupal/vendor/bin/phpcbf",
-      	"phpsab.standard": "Drupal,DrupalPractice",
+      	"phpsab.standard": "/var/www/drupal/web/modules/contrib/TripalCultivate/.codingstandards.xml",
       	"phpsab.snifferMode": "onType",
       	"phpsab.debug": false,
       	"phpsab.fixerArguments": [
