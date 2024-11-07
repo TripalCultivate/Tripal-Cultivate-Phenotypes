@@ -8,7 +8,7 @@ use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
 use Drupal\tripal\Services\TripalLogger;
 
 /**
- * Tests the file types validator trait.
+ * Tests the FileTypes validator trait.
  *
  * @group trpcultivate_phenotypes
  * @group validator_traits

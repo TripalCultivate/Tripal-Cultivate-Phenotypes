@@ -7,7 +7,7 @@ use Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\Valida
 use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
 
 /**
- * Tests the headers validator trait.
+ * Tests the Headers validator trait.
  *
  * @group trpcultivate_phenotypes
  * @group validator_traits

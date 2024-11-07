@@ -8,7 +8,7 @@ use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
 use Drupal\tripal\Services\TripalLogger;
 
 /**
- * Tests the project validator trait.
+ * Tests the Project validator trait.
  *
  * @group trpcultivate_phenotypes
  * @group validator_traits
