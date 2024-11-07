@@ -3,33 +3,35 @@
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators;
 
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
-use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
 use Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\ValidatorColumnCount;
+use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
 
- /**
-  * Tests the headers validator trait.
-  *
-  * @group trpcultivate_phenotypes
-  * @group validator_traits
-  */
+/**
+ * Tests the headers validator trait.
+ *
+ * @group trpcultivate_phenotypes
+ * @group validator_traits
+ */
 class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
 
   use PhenotypeImporterTestTrait;
 
   /**
    * Modules to enable.
+   *
+   * @var array
    */
   protected static $modules = [
     'user',
     'tripal',
     'tripal_chado',
-    'trpcultivate_phenotypes'
+    'trpcultivate_phenotypes',
   ];
 
   /**
    * The validator instance to use for testing.
    *
-   * @var ValidatorColumnCount
+   * @var \Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\ValidatorColumnCount
    */
   protected ValidatorColumnCount $instance;
 
@@ -94,8 +96,8 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
         NULL,
         [
           'setter' => 'setExpectedColumns() in validator requires an integer value greater than zero.',
-          'getter' => 'Cannot retrieve the number of expected columns as one has not been set by setExpectedColumns().'
-        ]
+          'getter' => 'Cannot retrieve the number of expected columns as one has not been set by setExpectedColumns().',
+        ],
       ],
 
       // #1: A valid number.
@@ -105,12 +107,12 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
         TRUE,
         [
           'number_of_columns' => 10,
-          'strict' => TRUE
+          'strict' => TRUE,
         ],
         [
           'setter' => '',
-          'getter' => ''
-        ]
+          'getter' => '',
+        ],
       ],
     ];
   }
@@ -126,7 +128,8 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
 
     try {
       $this->instance->getExpectedColumns();
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -152,7 +155,8 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
 
     try {
       $this->instance->setExpectedColumns($column_numbers_input, $strict_input);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -170,7 +174,8 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
 
     try {
       $validator_config = $this->instance->getExpectedColumns();
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -187,4 +192,5 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
       'The values set do not match the expected values in scenario ' . $scenario
     );
   }
+
 }
