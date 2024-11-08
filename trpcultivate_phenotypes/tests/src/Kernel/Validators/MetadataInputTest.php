@@ -41,7 +41,7 @@ class MetadataInputTest extends ChadoTestKernelBase {
    * - 'project-with-configgenus': a project paired with a configured genus.
    * - 'project-with-genus': a project paired with a non-configured genus.
    * - 'project-genus-not-tru-service': a project paired with a configured genus
-   *   without using the project-genus service.
+   *   without using the genus_project service.
    * - 'just-project': a project record not paired to a genus.
    *
    * @var array

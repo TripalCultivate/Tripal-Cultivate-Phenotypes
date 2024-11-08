@@ -1,33 +1,37 @@
 <?php
+
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators;
 
-use Drupal\tripal_chado\Database\ChadoConnection;
-use Drupal\tripal\Services\TripalLogger;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\BasicallyBase;
+use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
+use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorManager;
 
- /**
-  * Tests Tripal Cultivate Phenotypes Validator Base functions
-  *
-  * @group trpcultivate_phenotypes
-  * @group validators
-  */
+/**
+ * Tests Tripal Cultivate Phenotypes Validator Base functions.
+ *
+ * @group trpcultivate_phenotypes
+ * @group validators
+ */
 class ValidatorBaseTest extends ChadoTestKernelBase {
+
   /**
-   * Plugin Manager service.
+   * The Validators plugin manager for creating new validator instances.
+   *
+   * @var \Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorManager
    */
-  protected $plugin_manager;
+  protected TripalCultivatePhenotypesValidatorManager $plugin_manager;
 
   /**
    * A Database query interface for querying Chado using Tripal DBX.
    *
-   * @var ChadoConnection
+   * @var \Drupal\tripal_chado\Database\ChadoConnection
    */
   protected ChadoConnection $chado_connection;
 
   /**
-   * Configuration
+   * Configuration.
    *
    * @var config_entity
    */
@@ -35,13 +39,15 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
 
   /**
    * Modules to enable.
+   *
+   * @var array
    */
   protected static $modules = [
     'file',
     'user',
     'tripal',
     'tripal_chado',
-    'trpcultivate_phenotypes'
+    'trpcultivate_phenotypes',
   ];
 
   /**
@@ -58,7 +64,8 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
     $this->config = \Drupal::configFactory()->getEditable('trpcultivate_phenotypes.settings');
 
     // Test Chado database.
-    // Create a test chado instance and then set it in the container for use by our service.
+    // Create a test chado instance and then set it in the container for use by
+    // our service.
     $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
     $this->container->set('tripal_chado.database', $this->chado_connection);
 
@@ -67,7 +74,7 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Test the checkIndices() function in the Validator Base class
+   * Test the checkIndices() function in the Validator Base class.
    */
   public function testValidatorBaseCheckIndices() {
 
@@ -84,22 +91,23 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
       "Unable to create fake_basically_base validator instance to test the base class."
     );
 
-    // Simulates a row within the Trait Importer
+    // Simulates a row within the Trait Importer.
     $file_row = [
       'My trait',
       'My trait description',
       'My method',
       'My method description',
       'My unit',
-      'Qualitative'
+      'Qualitative',
     ];
 
-    // Provide a valid list of indices
-    $indices = [ 0, 1, 2, 3, 4, 5 ];
+    // Provide a valid list of indices.
+    $indices = [0, 1, 2, 3, 4, 5];
     $exception_caught = FALSE;
     try {
       $instance->checkIndices($file_row, $indices);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
     }
     $this->assertFalse($exception_caught, 'Caught an exception from checkIndices() in spite of valid indices being provided.');
@@ -111,31 +119,31 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
     try {
       $instance->checkIndices($file_row, $indices);
     }
-    catch ( \Exception $e ) {
+    catch (\Exception $e) {
       $exception_caught = TRUE;
     }
     $this->assertTrue($exception_caught, 'Did not catch exception that should have occurred due to passing in an empty array of indices.');
     $this->assertStringContainsString('An empty indices array was provided.', $e->getMessage(), "Did not get the expected exception message when providing an empty array of indices.");
 
-    // Provide too many indices
+    // Provide too many indices.
     $indices = [0, 1, 2, 3, 4, 5, 6, 7];
     $exception_caught = FALSE;
     try {
       $instance->checkIndices($file_row, $indices);
     }
-    catch ( \Exception $e ) {
+    catch (\Exception $e) {
       $exception_caught = TRUE;
     }
     $this->assertTrue($exception_caught, 'Did not catch exception that should have occurred due to passing in too many indices compared to number of cells in the row.');
     $this->assertStringContainsString('Too many indices were provided (8) compared to the number of cells in the provided row (6)', $e->getMessage(), "Did not get the expected exception message when providing 8 indices compared to 6 values.");
 
-    // Provide invalid indices
+    // Provide invalid indices.
     $indices = [1, -4, 77];
     $exception_caught = FALSE;
     try {
       $instance->checkIndices($file_row, $indices);
     }
-    catch ( \Exception $e ) {
+    catch (\Exception $e) {
       $exception_caught = TRUE;
     }
     $this->assertTrue($exception_caught, 'Did not catch exception that should have occurred due to passing in invalid indices.');
@@ -143,7 +151,10 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Test the basic getters: getValidatorName() and getConfigAllowNew().
+   * Test the basic getters.
+   *
+   * - getValidatorName()
+   * - getConfigAllowNew()
    */
   public function testBasicValidatorGetters() {
 
@@ -177,8 +188,10 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Test the input type focused getters: getSupportedInputTypes()
-   * + checkInputTypeSupported().
+   * Test the input type focused getters.
+   *
+   * - getSupportedInputTypes()
+   * - checkInputTypeSupported()
    */
   public function testInputTypeValidatorGetters() {
 
@@ -196,7 +209,7 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
     );
 
     // Check that we can get the supported input types for this validator.
-    // NOTE: use assertEqualsCanonicalizing so that order of arrays does NOT matter.
+    // NOTE: assertEqualsCanonicalizing ensures order of arrays does NOT matter.
     $expected_input_types = ['data-row', 'header-row'];
     $returned_input_types = $instance->getSupportedInputTypes();
     $this->assertEqualsCanonicalizing($expected_input_types, $returned_input_types,
@@ -223,10 +236,14 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Test the validate methods: validateMetadata(), validateFile(),
-   * validateRawRow(), validateRow(), validate().
+   * Test the validate methods.
    *
-   * NOTE: These should all thrown an exception in the base class.
+   * - validateMetadata()
+   * - validateFile()
+   * - validateRawRow()
+   * - validateRow()
+   *
+   * NOTE: These should all throw an exception in the base class.
    */
   public function testValidatorValidateMethods() {
 
@@ -271,7 +288,8 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
       $filename = 'public://does_not_exist.txt';
       $fid = 123;
       $instance->validateFile($filename, $fid);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -292,7 +310,8 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
       $row_values = ['col1', 'col2', 'col3', 'col4', 'col5'];
       $row_string = implode("\t", $row_values);
       $instance->validateRawRow($row_string);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -312,7 +331,8 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
     try {
       $row_values = ['col1', 'col2', 'col3', 'col4', 'col5'];
       $instance->validateRow($row_values);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -328,96 +348,47 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
   }
 
   /**
-   * DATA PROVIDER: tests the split row by providing mime type to delimiter options.
+   * Data Provider: provides mime types/delimiters to splitRowIntoColumns().
    *
    * @return array
    *   Each test scenario is an array with the following values.
-   *
    *   - Mime type input.
    *   - Expected delimiter associated to the mime type provided.
    */
   public function provideMimeTypeDelimiters() {
     $sets = [];
 
+    // #0
     $sets[] = [
       'text/tab-separated-values',
       "\t",
     ];
 
+    // #1
     $sets[] = [
       'text/csv',
-      ','
+      ',',
     ];
 
-    /* Not currently supported as multiple delimiters match this mime-type
+    /* Not currently supported since multiple delimiters match this mime-type
+    // #2
     $sets[] = [
-      'text/plain',
-      ','
+    'text/plain',
+    ','
     ];
-    */
+     */
 
     return $sets;
   }
 
   /**
-   * Data Provider: provide test data (mime types) to file delimiter getter method.
+   * Tests splitRowIntoColumns().
    *
-   * @return array
-   *   Each test scenario is an array with the following values.
-   *
-   *   - A string, human-readable short description of the test scenario.
-   *   - A string, mime type input.
-   *   - Boolean value, indicates if the scenario is expecting an exception thrown (TRUE) or not (FALSE).
-   *   - The expected exception message thrown by the getter method on failed request.
-   *   - The expected delimiter returned.
-   */
-  public function provideMimeTypesForFileDelimiterGetter() {
-    return [
-      [
-        'test empty string mime type input',
-        '',
-        TRUE,
-        'The getFileDelimiters() getter requires a string of the input file\'s mime-type and must not be empty.',
-        FALSE
-      ],
-      [
-        'test tab-separated values mime type (tsv)',
-        'text/tab-separated-values',
-        FALSE,
-        '',
-        ["\t"]
-      ],
-      [
-        'test comma-separated values mime type (csv)',
-        'text/csv',
-        FALSE,
-        '',
-        [',']
-      ],
-      [
-        'test tab-separated values mime type (txt)',
-        'text/plain',
-        FALSE,
-        '',
-        ["\t", ',']
-      ],
-      [
-        'test unsupported mime types (docx)',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        TRUE,
-        'Cannot retrieve file delimiters for the mime-type provided: application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        FALSE
-      ]
-    ];
-  }
-
-  /**
-   * Test line or row split method.
-   *
-   * @param $expected_mime_type
+   * @param string $expected_mime_type
    *   Mime type input to the split row method.
-   * @param $expected_delimiter
-   *   The delimiter associated to the mime type in the mime type - delimiter mapping array.
+   * @param string $expected_delimiter
+   *   The expected delimiter that is associated to the mime type according to
+   *   the mime type - delimiter mapping array.
    *
    * @dataProvider provideMimeTypeDelimiters
    */
@@ -437,22 +408,28 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
     );
 
     // Create a data row.
-    // This line captures data values with single/double quotes and leading/trailing spaces.
-    $good_line = $raw_line = ['Value A', 'Value "B"', 'Value \'C\'', 'Value D ', ' Value E', ' Value F ', ' Value G           '];
+    // This line captures data values with quotes and leading/trailing spaces.
+    $good_line = $raw_line = [
+      'Value A',
+      'Value "B"',
+      'Value \'C\'',
+      'Value D ',
+      ' Value E',
+      ' Value F ',
+      ' Value G           ',
+    ];
     // Sanitize the values so that the expected split values would be:
     // Value A, Value B, Value C, Value D, Value E, Value F and Value G.
-    foreach($good_line as &$l) {
-      $l = trim(str_replace(['"','\''], '', $l));
+    foreach ($good_line as &$l) {
+      $l = trim(str_replace(['"', '\''], '', $l));
     }
 
-    // At this point line is sanitized and sparkling*
-
+    // At this point our line is sanitized and *sparkling*.
     // Test:
     // 1. Failed to specify a delimiter.
     // 2. Test that delimiter could not split the line.
     // 3. Line values and split values match.
     // 4. Some other delimiter.
-
     // Unsupported mime type and thus unknown delimiter.
     $delimiter = '~';
     $str_line = implode($delimiter, $raw_line);
@@ -502,22 +479,82 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
   }
 
   /**
+   * Data Provider: provide test data (mime types) to getFileDelimiters().
+   *
+   * @return array
+   *   Each test scenario is an array with the following values:
+   *   - A string, human-readable short description of the test scenario.
+   *   - A string, mime type input.
+   *   - Boolean value, indicates if scenario is expecting an exception (TRUE)
+   *     or not (FALSE).
+   *   - The expected exception message thrown by getFileDelimtiers() on failed
+   *     request.
+   *   - The expected delimiter returned.
+   */
+  public function provideMimeTypesForFileDelimiterGetter() {
+    return [
+      // #0
+      [
+        'test empty string mime type input',
+        '',
+        TRUE,
+        'The getFileDelimiters() getter requires a string of the input file\'s mime-type and must not be empty.',
+        FALSE,
+      ],
+      // #1
+      [
+        'test tab-separated values mime type (tsv)',
+        'text/tab-separated-values',
+        FALSE,
+        '',
+        ["\t"],
+      ],
+      // #2
+      [
+        'test comma-separated values mime type (csv)',
+        'text/csv',
+        FALSE,
+        '',
+        [','],
+      ],
+      // #3
+      [
+        'test tab-separated values mime type (txt)',
+        'text/plain',
+        FALSE,
+        '',
+        ["\t", ','],
+      ],
+      // #4
+      [
+        'test unsupported mime types (docx)',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        TRUE,
+        'Cannot retrieve file delimiters for the mime-type provided: application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        FALSE,
+      ],
+    ];
+  }
+
+  /**
    * Test validator base file delimiter getter method.
    *
-   * @param $scenario
+   * @param string $scenario
    *   Human-readable text description of the test scenario.
-   * @param $mime_type_input
+   * @param string $mime_type_input
    *   Mime type input.
-   * @param $has_exception
-   *   Indicates if the test scenario will throw an exception (TRUE) or not (FALSE).
-   * @param $exception_message
-   *   The exception message if the test scenario is expected to throw an exception.
-   * @param $expected
-   *   The returned file delimiter.
+   * @param bool $has_exception
+   *   Indicates if the test scenario is expected to throw an exception (TRUE)
+   *   or not (FALSE).
+   * @param string $exception_message
+   *   The expected exception message if the test scenario is expected to throw
+   *   an exception.
+   * @param array|false $expected
+   *   The expected returned file delimiter, false if none expected.
    *
    * @dataProvider provideMimeTypesForFileDelimiterGetter
    */
-  public function testFileDelimiterGetter($scenario, $mime_type_input, $has_exception, $exception_message, $expected) {
+  public function testFileDelimiterGetter(string $scenario, string $mime_type_input, bool $has_exception, string $exception_message, array|false $expected) {
 
     $exception_caught = FALSE;
     $exception_get_message = '';
@@ -567,7 +604,8 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
     $exception_message = '';
     try {
       $instance->splitRowIntoColumns($str_line, $expected_mime_type);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -581,10 +619,10 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests the ValidatorBase::setLogger() setter
-   *       and ValidatorBase::getLogger() getter
+   * Tests the Tripal Logger setter and getter.
    *
-   * @return void
+   * - ValidatorBase::setLogger()
+   * - ValidatorBase::getLogger()
    */
   public function testTripalLoggerGetterSetter() {
     $configuration = [];
@@ -601,13 +639,14 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
     );
 
     // Try to get the logger before it has been set
-    // Exception message should trigger
+    // Exception message should trigger.
     $expected_message = 'Cannot retrieve the Tripal Logger property as one has not been set for this validator using the setLogger() method.';
     $exception_caught = FALSE;
     $exception_message = 'NONE';
     try {
       $instance->getLogger();
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -625,7 +664,8 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
     $exception_caught = FALSE;
     try {
       $instance->setLogger($my_logger);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -634,12 +674,13 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
       "Calling setLogger() with a valid TripalLogger object should not have thrown an exception but it threw '$exception_message'"
     );
 
-    // Now make sure we can get the logger that was set
+    // Now make sure we can get the logger that was set.
     $grabbed_logger = NULL;
     $exception_caught = FALSE;
     try {
       $grabbed_logger = $instance->getLogger();
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -653,4 +694,5 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
       'Could not grab the TripalLogger object using getLogger() despite having called setLogger() on it.'
     );
   }
+
 }
