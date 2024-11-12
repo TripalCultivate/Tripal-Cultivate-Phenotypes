@@ -31,7 +31,6 @@ class ValidDataFile extends TripalCultivatePhenotypesValidatorBase implements Co
    *
    * @var Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  // phpcs:ignore
   protected EntityTypeManagerInterface $service_EntityTypeManager;
 
   /**

@@ -28,7 +28,6 @@ class ValidatorGenusConfiguredNOServiceTraits extends TripalCultivatePhenotypesV
    *
    * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService
    */
-  // phpcs:ignore
   protected TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology;
 
   /**
@@ -36,7 +35,6 @@ class ValidatorGenusConfiguredNOServiceTraits extends TripalCultivatePhenotypesV
    *
    * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService
    */
-  // phpcs:ignore
   protected TripalCultivatePhenotypesTraitsService $service_PhenoTraits;
 
   /**
@@ -44,7 +42,6 @@ class ValidatorGenusConfiguredNOServiceTraits extends TripalCultivatePhenotypesV
    *
    * @var Drupal\tripal_chado\Database\ChadoConnection
    */
-  // phpcs:ignore
   protected ChadoConnection $chado_connection;
 
   /**

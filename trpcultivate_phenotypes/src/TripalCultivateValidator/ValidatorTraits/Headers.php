@@ -11,7 +11,6 @@ trait Headers {
    *
    * @var string
    */
-  // phpcs:ignore
   private string $context_key = 'headers';
 
   /**

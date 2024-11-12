@@ -24,7 +24,6 @@ class ProjectGenusMatch extends TripalCultivatePhenotypesValidatorBase implement
    *
    * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusProjectService TripalCultivatePhenotypesGenusProjectService
    */
-  // phpcs:ignore
   protected TripalCultivatePhenotypesGenusProjectService $service_PhenoGenusProject;
 
   /**

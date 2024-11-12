@@ -38,6 +38,7 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
   /**
    * Keeps tracks of already validated trait + method + unit combinations.
    *
+   * @var array
    * A nested array of already validated values forming the unique trait name +
    *   method name + unit combinations that have been encountered by this
    *   validator so far within the input file. More specifically,
@@ -48,7 +49,6 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
    *   NOTE: All capital words are intended to be replaced by the actual full
    *   name of the term.
    */
-  // phpcs:ignore
   protected $unique_traits = [];
 
   /**
@@ -59,7 +59,6 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
    *
    * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService
    */
-  // phpcs:ignore
   protected TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology;
 
   /**
@@ -67,7 +66,6 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
    *
    * @var Drupal\tripal_chado\Database\ChadoConnection
    */
-  // phpcs:ignore
   protected ChadoConnection $chado_connection;
 
   /**
@@ -75,7 +73,6 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
    *
    * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService
    */
-  // phpcs:ignore
   protected TripalCultivatePhenotypesTraitsService $service_PhenoTraits;
 
   /**

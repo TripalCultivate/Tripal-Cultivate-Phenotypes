@@ -36,7 +36,6 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
    *
    * @var array
    */
-  // phpcs:ignore
   public static array $mime_to_delimiter_mapping = [
     'text/tab-separated-values' => ["\t"],
     'text/csv' => [','],

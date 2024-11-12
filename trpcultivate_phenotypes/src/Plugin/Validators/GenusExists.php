@@ -24,7 +24,6 @@ class GenusExists extends TripalCultivatePhenotypesValidatorBase implements Cont
    *
    * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService
    */
-  // phpcs:ignore
   protected TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology;
 
   /**
@@ -32,7 +31,6 @@ class GenusExists extends TripalCultivatePhenotypesValidatorBase implements Cont
    *
    * @var Drupal\tripal_chado\Database\ChadoConnection
    */
-  // phpcs:ignore
   protected ChadoConnection $chado_connection;
 
   /**

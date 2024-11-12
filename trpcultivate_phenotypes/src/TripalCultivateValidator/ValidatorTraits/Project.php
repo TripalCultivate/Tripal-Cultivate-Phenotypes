@@ -13,7 +13,6 @@ trait Project {
    *
    * @var string
    */
-  // phpcs:ignore
   private string $context_key = 'project';
 
   /**

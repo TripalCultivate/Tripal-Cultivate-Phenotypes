@@ -16,7 +16,6 @@ trait FileTypes {
    *
    * @var array
    */
-  // phpcs:ignore
   public static array $extension_to_mime_mapping = [
     'tsv' => ['text/tab-separated-values'],
     'csv' => ['text/csv'],

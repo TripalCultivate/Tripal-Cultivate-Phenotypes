@@ -19,7 +19,6 @@ trait GenusConfigured {
    *
    * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService
    */
-  // phpcs:ignore
   protected TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology;
 
   /**
@@ -27,7 +26,6 @@ trait GenusConfigured {
    *
    * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService
    */
-  // phpcs:ignore
   protected TripalCultivatePhenotypesTraitsService $service_PhenoTraits;
 
   /**
@@ -35,7 +33,6 @@ trait GenusConfigured {
    *
    * @var Drupal\tripal_chado\Database\ChadoConnection
    */
-  // phpcs:ignore
   protected ChadoConnection $chado_connection;
 
   /**
