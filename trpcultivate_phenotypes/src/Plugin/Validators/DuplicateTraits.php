@@ -23,7 +23,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
   /*
-   * This validator requires the following validator traits:
+   * Validator Traits required by this validator.
+   *
    * - GenusConfigured: Gets a string of the configured genus name.
    * - ColumnIndices: Gets an associative array with the following keys,
    *   which are column headers of required columns for the Traits Importer:

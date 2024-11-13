@@ -19,7 +19,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class EmptyCell extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
   /*
-   * This validator requires the following validator traits:
+   * Validator Traits required by this validator.
+   *
    * - ColumnIndices: Gets an array of indices corresponding to the cells in
    *   $row_values to validate.
    */

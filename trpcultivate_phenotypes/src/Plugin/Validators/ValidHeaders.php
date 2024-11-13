@@ -19,8 +19,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class ValidHeaders extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
-  /*
-   * This validator requires the following validator traits:
+  /* Validator Traits required by this validator.
+   *
    * - Headers: get expected headers (getHeaders)
    * - ColumnCount: get the expected number of columns (getExpectedColumns)
    */

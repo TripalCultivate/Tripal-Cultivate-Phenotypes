@@ -20,7 +20,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class ValueInList extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
   /*
-   * This validator requires the following validator traits:
+   * Validator Traits required by this validator.
+   *
    * - ColumnIndices: Gets an array of indices corresponding to the cells in
    *   $row_values to validate.
    * - ValidValues: Gets an array of values that are allowed within the cell(s)
