@@ -53,7 +53,7 @@ class ValidDelimitedFile extends TripalCultivatePhenotypesValidatorBase implemen
    *
    * @return array
    *   An associative array with the following keys.
-   *   - 'case': a developer focused string describing the case checked.
+   *   - 'case': a developer-focused string describing the case checked.
    *   - 'valid': TRUE if the raw row is properly delimited, FALSE otherwise.
    *   - 'failedItems': an array of items that failed with any of the following
    *      keys. This is an empty array if row is properly delimited.

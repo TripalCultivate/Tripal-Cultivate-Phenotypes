@@ -79,7 +79,7 @@ class ValidDataFile extends TripalCultivatePhenotypesValidatorBase implements Co
    *
    * @return array
    *   An associative array with the following keys.
-   *   - 'case': a developer focused string describing the case checked.
+   *   - 'case': a developer-focused string describing the case checked.
    *   - 'valid': TRUE if the file passes validity checks, FALSE otherwise.
    *   - 'failedItems': an array of items that failed with any of the following
    *      keys. This is an empty array if the data row input was valid.

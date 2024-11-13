@@ -50,7 +50,7 @@ class ValueInList extends TripalCultivatePhenotypesValidatorBase implements Cont
    *
    * @return array
    *   An associative array with the following keys.
-   *   - 'case': a developer focused string describing the case checked.
+   *   - 'case': a developer-focused string describing the case checked.
    *   - 'valid': FALSE if any of the cells being checked contain a value not in
    *     the configured list of approved values and TRUE otherwise.
    *   - 'failedItems': an array of "items" that failed. This is an empty array

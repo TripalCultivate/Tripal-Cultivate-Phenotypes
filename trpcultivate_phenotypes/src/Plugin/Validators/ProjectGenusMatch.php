@@ -67,7 +67,7 @@ class ProjectGenusMatch extends TripalCultivatePhenotypesValidatorBase implement
    *
    * @return array
    *   An associative array with the following keys.
-   *   - 'case': a developer focused string describing the case checked.
+   *   - 'case': a developer-focused string describing the case checked.
    *   - 'valid': TRUE if the project+genus value is valid, FALSE otherwise.
    *   - 'failedItems': an array of items that failed with one or more of the
    *     following keys. This is an empty array if the metadata input was valid.

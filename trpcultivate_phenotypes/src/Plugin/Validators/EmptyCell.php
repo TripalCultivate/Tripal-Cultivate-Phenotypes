@@ -46,7 +46,7 @@ class EmptyCell extends TripalCultivatePhenotypesValidatorBase implements Contai
    *
    * @return array
    *   An associative array with the following keys.
-   *   - 'case': a developer focused string describing the case checked.
+   *   - 'case': a developer-focused string describing the case checked.
    *   - 'valid': FALSE if any of the cells being checked are empty and TRUE
    *     otherwise.
    *   - 'failedItems': an array of items that failed with the following keys.

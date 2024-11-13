@@ -42,7 +42,7 @@ class ProjectExists extends TripalCultivatePhenotypesValidatorBase implements Co
    *
    * @return array
    *   An associative array with the following keys.
-   *   - 'case': a developer focused string describing the case checked.
+   *   - 'case': a developer-focused string describing the case checked.
    *   - 'valid': TRUE if the provided project exists, FALSE otherwise.
    *   - 'failedItems': an array of items that failed with the following keys.
    *     This is an empty array if the metadata input was valid.
