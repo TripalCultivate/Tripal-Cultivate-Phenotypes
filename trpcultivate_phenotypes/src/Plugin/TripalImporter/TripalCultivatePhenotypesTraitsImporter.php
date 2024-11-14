@@ -4,6 +4,7 @@ namespace Drupal\trpcultivate_phenotypes\Plugin\TripalImporter;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\file\Entity\File;
+use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\tripal_chado\TripalImporter\ChadoImporterBase;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService;
@@ -88,6 +89,13 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   ];
 
   /**
+   * A Database query interface for querying Chado using Tripal DBX.
+   *
+   * @var Drupal\tripal_chado\Database\ChadoConnection
+   */
+  protected ChadoConnection $chado_connection;
+
+  /**
    * Genus Ontology service.
    *
    * @var \Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService
@@ -109,35 +117,48 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   private $validation_result = 'validation_result';
 
   /**
-   * Injection of services through setter methods.
+   * Constructs the traits importer.
    *
-   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
    * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
    * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
    * @param mixed $plugin_definition
-   *
-   * @return static
+   *   The plugin implementation definition.
+   * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
+   *   The connection to the Chado database.
+   * @param \Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology
+   *   The genus ontology service.
+   * @param \Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService $service_PhenoTraits
+   *   The traits service.
+   */
+  public function __construct(
+    array $configuration,
+    string $plugin_id,
+    mixed $plugin_definition,
+    ChadoConnection $chado_connection,
+    TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology,
+    TripalCultivatePhenotypesTraitsService $service_PhenoTraits,
+  ) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $chado_connection);
+
+    // Call service setter method to set the service.
+    $this->setServiceGenusOntology($service_PhenoGenusOntology);
+    $this->setServiceTraits($service_PhenoTraits);
+  }
+
+  /**
+   * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    // Service genus ontology.
-    $service_PhenoGenusOntology = $container->get('trpcultivate_phenotypes.genus_ontology');
-    // Service traits.
-    $service_PhenoTraits = $container->get('trpcultivate_phenotypes.traits');
-
-    $instance = new static(
+    return new static(
       $configuration,
       $plugin_id,
       $plugin_definition,
       $container->get('tripal_chado.database'),
-      $service_PhenoGenusOntology,
-      $service_PhenoTraits
+      $container->get('trpcultivate_phenotypes.genus_ontology'),
+      $container->get('trpcultivate_phenotypes.traits'),
     );
-
-    // Call service setter method to set the service.
-    $instance->setServiceGenusOntology($service_PhenoGenusOntology);
-    $instance->setServiceTraits($service_PhenoTraits);
-
-    return $instance;
   }
 
   /**
@@ -788,22 +809,22 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   }
 
   /**
-   * Set genus ontology configuration service.
+   * Set phenotype genus ontology configuration service.
    *
-   * @param $service
-   *   Service as created/injected through create method.
+   * @param Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService $service
+   *   The PhenoGenoOntology service as created/injected through create method.
    */
-  public function setServiceGenusOntology($service) {
+  public function setServiceGenusOntology(TripalCultivatePhenotypesGenusOntologyService $service) {
     if ($service) {
       $this->service_PhenoGenusOntology = $service;
     }
   }
 
   /**
-   * Set traits service.
+   * Set phenotype traits service.
    *
-   * @param $service
-   *   Service as created/injected through create method.
+   * @param \Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService $service
+   *   The PhenoTraits service as created/injected through create method.
    */
   public function setServiceTraits($service) {
     if ($service) {
