@@ -15,8 +15,8 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
    *
    * An associative array containing the needed context, which is dependant
    * on the validator. For example, instead of validating each cell by default,
-   * a validator may need a list of indices which correspond to the columns in
-   * the row for which the validator should act on. This might look like:
+   * a validator may need a list of indices corresponding to the columns in
+   * the row that the validator should act on. This might look like:
    * $context['indices'] => [1,3,5]
    */
   protected array $context = [];

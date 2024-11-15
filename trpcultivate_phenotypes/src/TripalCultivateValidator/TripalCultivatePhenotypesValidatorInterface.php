@@ -82,9 +82,9 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    *     is valid then this is not required but could be 'data verified'.
    *   - 'valid': a boolean indicating the data is valid (TRUE) or not (FALSE).
    *   - 'failedItems': an array of the items that failed validation.
-   *     For example, if this validator checks a specific set of form elements,
-   *     then this array should be keyed by the form element key and the value
-   *     matches what was provided by the user input in form_values.
+   *     For example, if this validator checks a file's MIME type and extension,
+   *     then this array should contain a key indicating what failed, and the
+   *     resulting value from checking its mime-type/extension.
    */
   public function validateFile(string $filename, int $fid);
 
@@ -102,10 +102,12 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    *     (i.e. no record in chado matching project name). If the data is
    *     is valid then this is not required but could be 'data verified'.
    *   - 'valid': a boolean indicating the data is valid (TRUE) or not (FALSE).
-   *   - 'failedItems': an array of the items that failed validation.
-   *     For example, if this validator checks a specific set of form elements,
-   *     then this array should be keyed by the form element key and the value
-   *     matches what was provided by the user input in form_values.
+   *   - 'failedItems': an array of the items that failed validation. For
+   *     example, if this validator validates that a number of indices are not
+   *     empty, then this will be an array of indices that were empty. Another
+   *     example is if this validator checks that a number of indices have
+   *     values in a specific list, then this array would use the index as the
+   *     key and the value the column actually had, for each failed column.
    */
   public function validateRow(array $row_values);
 
@@ -136,11 +138,9 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    *     is valid then this is not required but could be 'data verified'.
    *   - 'valid': a boolean indicating the data is valid (TRUE) or not (FALSE).
    *   - 'failedItems': an array of the items that failed validation. For
-   *     example, if this validator validates that a number of indices are not
-   *     empty, then this will be an array of indices that were empty. Another
-   *     example is if this validator checks that a number of indices have
-   *     values in a specific list, then this array would use the index as the
-   *     key and the value the column actually had, for each failed column.
+   *     example, if this validator checks if a row in the input file is
+   *     properly delimited, then this array could be keyed by the line number
+   *     and the value contains the raw input line in the file.
    */
   public function validateRawRow(string $raw_row);
 

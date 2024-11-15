@@ -65,9 +65,9 @@ class ValidHeaders extends TripalCultivatePhenotypesValidatorBase {
     // Get the list of expected headers.
     $expected_headers = $this->getHeaders();
 
+    // Compare expected headers and input headers. Return a failed
+    // validation status on the first instance of a mismatch.
     foreach ($expected_headers as $header) {
-      // Compare expected headers and input headers. Return a failed
-      // validation status on the first instance of a mismatch.
       $cur_input_header = array_shift($input_headers);
 
       if ($cur_input_header && $header != trim($cur_input_header)) {
