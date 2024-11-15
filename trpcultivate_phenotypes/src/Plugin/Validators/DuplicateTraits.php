@@ -22,7 +22,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
-  /*
+  /**
    * Validator Traits required by this validator.
    *
    * - GenusConfigured: Gets a string of the configured genus name.

@@ -19,7 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class ValidDataFile extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
-  /*
+  /**
    * Validator Traits required by this validator.
    *
    * - FileTypes: Gets an array of all supported MIME types the importer is

@@ -19,7 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class ValidDelimitedFile extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
-  /*
+  /**
    * Validator Traits required by this validator.
    *
    * - FileTypes: get the MIME type of the input file (getFileMimeType)

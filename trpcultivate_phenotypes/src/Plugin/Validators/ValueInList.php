@@ -19,7 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class ValueInList extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
 
-  /*
+  /**
    * Validator Traits required by this validator.
    *
    * - ColumnIndices: Gets an array of indices corresponding to the cells in
