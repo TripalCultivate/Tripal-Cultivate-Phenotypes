@@ -44,7 +44,6 @@ class ValidatorTraitsMissingDependenciesTest extends ChadoTestKernelBase {
     // Create a test chado instance and then set it in the container for use by
     // our service.
     $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
-    $this->container->set('tripal_chado.database', $this->chado_connection);
   }
 
   /**
