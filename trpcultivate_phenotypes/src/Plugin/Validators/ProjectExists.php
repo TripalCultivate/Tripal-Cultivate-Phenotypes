@@ -2,10 +2,8 @@
 
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\tripal_chado\Controller\ChadoProjectAutocompleteController;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Validate that project exists.
@@ -16,18 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   input_types = {"metadata"}
  * )
  */
-class ProjectExists extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-    );
-  }
+class ProjectExists extends TripalCultivatePhenotypesValidatorBase {
 
   /**
    * Validate that project provided exists.

@@ -2,11 +2,9 @@
 
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ColumnCount;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\FileTypes;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Validate that a line in a data file is properly delimited.
@@ -17,7 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   input_types = {"raw-row"}
  * )
  */
-class ValidDelimitedFile extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
+class ValidDelimitedFile extends TripalCultivatePhenotypesValidatorBase {
 
   /**
    * Validator Traits required by this validator.
@@ -27,17 +25,6 @@ class ValidDelimitedFile extends TripalCultivatePhenotypesValidatorBase implemen
    */
   use FileTypes;
   use ColumnCount;
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-    );
-  }
 
   /**
    * Perform validation of a raw row in a data file.

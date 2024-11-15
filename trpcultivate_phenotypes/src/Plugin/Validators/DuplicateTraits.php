@@ -53,6 +53,13 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
   protected $unique_traits = [];
 
   /**
+   * A Database query interface for querying Chado using Tripal DBX.
+   *
+   * @var Drupal\tripal_chado\Database\ChadoConnection
+   */
+  protected ChadoConnection $chado_connection;
+
+  /**
    * An instance of the Genus Ontology service.
    *
    * Services should be injected via dependency injection in your validator
@@ -63,13 +70,6 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
   protected TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology;
 
   /**
-   * A Database query interface for querying Chado using Tripal DBX.
-   *
-   * @var Drupal\tripal_chado\Database\ChadoConnection
-   */
-  protected ChadoConnection $chado_connection;
-
-  /**
    * An instance of the Traits Service.
    *
    * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService
@@ -77,7 +77,20 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
   protected TripalCultivatePhenotypesTraitsService $service_PhenoTraits;
 
   /**
-   * Constructor.
+   * Constructs an instance of the Duplicate Traits validator.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
+   *   The connection to the Chado database.
+   * @param \Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology
+   *   The genus ontology service.
+   * @param \Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService $service_PhenoTraits
+   *   The traits service.
    */
   public function __construct(
     array $configuration,
@@ -85,13 +98,13 @@ class DuplicateTraits extends TripalCultivatePhenotypesValidatorBase implements 
     $plugin_definition,
     ChadoConnection $chado_connection,
     TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology,
-    TripalCultivatePhenotypesTraitsService $service_traits,
+    TripalCultivatePhenotypesTraitsService $service_PhenoTraits,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->chado_connection = $chado_connection;
     $this->service_PhenoGenusOntology = $service_PhenoGenusOntology;
-    $this->service_PhenoTraits = $service_traits;
+    $this->service_PhenoTraits = $service_PhenoTraits;
   }
 
   /**

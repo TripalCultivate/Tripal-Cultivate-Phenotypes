@@ -2,11 +2,9 @@
 
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ColumnCount;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\Headers;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Validate that all expected column headers exist.
@@ -17,7 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   input_types = {"header-row"}
  * )
  */
-class ValidHeaders extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
+class ValidHeaders extends TripalCultivatePhenotypesValidatorBase {
 
   /**
    * Validator Traits required by this validator.
@@ -27,17 +25,6 @@ class ValidHeaders extends TripalCultivatePhenotypesValidatorBase implements Con
    */
   use Headers;
   use ColumnCount;
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-    );
-  }
 
   /**
    * Validate the header row.

@@ -2,10 +2,8 @@
 
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ColumnIndices;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Validate empty cells of an importer.
@@ -16,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   input_types = {"header-row", "data-row"},
  * )
  */
-class EmptyCell extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
+class EmptyCell extends TripalCultivatePhenotypesValidatorBase {
 
   /**
    * Validator Traits required by this validator.
@@ -25,17 +23,6 @@ class EmptyCell extends TripalCultivatePhenotypesValidatorBase implements Contai
    *   $row_values to validate.
    */
   use ColumnIndices;
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition
-    );
-  }
 
   /**
    * Validate the values within the cells of this row.

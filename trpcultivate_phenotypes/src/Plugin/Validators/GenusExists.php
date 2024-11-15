@@ -34,19 +34,30 @@ class GenusExists extends TripalCultivatePhenotypesValidatorBase implements Cont
   protected ChadoConnection $chado_connection;
 
   /**
-   * Constructor.
+   * Constructs an instance of the Genus Exists validator.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
+   *   The connection to the Chado database.
+   * @param \Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology
+   *   The genus ontology service.
    */
   public function __construct(
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    TripalCultivatePhenotypesGenusOntologyService $service_genus_ontology,
     ChadoConnection $chado_connection,
+    TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
-    $this->service_PhenoGenusOntology = $service_genus_ontology;
     $this->chado_connection = $chado_connection;
+    $this->service_PhenoGenusOntology = $service_PhenoGenusOntology;
   }
 
   /**
@@ -57,8 +68,8 @@ class GenusExists extends TripalCultivatePhenotypesValidatorBase implements Cont
       $configuration,
       $plugin_id,
       $plugin_definition,
+      $container->get('tripal_chado.database'),
       $container->get('trpcultivate_phenotypes.genus_ontology'),
-      $container->get('tripal_chado.database')
     );
   }
 

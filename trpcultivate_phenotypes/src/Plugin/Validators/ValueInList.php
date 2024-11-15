@@ -2,11 +2,9 @@
 
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ColumnIndices;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\ValidValues;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Validate that column only contains a set list of values.
@@ -17,7 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   input_types = {"header-row", "data-row"},
  * )
  */
-class ValueInList extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
+class ValueInList extends TripalCultivatePhenotypesValidatorBase {
 
   /**
    * Validator Traits required by this validator.
@@ -29,17 +27,6 @@ class ValueInList extends TripalCultivatePhenotypesValidatorBase implements Cont
    */
   use ColumnIndices;
   use ValidValues;
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition
-    );
-  }
 
   /**
    * Validate the values within the cells of this row.

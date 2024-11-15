@@ -35,18 +35,27 @@ class ValidDataFile extends TripalCultivatePhenotypesValidatorBase implements Co
   protected EntityTypeManagerInterface $service_EntityTypeManager;
 
   /**
-   * Constructor.
+   * Constructs an instance of the ValidDataFile validator.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param Drupal\Core\Entity\EntityTypeManagerInterface $service_EntityTypeManager
+   *   The entity type manager service.
    */
   public function __construct(
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    EntityTypeManagerInterface $entity_type_manager,
+    EntityTypeManagerInterface $service_EntityTypeManager,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     // Set the Entity type manager service.
-    $this->service_EntityTypeManager = $entity_type_manager;
+    $this->service_EntityTypeManager = $service_EntityTypeManager;
   }
 
   /**
