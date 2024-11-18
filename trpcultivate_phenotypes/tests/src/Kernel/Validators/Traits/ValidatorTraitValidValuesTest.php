@@ -5,41 +5,43 @@ namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\ValidatorValidValues;
 
- /**
-  * Tests the ValidValues validator trait.
-  *
-  * @group trpcultivate_phenotypes
-  * @group validator_traits
-  */
+/**
+ * Tests the ValidValues validator trait.
+ *
+ * @group trpcultivate_phenotypes
+ * @group validator_traits
+ */
 class ValidatorTraitValidValuesTest extends ChadoTestKernelBase {
 
   /**
    * Modules to enable.
+   *
+   * @var array
    */
   protected static $modules = [
     'file',
     'user',
     'tripal',
     'tripal_chado',
-    'trpcultivate_phenotypes'
+    'trpcultivate_phenotypes',
   ];
 
   /**
    * The validator instance to use for testing.
    *
-   * @var ValidatorValidValues
+   * @var \Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\ValidatorValidValues
    */
   protected ValidatorValidValues $instance;
 
   /**
-   * An array of values which are invalid
+   * An array of values which are invalid.
    *
    * @var array
    */
   protected array $invalid_values;
 
   /**
-   * An array of values which are valid
+   * An array of values which are valid.
    *
    * @var array
    */
@@ -57,22 +59,22 @@ class ValidatorTraitValidValuesTest extends ChadoTestKernelBase {
     // Install module configuration.
     $this->installConfig(['trpcultivate_phenotypes']);
 
-    // Create a new object for the purpose of testing
+    // Create a new object for the purpose of testing.
     $my_array = ['key' => 'value'];
     $my_object = (object) $my_array;
 
-    // Setup our invalid values array
+    // Setup our invalid values array.
     $invalid_values = [
-      [ 1, 2, [ 3, 4, 5] ],
-      [ 1, $my_object, 3 ],
-      [ 0.5, -7.3, 6.6 ]
+      [1, 2, [3, 4, 5]],
+      [1, $my_object, 3],
+      [0.5, -7.3, 6.6],
     ];
     $this->invalid_values = $invalid_values;
 
-    // Setup our valid values array
+    // Setup our valid values array.
     $valid_values = [
-      [ 1, 2, 3 ],
-      ['Trait', 'Method', 'Unit']
+      [1, 2, 3],
+      ['Trait', 'Method', 'Unit'],
     ];
     $this->valid_values = $valid_values;
 
@@ -98,15 +100,16 @@ class ValidatorTraitValidValuesTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests the ValidValues::setValidValues() setter
-   *   and the ValidValues::getValidValues() getter
+   * Tests the ValidValues setter and getter.
    *
-   * @return void
+   * Specifically,
+   *   - setValidValues()
+   *   - getValidValues()
    */
   public function testValidValuesSetterGetter() {
 
     // Try to get valid values before any have been set
-    // Exception message should trigger
+    // Exception message should trigger.
     $expected_message = 'Cannot retrieve an array of valid values as one has not been set by the setValidValues() method.';
 
     $exception_caught = FALSE;
@@ -127,7 +130,7 @@ class ValidatorTraitValidValuesTest extends ChadoTestKernelBase {
     );
 
     // Try to set an empty array of valid values
-    // Exception message should trigger
+    // Exception message should trigger.
     $empty_values = [];
     $expected_message = 'The ValidValues Trait requires a non-empty array to set valid values.';
 
@@ -148,8 +151,8 @@ class ValidatorTraitValidValuesTest extends ChadoTestKernelBase {
     );
 
     // Try to set a multi-dimensional array (only 1-dimensional allowed)
-    // Exception message should trigger
-    foreach($this->invalid_values as $values) {
+    // Exception message should trigger.
+    foreach ($this->invalid_values as $values) {
       $expected_message = 'The ValidValues Trait requires a one-dimensional array with values that are of type integer or string only.';
 
       $exception_caught = FALSE;
@@ -170,8 +173,8 @@ class ValidatorTraitValidValuesTest extends ChadoTestKernelBase {
       );
     }
 
-    // Set arrays of valid values and then check that they've been set
-    foreach($this->valid_values as $values) {
+    // Set arrays of valid values and then check that they've been set.
+    foreach ($this->valid_values as $values) {
       $exception_caught = FALSE;
       $exception_message = 'NONE';
       try {
@@ -186,7 +189,7 @@ class ValidatorTraitValidValuesTest extends ChadoTestKernelBase {
         "Calling setValidValues() with a valid array of values should not have thrown an exception but it threw '$exception_message'"
       );
 
-      // Check that we can get the values we just set
+      // Check that we can get the values we just set.
       $grabbed_values = $this->instance->getValidValues();
       $this->assertEquals(
         $values,
@@ -195,4 +198,5 @@ class ValidatorTraitValidValuesTest extends ChadoTestKernelBase {
       );
     }
   }
+
 }

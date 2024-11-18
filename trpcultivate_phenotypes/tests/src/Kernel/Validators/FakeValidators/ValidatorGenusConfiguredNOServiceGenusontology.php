@@ -2,15 +2,16 @@
 
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators;
 
-use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
-use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\GenusConfigured;
+use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService;
-use Drupal\tripal_chado\Database\ChadoConnection;
+use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
+use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\GenusConfigured;
 
 /**
- * Fake Validator that does not implement any of it's own methods.
- * Used to test the base class.
+ * Fake Validator that does not implement any of its own methods.
+ *
+ * Used to test the GenusConfigured trait with NO PhenoGenusOntology service.
  *
  * @TripalCultivatePhenotypesValidator(
  * id = "validator_configured_genus_no_service_genusontology",
@@ -23,28 +24,41 @@ class ValidatorGenusConfiguredNOServiceGenusontology extends TripalCultivatePhen
   use GenusConfigured;
 
   /**
-   * An instance of the Genus Ontology service used by the GenusConfigured trait.
+   * An instance of the Genus Ontology service.
    *
-   * @var TripalCultivatePhenotypesGenusOntologyService
+   * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService
    */
   protected TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology;
 
   /**
-   * A Database query interface for querying Chado using Tripal DBX.
+   * An instance of the Traits Service.
    *
-   * @var ChadoConnection
-   */
-  protected ChadoConnection $chado_connection;
-
-  /**
-   * Traits Service
-   *
-   * @var TripalCultivatePhenotypesTraitsService
+   * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService
    */
   protected TripalCultivatePhenotypesTraitsService $service_PhenoTraits;
 
   /**
-   * Constructor.
+   * A Database query interface for querying Chado using Tripal DBX.
+   *
+   * @var Drupal\tripal_chado\Database\ChadoConnection
+   */
+  protected ChadoConnection $chado_connection;
+
+  /**
+   * Constructs an instance of the fake "GenusConfigured" validator.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param Drupal\tripal_chado\Database\ChadoConnection $chado_connection
+   *   The connection to the Chado database.
+   * @param \Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology
+   *   The genus ontology service.
+   * @param \Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService $service_PhenoTraits
+   *   The traits service.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, ChadoConnection $chado_connection, TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology, TripalCultivatePhenotypesTraitsService $service_PhenoTraits) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -62,9 +76,10 @@ class ValidatorGenusConfiguredNOServiceGenusontology extends TripalCultivatePhen
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('tripal_chado.databse'),
+      $container->get('tripal_chado.database'),
       $container->get('trpcultivate_phenotypes.genus_ontology'),
       $container->get('trpcultivate_phenotypes.traits')
     );
   }
+
 }

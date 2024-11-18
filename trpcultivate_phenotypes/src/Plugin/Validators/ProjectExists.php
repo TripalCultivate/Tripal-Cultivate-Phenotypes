@@ -1,16 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains validator plugin definition.
- */
-
 namespace Drupal\trpcultivate_phenotypes\Plugin\Validators;
 
-use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 use Drupal\tripal_chado\Controller\ChadoProjectAutocompleteController;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 
 /**
  * Validate that project exists.
@@ -21,31 +14,14 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   input_types = {"metadata"}
  * )
  */
-class ProjectExists extends TripalCultivatePhenotypesValidatorBase implements ContainerFactoryPluginInterface {
-
-  /**
-   * Constructor.
-   */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition){
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-    );
-  }
+class ProjectExists extends TripalCultivatePhenotypesValidatorBase {
 
   /**
    * Validate that project provided exists.
    *
    * @param array $form_values
-   *   The values entered to any form field elements implemented by the importer.
+   *   An array of values from the submitted form where each key maps to a form
+   *   element and the value is what the user entered.
    *   Each form element value can be accessed using the field element key
    *   ie. field name/key project - $form_values['project'].
    *
@@ -53,13 +29,18 @@ class ProjectExists extends TripalCultivatePhenotypesValidatorBase implements Co
    *
    * @return array
    *   An associative array with the following keys.
-   *     - case: a developer focused string describing the case checked.
-   *     - valid: either TRUE or FALSE depending on if the project value existed or not.
-   *     - failedItems: an array of "items" that failed to be used in the message to the user. This is an empty array if the metadata input was valid.
+   *   - 'case': a developer-focused string describing the case checked.
+   *   - 'valid': TRUE if the provided project exists, FALSE otherwise.
+   *   - 'failedItems': an array of items that failed with the following keys.
+   *     This is an empty array if the metadata input was valid.
+   *     - 'project_provided': The name of the project provided.
+   *
+   * @throws \Exception
+   *   - If the 'project' key does not exist in $form_values.
    */
   public function validateMetadata(array $form_values) {
-    // This project exists validator assumes that a field with name/key project was
-    // implemented in the Importer form.
+    // This validator assumes that a field with name/key project was implemented
+    // in the Importer form.
     $expected_field_key = 'project';
 
     // Failed to locate the project field element.
@@ -67,22 +48,21 @@ class ProjectExists extends TripalCultivatePhenotypesValidatorBase implements Co
       throw new \Exception('Failed to locate project field element. ProjectExists validator expects a form field element name project.');
     }
 
-    // Validator response values for a valid project value (exists).
+    // Validator response values for a valid project value.
     $case = 'Project exists';
     $valid = TRUE;
     $failed_items = [];
 
-    // Project.
-    $project = trim($form_values[ $expected_field_key ]);
+    $project = trim($form_values[$expected_field_key]);
 
     // Determine what was provided to the project field: project id or name.
     if (is_numeric($project)) {
-      // Value is integer. Project id was provided.
+      // Value is integer, thus project id was provided.
       // Test project by looking up the id to retrieve the project name.
       $project_rec = ChadoProjectAutocompleteController::getProjectName((int) $project);
     }
     else {
-      // Value is string. Project name was provided.
+      // Value is string, thus project name was provided.
       // Test project by looking up the name to retrieve the project id.
       $project_rec = ChadoProjectAutocompleteController::getProjectId($project);
     }
@@ -97,7 +77,8 @@ class ProjectExists extends TripalCultivatePhenotypesValidatorBase implements Co
     return [
       'case' => $case,
       'valid' => $valid,
-      'failedItems' => $failed_items
+      'failedItems' => $failed_items,
     ];
   }
+
 }

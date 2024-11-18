@@ -1,31 +1,36 @@
 <?php
+
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators;
 
-use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
+use Drupal\tripal_chado\Database\ChadoConnection;
+use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorManager;
 
 /**
- * Tests the Value In List validator
+ * Tests the Value In List validator.
  *
  * @group trpcultivate_phenotypes
  * @group validators
  * @group row_validators
  */
 class ValidatorValueInListTest extends ChadoTestKernelBase {
+
   /**
-   * Plugin Manager service.
+   * The Validators plugin manager for creating new validator instances.
+   *
+   * @var \Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorManager
    */
-  protected $plugin_manager;
+  protected TripalCultivatePhenotypesValidatorManager $plugin_manager;
 
   /**
    * A Database query interface for querying Chado using Tripal DBX.
    *
-   * @var ChadoConnection
+   * @var \Drupal\tripal_chado\Database\ChadoConnection
    */
   protected ChadoConnection $chado_connection;
 
   /**
-   * Configuration
+   * Configuration.
    *
    * @var config_entity
    */
@@ -33,13 +38,15 @@ class ValidatorValueInListTest extends ChadoTestKernelBase {
 
   /**
    * Modules to enable.
+   *
+   * @var array
    */
   protected static $modules = [
     'file',
     'user',
     'tripal',
     'tripal_chado',
-    'trpcultivate_phenotypes'
+    'trpcultivate_phenotypes',
   ];
 
   /**
@@ -56,7 +63,8 @@ class ValidatorValueInListTest extends ChadoTestKernelBase {
     $this->config = \Drupal::configFactory()->getEditable('trpcultivate_phenotypes.settings');
 
     // Test Chado database.
-    // Create a test chado instance and then set it in the container for use by our service.
+    // Create a test chado instance and then set it in the container for use by
+    // our service.
     $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
     $this->container->set('tripal_chado.database', $this->chado_connection);
 
@@ -69,25 +77,25 @@ class ValidatorValueInListTest extends ChadoTestKernelBase {
    */
   public function testValidatorValueInList() {
 
-    // Create a plugin instance for this validator
+    // Create a plugin instance for this validator.
     $validator_id = 'value_in_list';
     $instance = $this->plugin_manager->createInstance($validator_id);
 
-    // Simulates a row within the Trait Importer
+    // Simulates a row within the Trait Importer.
     $file_row = [
       'My trait',
       'My trait description',
       'My method',
       'My method description',
       'My unit',
-      'Quantitative'
+      'Quantitative',
     ];
 
-    // Case #1: Check for a valid value in a single column
+    // Case #1: Check for a valid value in a single column.
     $expected_valid = TRUE;
     $expected_case = 'Values in required column(s) are valid';
-    $indices = [ 5 ];
-    $valid_values = [ 'Qualitative', 'Quantitative' ];
+    $indices = [5];
+    $valid_values = ['Qualitative', 'Quantitative'];
     $expected_failedItems = [];
     $instance->setIndices($indices);
     $instance->setValidValues($valid_values);
@@ -108,12 +116,12 @@ class ValidatorValueInListTest extends ChadoTestKernelBase {
       "Value in list validation failed items was expected to be empty since validation passed."
     );
 
-    // Case #2: Check for an invalid value in a single column
+    // Case #2: Check for an invalid value in a single column.
     $expected_valid = FALSE;
     $expected_case = 'Invalid value(s) in required column(s)';
-    $indices = [ 2 ];
-    $valid_values = [ 'Qualitative', 'Quantitative' ];
-    $expected_failedItems = [ 2 => 'My method' ];
+    $indices = [2];
+    $valid_values = ['Qualitative', 'Quantitative'];
+    $expected_failedItems = [2 => 'My method'];
     $instance->setIndices($indices);
     $instance->setValidValues($valid_values);
     $validation_status = $instance->validateRow($file_row);
@@ -133,11 +141,11 @@ class ValidatorValueInListTest extends ChadoTestKernelBase {
       "Value in list validation failed items was expected to contain one item since validation failed."
     );
 
-    // Case #3: Check for a valid value in multiple columns
+    // Case #3: Check for a valid value in multiple columns.
     $expected_valid = TRUE;
     $expected_case = 'Values in required column(s) are valid';
-    $indices = [ 0, 2, 4 ];
-    $valid_values = [ 'My trait', 'My method', 'My unit' ];
+    $indices = [0, 2, 4];
+    $valid_values = ['My trait', 'My method', 'My unit'];
     $expected_failedItems = [];
     $instance->setIndices($indices);
     $instance->setValidValues($valid_values);
@@ -157,12 +165,12 @@ class ValidatorValueInListTest extends ChadoTestKernelBase {
       "Value in list validation failed items was expected to be empty since validation passed."
     );
 
-    // Case #4: Check for 1 column with a valid value, 1 with invalid value
+    // Case #4: Check for 1 column with a valid value, 1 with invalid value.
     $expected_valid = FALSE;
     $expected_case = 'Invalid value(s) in required column(s)';
-    $indices = [ 0, 3 ];
-    $valid_values = [ 'My trait description', 'My method description' ];
-    $expected_failedItems = [ 0 => 'My trait' ];
+    $indices = [0, 3];
+    $valid_values = ['My trait description', 'My method description'];
+    $expected_failedItems = [0 => 'My trait'];
     $instance->setIndices($indices);
     $instance->setValidValues($valid_values);
     $validation_status = $instance->validateRow($file_row);
@@ -182,15 +190,14 @@ class ValidatorValueInListTest extends ChadoTestKernelBase {
       "Value in list validation failed items was expected to contain one item since validation failed."
     );
 
-
-    // Case #5: Check for 1 column that has the wrong case compared to the valid values
+    // Case #5: Check for 1 column with lower case compared to the valid values.
     $expected_valid = FALSE;
     $expected_case = 'Invalid value(s) in required column(s) with >=1 case insensitive match';
-    $indices = [ 1 ];
-    $valid_values = [ 'My Trait Description' ];
+    $indices = [1];
+    $valid_values = ['My Trait Description'];
     $instance->setIndices($indices);
     $instance->setValidValues($valid_values);
-    $expected_failedItems = [ 1 => 'My trait description' ];
+    $expected_failedItems = [1 => 'My trait description'];
     $validation_status = $instance->validateRow($file_row);
     $this->assertSame(
       $expected_valid,
@@ -208,4 +215,5 @@ class ValidatorValueInListTest extends ChadoTestKernelBase {
       "Value in list validation failed items was expected to contain one item since validation failed."
     );
   }
+
 }

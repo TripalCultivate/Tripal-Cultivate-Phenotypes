@@ -3,47 +3,51 @@
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators;
 
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
-use Drupal\tripal_chado\Database\ChadoConnection;
-use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
 use Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\ValidatorGenusConfigured;
+use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
+use Drupal\tripal\Services\TripalLogger;
+use Drupal\tripal_chado\Database\ChadoConnection;
 
- /**
-  * Tests the GenusConfigured validator trait.
-  *
-  * @group trpcultivate_phenotypes
-  * @group validator_traits
-  */
+/**
+ * Tests the GenusConfigured validator trait.
+ *
+ * @group trpcultivate_phenotypes
+ * @group validator_traits
+ */
 class ValidatorTraitGenusConfiguredTest extends ChadoTestKernelBase {
 
   use PhenotypeImporterTestTrait;
 
   /**
    * Modules to enable.
+   *
+   * @var array
    */
   protected static $modules = [
     'file',
     'user',
     'tripal',
     'tripal_chado',
-    'trpcultivate_phenotypes'
+    'trpcultivate_phenotypes',
   ];
 
   /**
    * A Database query interface for querying Chado using Tripal DBX.
    *
-   * @var ChadoConnection
+   * @var \Drupal\tripal_chado\Database\ChadoConnection
    */
   protected ChadoConnection $chado_connection;
 
   /**
    * The validator instance to use for testing.
    *
-   * @var ValidatorGenusConfigured
+   * @var \Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators\FakeValidators\ValidatorGenusConfigured
    */
   protected ValidatorGenusConfigured $instance;
 
   /**
    * The ontology terms that have been configured for our genus.
+   *
    * NOTE: These will be created in setup.
    *
    * @var array
@@ -77,16 +81,16 @@ class ValidatorTraitGenusConfiguredTest extends ChadoTestKernelBase {
     $this->installConfig(['trpcultivate_phenotypes']);
 
     // Test Chado database.
-    // Create a test chado instance and then set it in the container for use by our service.
+    // Create a test chado instance and then set it in the container for use by
+    // our service.
     $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
-    $this->container->set('tripal_chado.database', $this->chado_connection);
 
     // Configure the module.
     $organism_id = $this->chado_connection->insert('1:organism')
-    ->fields([
-      'genus' => $this->configured_genus,
-      'species' => uniqid(),
-    ])
+      ->fields([
+        'genus' => $this->configured_genus,
+        'species' => uniqid(),
+      ])
       ->execute();
     $this->assertIsNumeric(
       $organism_id,
@@ -97,10 +101,10 @@ class ValidatorTraitGenusConfiguredTest extends ChadoTestKernelBase {
 
     // Create another organism but DONT configure this genus.
     $organism_id = $this->chado_connection->insert('1:organism')
-    ->fields([
-      'genus' => $this->existing_genus,
-      'species' => uniqid(),
-    ])
+      ->fields([
+        'genus' => $this->existing_genus,
+        'species' => uniqid(),
+      ])
       ->execute();
     $this->assertIsNumeric(
       $organism_id,
@@ -125,20 +129,20 @@ class ValidatorTraitGenusConfiguredTest extends ChadoTestKernelBase {
     );
 
     // We need to mock the logger to test the progress reporting.
-    $mock_logger = $this->getMockBuilder(\Drupal\tripal\Services\TripalLogger::class)
+    $mock_logger = $this->getMockBuilder(TripalLogger::class)
       ->onlyMethods(['notice', 'error'])
       ->getMock();
     $mock_logger->method('notice')
-    ->willReturnCallback(function ($message, $context, $options) {
-      print str_replace(array_keys($context), $context, $message);
-      return NULL;
-    });
+      ->willReturnCallback(function ($message, $context, $options) {
+        print str_replace(array_keys($context), $context, $message);
+        return NULL;
+      });
     $mock_logger->method('error')
-    ->willReturnCallback(function ($message, $context, $options) {
-      print str_replace(array_keys($context), $context, $message);
-      return NULL;
-    });
-    // Finally, use setLogger() for this validator instance
+      ->willReturnCallback(function ($message, $context, $options) {
+        print str_replace(array_keys($context), $context, $message);
+        return NULL;
+      });
+    // Finally, use setLogger() for this validator instance.
     $instance->setLogger($mock_logger);
 
     $this->assertIsObject(
@@ -150,10 +154,11 @@ class ValidatorTraitGenusConfiguredTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests the GenusConfigured::setConfiguredGenus() setter
-   *       and GenusConfigured::getConfiguredGenus() getter
+   * Tests the GenusConfigured setter and getter.
    *
-   * @return void
+   * Specifically,
+   *   - setConfiguredGenus()
+   *   - getConfiguredGenus()
    */
   public function testConfiguredGenusSetterGetter() {
 
@@ -170,13 +175,14 @@ class ValidatorTraitGenusConfiguredTest extends ChadoTestKernelBase {
       "The logged error message does not have the message we expected for a genus that doesn't even exist in chado."
     );
 
-    // Check that a genus has NOT been set by using getConfguredGenus()
+    // Check that a genus has NOT been set by using getConfguredGenus().
     $expected_message = "Cannot retrieve the genus name as one has not been set";
     $exception_caught = FALSE;
     $exception_message = 'NONE';
     try {
       $this->instance->getConfiguredGenus();
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -190,13 +196,14 @@ class ValidatorTraitGenusConfiguredTest extends ChadoTestKernelBase {
       "The exception thrown does not have the message we expected when trying to get a configured genus but one hasn't been set yet."
     );
 
-    // Check that ontology terms for a non-configured genus have also not been set
+    // Check that ontology terms for a non-configured genus were NOT set.
     $expected_message = "Cannot retrieve the ontology terms of the genus as one has not been set";
     $exception_caught = FALSE;
     $exception_message = 'NONE';
     try {
       $this->instance->getConfiguredGenusOntologyTerms();
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -222,13 +229,14 @@ class ValidatorTraitGenusConfiguredTest extends ChadoTestKernelBase {
       "The logged error message does not have the message we expected for a genus existing in chado that is not configured."
     );
 
-    // Check that a genus still has NOT been set by using getConfguredGenus()
+    // Check that a genus still has NOT been set by using getConfguredGenus().
     $expected_message = "Cannot retrieve the genus name as one has not been set";
     $exception_caught = FALSE;
     $exception_message = 'NONE';
     try {
       $this->instance->getConfiguredGenus();
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $exception_caught = TRUE;
       $exception_message = $e->getMessage();
     }
@@ -257,7 +265,7 @@ class ValidatorTraitGenusConfiguredTest extends ChadoTestKernelBase {
       "Calling setConfiguredGenus() with a configured genus should not have thrown an exception but it threw '$exception_message'"
     );
 
-    // Check that the genus was set correctly by using getConfiguredGenus()
+    // Check that the genus was set correctly by using getConfiguredGenus().
     $grabbed_genus = $this->instance->getConfiguredGenus();
     $this->assertEquals(
       $this->configured_genus,
@@ -265,13 +273,14 @@ class ValidatorTraitGenusConfiguredTest extends ChadoTestKernelBase {
       "Could not grab the configured genus using getConfiguredGenus() despite having called setConfiguredGenus() with a valid configured genus."
     );
 
-    // Check that the ontology cvterm IDs can be retrieved for our configured genus
+    // Check that ontology cvterm IDs can be retrieved for our configured genus.
     $grabbed_genus_ontology_terms = $this->instance->getConfiguredGenusOntologyTerms();
-    foreach($grabbed_genus_ontology_terms as $term => $grabbed_id) {
+    foreach ($grabbed_genus_ontology_terms as $term => $grabbed_id) {
       $expected_id = NULL;
-      if(array_key_exists('db_id', $this->ontology_terms[$term])){
+      if (array_key_exists('db_id', $this->ontology_terms[$term])) {
         $expected_id = $this->ontology_terms[$term]['db_id'];
-      } else if (array_key_exists('cv_id', $this->ontology_terms[$term])){
+      }
+      elseif (array_key_exists('cv_id', $this->ontology_terms[$term])) {
         $expected_id = $this->ontology_terms[$term]['cv_id'];
       }
       $this->assertNotNull(
@@ -285,4 +294,5 @@ class ValidatorTraitGenusConfiguredTest extends ChadoTestKernelBase {
       );
     }
   }
+
 }
