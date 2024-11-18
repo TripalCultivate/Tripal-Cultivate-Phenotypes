@@ -12,7 +12,7 @@ use Drupal\trpcultivate_phenotypes\Plugin\TripalImporter\TripalCultivatePhenotyp
 /**
  * Tests the functionality of the run() method of the Traits Importer.
  *
- * @group traitImporter
+ * @group traitsImporter
  */
 class TraitImporterRunTest extends ChadoTestKernelBase {
 

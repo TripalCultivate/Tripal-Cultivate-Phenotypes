@@ -10,9 +10,9 @@ use Drupal\tripal\Services\TripalLogger;
 use Drupal\tripal_chado\Database\ChadoConnection;
 
 /**
- * Tests the form + form-related functionality of the Trait Importer.
+ * Tests the form + form-related functionality of the Traits Importer.
  *
- * @group traitImporter
+ * @group traitsImporter
  */
 class TraitImporterFormTest extends ChadoTestKernelBase {
 
