@@ -2,8 +2,9 @@
 
 namespace Drupal\trpcultivate_phenotypes\Plugin\TripalImporter;
 
+use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\file\Entity\File;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\tripal_chado\TripalImporter\ChadoImporterBase;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService;
@@ -40,6 +41,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implements ContainerFactoryPluginInterface {
+
+  use StringTranslationTrait;
 
   /**
    * Headers required by this importer.
@@ -110,6 +113,13 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   protected TripalCultivatePhenotypesTraitsService $service_PhenoTraits;
 
   /**
+   * The Entity Type Manager.
+   *
+   * @var Drupal\Core\Entity\EntityTypeManager
+   */
+  protected EntityTypeManager $service_entityTypeManager;
+
+  /**
    * Used to reference the validation result summary in the form.
    *
    * @var string
@@ -131,6 +141,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   The genus ontology service.
    * @param \Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService $service_PhenoTraits
    *   The traits service.
+   * @param Drupal\Core\Entity\EntityTypeManager $service_entityTypeManager
+   *   The entity type manager.
    */
   public function __construct(
     array $configuration,
@@ -139,12 +151,14 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     ChadoConnection $chado_connection,
     TripalCultivatePhenotypesGenusOntologyService $service_PhenoGenusOntology,
     TripalCultivatePhenotypesTraitsService $service_PhenoTraits,
+    EntityTypeManager $service_entityTypeManager,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $chado_connection);
 
     // Call service setter method to set the service.
     $this->setServiceGenusOntology($service_PhenoGenusOntology);
     $this->setServiceTraits($service_PhenoTraits);
+    $this->service_entityTypeManager = $service_entityTypeManager;
   }
 
   /**
@@ -158,6 +172,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       $container->get('tripal_chado.database'),
       $container->get('trpcultivate_phenotypes.genus_ontology'),
       $container->get('trpcultivate_phenotypes.traits'),
+      $container->get('entity_type.manager'),
     );
   }
 
@@ -299,7 +314,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     }
 
     // This is a reminder to user about expected trait data.
-    $phenotypes_minder = t('This importer allows for the upload of phenotypic trait dictionaries in preparation
+    $phenotypes_minder = $this->t('This importer allows for the upload of phenotypic trait dictionaries in preparation
       for uploading phenotypic data. <br /><strong>This importer Does NOT upload phenotypic measurements.</strong>');
     \Drupal::messenger()->addWarning($phenotypes_minder);
 
@@ -309,7 +324,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $active_genus = array_combine($all_genus, $all_genus);
 
     if (!$active_genus) {
-      $phenotypes_minder = t('This module is <strong>NOT configured</strong> to import Traits for analyzed phenotypes.');
+      $phenotypes_minder = $this->t('This module is <strong>NOT configured</strong> to import Traits for analyzed phenotypes.');
       \Drupal::messenger()->addWarning($phenotypes_minder);
     }
 
@@ -323,7 +338,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $form['genus'] = [
       '#type' => 'select',
       '#title' => 'Genus',
-      '#description' => t('The genus of the germplasm being phenotyped with the supplied traits.
+      '#description' => $this->t('The genus of the germplasm being phenotyped with the supplied traits.
         Traits in this system are specific to the genus in order to ensure they are specific enough to accurately describe the phenotypes.
         In order for genus to be available here, it must be first configured in the Analyzed Phenotypes configuration.'),
       '#empty_option' => '- Select -',
@@ -358,7 +373,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $file_id = $form_values['file_upload'];
 
     // Load our file object.
-    $file = File::load($file_id);
+    $file = $this->service_entityTypeManager->getStorage('file')->load($file_id);
 
     // Get the mime type which is used to validate the file and split the rows.
     $file_mime_type = $file->getMimeType();
@@ -719,7 +734,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Traits data file id.
     $file_id = $this->arguments['files'][0]['fid'];
     // Load file object.
-    $file = FILE::load($file_id);
+    $file = $this->service_entityTypeManager->getStorage('file')->load($file_id);
     // Open and read file in this uri.
     $file_uri = $file->getFileUri();
     $handle = fopen($file_uri, 'r');
@@ -790,9 +805,9 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       ->generateFile($importer_id, $column_headers);
 
     // Additional notes to the headers.
-    $notes = 'The order of the above columns is important and your file must include a header!
+    $notes = $this->t('The order of the above columns is important and your file must include a header!
     If you have a single trait measured in more than one way (i.e. with multiple collection
-    methods), then you should have one line per collection method with the trait repeated.';
+    methods), then you should have one line per collection method with the trait repeated.');
 
     // Render the header notes/lists template and use the file link as
     // the value to href attribute of the link to download a template file.
