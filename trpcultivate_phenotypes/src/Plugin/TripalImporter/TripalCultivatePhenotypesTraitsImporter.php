@@ -171,8 +171,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   file object using $file->getMimeType()
    *
    * @return array
-   *   A listing of configured validator objects first keyed by
-   *   their inputType. More specifically,
+   *   A listing of configured validator objects first keyed by their inputType.
+   *   More specifically:
    *   - [inputType]: and array of validator instances. Not an
    *     associative array although the keys do indicate what
    *     order they should be run in.
@@ -208,7 +208,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // - File exists and is the expected type
     $instance = $manager->createInstance('valid_data_file');
     // Set supported mime-types using the valid file extensions (file_types) as
-    // defined in the annotation for this importer on line 28.
+    // defined in the annotation for this importer on line 23.
     $supported_file_extensions = $this->plugin_definition['file_types'];
     $instance->setSupportedMimeTypes($supported_file_extensions);
     $validators['file']['valid_data_file'] = $instance;
