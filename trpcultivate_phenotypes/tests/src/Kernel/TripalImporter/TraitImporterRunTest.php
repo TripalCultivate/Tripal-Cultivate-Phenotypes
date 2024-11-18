@@ -55,13 +55,6 @@ class TraitImporterRunTest extends ChadoTestKernelBase {
   protected ChadoConnection $chado_connection;
 
   /**
-   * Config factory.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected ConfigFactoryInterface $config_factory;
-
-  /**
    * Saves details regarding the config.
    *
    * @var array
@@ -151,11 +144,10 @@ class TraitImporterRunTest extends ChadoTestKernelBase {
       ->execute();
     $this->assertIsNumeric($organism_id,
       "We were not able to create an organism for testing.");
-    $this->cvdbon = $this->setOntologyConfig('Tripalus');
 
+    $this->cvdbon = $this->setOntologyConfig('Tripalus');
     $this->terms = $this->setTermConfig();
 
-    $this->config_factory = \Drupal::configFactory();
     $this->importer = new TripalCultivatePhenotypesTraitsImporter(
       [],
       'trpcultivate-phenotypes-traits-importer',
