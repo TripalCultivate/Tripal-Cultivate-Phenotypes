@@ -2,7 +2,7 @@
 /**
  * @file
  * Theme result window.
- * 
+ *
  * Available variables:
  * - validation_result: validation result from all validation levels (PROJECT, GENUS, FILE, TRAITS, VALUES).
  *   Each validation result has the following keys:
@@ -18,19 +18,15 @@
   <ul>
     {% for level,result in data.validation_result %}
       <li class="tcp-validate-{{ result.status }}" title="{{ result.status }}">
-        {{ result.title }} 
-
-        <p>
-        {% if result.details is iterable %}
-          Error(s) found in the following line number and column header. <br />
-          {% for details in result.details %}
-            &bull; {{ details }} <br />
-          {% endfor %}
-        {% else %}
-          {{ result.details }}
-        {% endif %}
-        </p>
+        {{ result.title }}
+        <div class="tcp-result-window-details-container">
+          {{ result.details | render }}
+          <div class="tcp-scroll-visual-cue">&nbsp;</div>
+        </div>
       </li>
     {% endfor %}
   </ul>
 </details>
+
+<br />
+<br />

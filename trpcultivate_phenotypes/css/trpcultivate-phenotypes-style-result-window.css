@@ -55,3 +55,29 @@
   background-repeat: no-repeat;
   background-position: 0 1px;
 }
+
+
+/* Validation result window details container */
+.tcp-result-window-details-container {
+  border: none;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0;
+  position: relative;
+}
+
+/*
+ * Create a visual cue when details have more items by partially revealing
+ * the last element to suggest to scroll.
+ */
+.tcp-content-partial-reveal {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+  bottom: 0;
+  height: 30px;
+  position: sticky;
+}
+
+.tcp-content-full-view {
+  height: 0;
+}

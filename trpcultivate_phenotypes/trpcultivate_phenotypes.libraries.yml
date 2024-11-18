@@ -40,6 +40,11 @@ trpcultivate-phenotypes-style-result-window:
   css:
     theme:
       css/trpcultivate-phenotypes-style-result-window.css: {}
+  js:
+    js/trpcultivate-phenotypes-script-validation-window.js: {}
+  dependencies:
+    - core/jquery
+    - core/once
 
 # Style stage accordion.
 trpcultivate-phenotypes-style-stage-accordion:
