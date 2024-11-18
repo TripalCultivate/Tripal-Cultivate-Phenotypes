@@ -22,23 +22,32 @@ class ProjectGenusMatch extends TripalCultivatePhenotypesValidatorBase implement
   /**
    * Genus Project Service.
    *
-   * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusProjectService TripalCultivatePhenotypesGenusProjectService
+   * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusProjectService
    */
   protected TripalCultivatePhenotypesGenusProjectService $service_PhenoGenusProject;
 
   /**
-   * Constructor.
+   * Constructs an instance of the ProjectGenusMatch validator.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusProjectService $service_PhenoGenusProject
+   *   The genus project service.
    */
   public function __construct(
     array $configuration,
     $plugin_id,
     $plugin_definition,
-    TripalCultivatePhenotypesGenusProjectService $service_genusproject,
+    TripalCultivatePhenotypesGenusProjectService $service_PhenoGenusProject,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     // Genus project service.
-    $this->service_PhenoGenusProject = $service_genusproject;
+    $this->service_PhenoGenusProject = $service_PhenoGenusProject;
   }
 
   /**
