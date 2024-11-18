@@ -10,20 +10,42 @@ use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\trpcultivate_phenotypes\Plugin\TripalImporter\TripalCultivatePhenotypesTraitsImporter;
 
 /**
- * Tests the functionality of the Trait Importer.
+ * Tests the functionality of the run() method of the Traits Importer.
  *
  * @group traitImporter
  */
 class TraitImporterRunTest extends ChadoTestKernelBase {
 
-  protected $defaultTheme = 'stark';
-
-  protected static $modules = ['system', 'user', 'file', 'tripal', 'tripal_chado', 'trpcultivate_phenotypes'];
-
   use UserCreationTrait;
   use PhenotypeImporterTestTrait;
 
-  protected $importer;
+  /**
+   * Theme used in the test environment.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
+   * Modules to enable.
+   *
+   * @var array
+   */
+  protected static $modules = [
+    'system',
+    'user',
+    'file',
+    'tripal',
+    'tripal_chado',
+    'trpcultivate_phenotypes',
+  ];
+
+  /**
+   * Our instance of the Traits Importer for testing.
+   *
+   * @var Drupal\trpcultivate_phenotypes\Plugin\TripalImporter\TripalCultivatePhenotypesTraitsImporter
+   */
+  protected TripalCultivatePhenotypesTraitsImporter $importer;
 
   /**
    * A Database query interface for querying Chado using Tripal DBX.
@@ -34,19 +56,30 @@ class TraitImporterRunTest extends ChadoTestKernelBase {
 
   /**
    * Config factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
-  protected $config_factory;
+  protected ConfigFactoryInterface $config_factory;
 
   /**
    * Saves details regarding the config.
+   *
+   * @var array
    */
   protected array $cvdbon;
 
   /**
    * The terms required by this module mapped to the cvterm_ids they are set to.
+   *
+   * @var array
    */
   protected array $terms;
 
+  /**
+   * A default listing of annotations associated with our importer.
+   *
+   * @var array
+   */
   protected $definitions = [
     'test-trait-importer' => [
       'id' => 'trpcultivate-phenotypes-traits-importer',
@@ -135,8 +168,10 @@ class TraitImporterRunTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests focusing on the run() function using a simple example file that
-   * populates all columns.
+   * Tests the run() function using a simple example file.
+   *
+   * Example file located at:
+   *   tests/src/Fixtures/TraitImporterFiles/simple_example.txt.
    */
   public function testTraitImporterRunSimple() {
 
