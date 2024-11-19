@@ -1,21 +1,16 @@
 <?php
 
-/**
- * @file
- * Kernel tests for validator plugins specific to validating data file.
- */
-
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators;
 
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
 
- /**
-  * Tests Tripal Cultivate Phenotypes Data File Delimited Validator Plugins.
-  *
-  * @group trpcultivate_phenotypes
-  * @group validators
-  */
+/**
+ * Tests Tripal Cultivate Phenotypes Data File Delimited Validator Plugins.
+ *
+ * @group trpcultivate_phenotypes
+ * @group validators
+ */
 class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
 
   use PhenotypeImporterTestTrait;
@@ -29,12 +24,14 @@ class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
 
   /**
    * Modules to enable.
+   *
+   * @var array
    */
   protected static $modules = [
     'user',
     'tripal',
     'tripal_chado',
-    'trpcultivate_phenotypes'
+    'trpcultivate_phenotypes',
   ];
 
   /**
@@ -46,15 +43,15 @@ class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
     // Set test environment.
     \Drupal::state()->set('is_a_test_environment', TRUE);
 
-    // Create a plugin instance for this validator
+    // Create a plugin instance for this validator.
     $validator_id = 'valid_delimited_file';
     $this->validator_instance = \Drupal::service('plugin.manager.trpcultivate_validator')
       ->createInstance($validator_id);
 
     // Set the supported mime types for this test.
     $this->validator_instance->setSupportedMimeTypes([
-      'tsv', // text/tab-separated-values
-      'txt'  // text/plain
+      'tsv',
+      'txt',
     ]);
 
     // Set the input file MIME type.
@@ -65,16 +62,16 @@ class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
    * Data provider: provides test data file raw row.
    *
    * @return array
-   *   Each scenario/element is an array with the following values.
-   *
-   *   - A string, human-readable short description of the test scenario.
-   *   - A single line of string value.
-   *   - Validator configuration:
-   *    - number_of_columns: number of column headers to expect after splitting the line.
-   *    - strict: indicates if columns numbers must be the exact number configured.
-   *   - Expected validation response for using either parameters.
-   *    - case: validation test case.
-   *    - valid: true or false whether validation passed or failed.
+   *   Each scenario/element is an array with the following values:
+   *   - A human-readable short description of the test scenario.
+   *   - A single line (string) representing a single row in an input file.
+   *   - Configuration values given to setExpectedColumns():
+   *     - 'number_of_columns': number of column headers to expect after
+   *       splitting the line.
+   *     - 'strict': indicates if number of columns must be exact.
+   *   - An array of expected validation results.
+   *     - 'case': validation test case message.
+   *     - 'valid': true if validation passed, false if failed.
    */
   public function provideRawRowToDelimitedFileValidator() {
     return [
@@ -85,135 +82,135 @@ class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
         '',
         [
           'number_of_columns' => 1,
-          'strict' => FALSE
+          'strict' => FALSE,
         ],
         [
           'case' => 'Raw row is empty',
           'valid' => FALSE,
-          'failedItems' => ['raw_row' => 'is an empty string value']
+          'failedItems' => ['raw_row' => 'is an empty string value'],
 
-        ]
+        ],
       ],
 
-      // #1: None of the supported delimiter for the file type was used.
+      // #1: None of the supported delimiters for the file type was used.
       [
         'no delimiter',
         'Data Value One - Data Value 2 - Data Value 3',
         [
           'number_of_columns' => 2,
-          'strict' => FALSE
+          'strict' => FALSE,
         ],
         [
           'case' => 'None of the delimiters supported by the file type was used',
           'valid' => FALSE,
-          'failedItems' => ['raw_row' => 'Data Value One - Data Value 2 - Data Value 3']
-        ]
+          'failedItems' => ['raw_row' => 'Data Value One - Data Value 2 - Data Value 3'],
+        ],
       ],
 
-      // #2: Not the expected number of column number (strict comparison).
+      // #2: Not the expected number of columns (strict comparison).
       [
         'column number mismatch',
         "Data Value One\tData Value Two\tData Value Three",
         [
           'number_of_columns' => 4,
-          'strict' => TRUE
+          'strict' => TRUE,
         ],
         [
           'case' => 'Raw row is not delimited',
           'valid' => FALSE,
-          'failedItems' => ['raw_row' => "Data Value One\tData Value Two\tData Value Three"]
-        ]
+          'failedItems' => ['raw_row' => "Data Value One\tData Value Two\tData Value Three"],
+        ],
       ],
 
-      // #3: Not the expected number of column number (not strict comparison).
+      // #3: Not the expected number of columns (not strict comparison).
       [
         'column number failed minimum',
         "Data Value One\tData Value Two\tData Value Three",
         [
           'number_of_columns' => 4,
-          'strict' => FALSE
+          'strict' => FALSE,
         ],
         [
           'case' => 'Raw row is not delimited',
           'valid' => FALSE,
-          'failedItems' => ['raw_row' => "Data Value One\tData Value Two\tData Value Three"]
-        ]
+          'failedItems' => ['raw_row' => "Data Value One\tData Value Two\tData Value Three"],
+        ],
       ],
 
-      // #4: Line has 2 delimiters where one is used to delimit values and the other
-      // is within the values.
+      // #4: Line has 2 different delimiters (tab + comma) where one is used to
+      // delimit values and the other exists within the values.
       [
         'two delimiters used',
         "Data Value One\tData Value Two\tData Value Three\t\"Data\tValue, Four\"",
         [
           'number_of_columns' => 4,
-          'strict' => FALSE
+          'strict' => FALSE,
         ],
         [
           'case' => 'Raw row is delimited',
           'valid' => TRUE,
-          'failedItems' => []
-        ]
+          'failedItems' => [],
+        ],
       ],
 
-      // #5: Valid raw row and expecting exactly 4.
+      // #5: Valid raw row and expecting exactly 4 columns.
       [
         'valid raw row with exact columns',
         "Data Value One\tData Value Two\tData Value Three\tData Value Four",
         [
           'number_of_columns' => 4,
-          'strict' => TRUE
+          'strict' => TRUE,
         ],
         [
           'case' => 'Raw row is delimited',
           'valid' => TRUE,
-          'failedItems' => []
-        ]
+          'failedItems' => [],
+        ],
       ],
 
-      // #6: Valid raw row and expecting at least 3.
+      // #6: Valid raw row and expecting at least 3 columns.
       [
         'valid raw row with minimum columns',
         "Data Value One\tData Value Two\tData Value Three\tData Value Four",
         [
           'number_of_columns' => 3,
-          'strict' => FALSE
+          'strict' => FALSE,
         ],
         [
           'case' => 'Raw row is delimited',
           'valid' => TRUE,
-          'failedItems' => []
-        ]
+          'failedItems' => [],
+        ],
       ],
 
-      // #7: Raw row just has one column with strict flag set to FALSE (mininum).
+      // #7: Raw row has one column with strict flag set to FALSE (mininum).
       [
         'one column with strict set to false',
         "Data Value One",
         [
           'number_of_columns' => 1,
-          'strict' => FALSE
+          'strict' => FALSE,
         ],
         [
           'case' => 'Raw row has expected number of columns',
           'valid' => TRUE,
-          'failedItems' => []
-        ]
+          'failedItems' => [],
+        ],
       ],
 
-      // #8: Raw row just has one column with strict flag set to TRUE (exact match).
+      // #8: Raw row has one column with strict flag set to TRUE (exact match).
       [
         'one column with strict flag set to true',
         "Data Value One",
         [
           'number_of_columns' => 1,
-          'strict' => TRUE
+          'strict' => TRUE,
         ],
         [
           'case' => 'Raw row has expected number of columns',
           'valid' => TRUE,
-          'failedItems' => []
-        ]
+          'failedItems' => [],
+        ],
       ],
     ];
   }
@@ -221,16 +218,31 @@ class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
   /**
    * Test data file row is properly delimited.
    *
+   * @param string $scenario
+   *   A human-readable short description of the test scenario.
+   * @param string $raw_row_input
+   *   A string representing a single row in an input file.
+   * @param array $validator_config
+   *   Configuration values given to setExpectedColumns():
+   *   - 'number_of_columns': number of column headers to expect after
+   *     splitting the line.
+   *   - 'strict': indicates if number of columns must be exact.
+   * @param array $expected
+   *   An array of expected validation results:
+   *   - 'case': validation test case message.
+   *   - 'valid': true if validation passed, false if failed.
+   *
    * @dataProvider provideRawRowToDelimitedFileValidator
    */
-  public function testDataFileRowIsDelimited($scenario, $raw_row_input, $validator_config, $expected) {
+  public function testDataFileRowIsDelimited(string $scenario, string $raw_row_input, $validator_config, $expected) {
     // Set validator configuration.
     $this->validator_instance->setExpectedColumns($validator_config['number_of_columns'], $validator_config['strict']);
 
     $validation_status = $this->validator_instance->validateRawRow($raw_row_input);
-    foreach($validation_status as $key => $value) {
-      $this->assertEquals($value, $expected[ $key ],
+    foreach ($validation_status as $key => $value) {
+      $this->assertEquals($value, $expected[$key],
         'The validation status key ' . $key . ' does not match the same status key in scenario: ' . $scenario);
     }
   }
+
 }

@@ -1,21 +1,16 @@
 <?php
 
-/**
- * @file
- * Kernel tests for validator plugins specific to validating headers.
- */
-
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Validators;
 
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
 
- /**
-  * Tests Tripal Cultivate Phenotypes Headers Validator Plugin.
-  *
-  * @group trpcultivate_phenotypes
-  * @group validators
-  */
+/**
+ * Tests Tripal Cultivate Phenotypes Headers Validator Plugin.
+ *
+ * @group trpcultivate_phenotypes
+ * @group validators
+ */
 class ValidatorValidHeadersTest extends ChadoTestKernelBase {
 
   use PhenotypeImporterTestTrait;
@@ -26,15 +21,18 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
    * @var object
    */
   protected $validator_instance;
+
   /**
    * Modules to enable.
+   *
+   * @var array
    */
   protected static $modules = [
     'file',
     'user',
     'tripal',
     'tripal_chado',
-    'trpcultivate_phenotypes'
+    'trpcultivate_phenotypes',
   ];
 
   /**
@@ -46,7 +44,7 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
     // Set test environment.
     \Drupal::state()->set('is_a_test_environment', TRUE);
 
-    // Create a plugin instance for this validator
+    // Create a plugin instance for this validator.
     $validator_id = 'valid_headers';
     $this->validator_instance = \Drupal::service('plugin.manager.trpcultivate_validator')
       ->createInstance($validator_id);
@@ -55,28 +53,28 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
     $this->validator_instance->setHeaders([
       [
         'name' => 'Header 0',
-        'type' => 'required'
+        'type' => 'required',
       ],
       [
         'name' => 'Header 1',
-        'type' => 'required'
+        'type' => 'required',
       ],
       [
         'name' => 'Header 2',
-        'type' => 'required'
+        'type' => 'required',
       ],
       [
         'name' => 'Header 3',
-        'type' => 'optional'
+        'type' => 'optional',
       ],
       [
         'name' => 'Header 4',
-        'type' => 'optional'
+        'type' => 'optional',
       ],
       [
         'name' => 'Header 5',
-        'type' => 'required'
-      ]
+        'type' => 'required',
+      ],
     ]);
   }
 
@@ -84,12 +82,16 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
    * Data provider: provides test headers input.
    *
    * @return array
-   *   Each scenario/element is an array with the following values.
-   *
-   *   - A string, human-readable short description of the test scenario.
-   *   - Headers input array.
-   *   - Expected validation result.
-   *   - An array containing the expected number of columns and strict comparison flag.
+   *   Each scenario/element is an array with the following values:
+   *   - A human-readable short description of the test scenario.
+   *   - An array of headers for input.
+   *   - An array of expected validation results.
+   *     - 'case': validation test case message.
+   *     - 'valid': true if validation passed, false if failed.
+   *   - Configuration values given to setExpectedColumns():
+   *     - 'number_of_columns': number of column headers to expect after
+   *       splitting the line.
+   *     - 'strict': indicates if number of columns must be exact.
    */
   public function provideHeadersToHeadersValidator() {
 
@@ -101,15 +103,15 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
         [
           'case' => 'Header row is an empty value',
           'valid' => FALSE,
-          'failedItems' => ['headers' => 'headers array is an empty array']
+          'failedItems' => ['headers' => 'headers array is an empty array'],
         ],
         [
           'number_of_columns' => 6,
-          'strict' => FALSE
-        ]
+          'strict' => FALSE,
+        ],
       ],
 
-      // #1: Missing a header.
+      // #1: One header is not a match.
       [
         'missing header by an altered name',
         [
@@ -130,15 +132,16 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
             'Header 3',
             'Header 4',
             'Header !5',
-          ]
+          ],
         ],
         [
           'number_of_columns' => 6,
-          'strict' => FALSE
-        ]
+          'strict' => FALSE,
+        ],
       ],
 
-      // #2: Missing a few headers, but validation will fail on first encounter of missing header.
+      // #2: A few headers don't match with expected, but validation will fail
+      // on first encounter of missing header.
       [
         'missing header by few altered names',
         [
@@ -159,15 +162,15 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
             'Header !3',
             'Header !4',
             'Header !5',
-          ]
+          ],
         ],
         [
           'number_of_columns' => 6,
-          'strict' => FALSE
-        ]
+          'strict' => FALSE,
+        ],
       ],
 
-      // #3: Physically missing.
+      // #3: One header is missing (5/6 provided).
       [
         'missing header by omission',
         [
@@ -186,12 +189,12 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
             'Header 2',
             'Header 4',
             'Header 5',
-          ]
+          ],
         ],
         [
           'number_of_columns' => 6,
-          'strict' => FALSE
-        ]
+          'strict' => FALSE,
+        ],
       ],
 
       // #4: A couple of headers not in order.
@@ -215,15 +218,16 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
             'Header 2',
             'Header 4',
             'Header 5',
-          ]
+          ],
         ],
         [
           'number_of_columns' => 6,
-          'strict' => FALSE
-        ]
+          'strict' => FALSE,
+        ],
       ],
 
-      // #5: All headers not in order and validator will fail in the first encounter of missing/wrong order.
+      // #5: All headers are not in order.
+      // Validator will fail in the first encounter of missing/wrong order.
       [
         'multiple not in the order',
         [
@@ -232,7 +236,7 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
           'Header 3',
           'Header 2',
           'Header 1',
-          'Header 0'
+          'Header 0',
         ],
         [
           'case' => 'Headers do not match expected headers',
@@ -244,15 +248,16 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
             'Header 2',
             'Header 1',
             'Header 0',
-          ]
+          ],
         ],
         [
           'number_of_columns' => 6,
-          'strict' => FALSE
-        ]
+          'strict' => FALSE,
+        ],
       ],
 
-      // #6: A valid header but the expected column strict comparison flag is set to exact match (TRUE).
+      // #6: A valid header (according to getHeaders) but the validator was
+      // configured to expect exactly 50 columns.
       [
         'not have expected number',
         [
@@ -261,7 +266,7 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
           'Header 2',
           'Header 3',
           'Header 4',
-          'Header 5'
+          'Header 5',
         ],
         [
           'case' => 'Headers provided does not have the expected number of headers',
@@ -273,15 +278,15 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
             'Header 3',
             'Header 4',
             'Header 5',
-          ]
+          ],
         ],
         [
           'number_of_columns' => 50,
-          'strict' => TRUE
-        ]
+          'strict' => TRUE,
+        ],
       ],
 
-      // #7: Missing header with string index values.
+      // #7: Missing one header with string index values.
       [
         'string index invalid',
         [
@@ -289,7 +294,7 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
           'one' => 'Header 1',
           'three' => 'Header 3',
           'four' => 'Header 4',
-          'five' => 'Header 5'
+          'five' => 'Header 5',
         ],
         [
           'case' => 'Headers do not match expected headers',
@@ -299,16 +304,17 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
             'one' => 'Header 1',
             'three' => 'Header 3',
             'four' => 'Header 4',
-            'five' => 'Header 5'
-          ]
+            'five' => 'Header 5',
+          ],
         ],
         [
           'number_of_columns' => 6,
-          'strict' => FALSE
-        ]
+          'strict' => FALSE,
+        ],
       ],
 
-      // #8: A valid header with the header count is greater than the expected number and strict is false.
+      // #8: A valid header where the header count is greater than the expected
+      // number and strict is false.
       [
         'extra headers',
         [
@@ -322,17 +328,17 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
           'Header 7',
           'Header 8',
           'Header 9',
-          'Header 10'
+          'Header 10',
         ],
         [
           'case' => 'Headers exist and match expected headers',
           'valid' => TRUE,
-          'failedItems' => []
+          'failedItems' => [],
         ],
         [
           'number_of_columns' => 6,
-          'strict' => FALSE
-        ]
+          'strict' => FALSE,
+        ],
       ],
 
       // #9: A valid header with string index values.
@@ -344,19 +350,18 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
           'two' => 'Header 2',
           'three' => 'Header 3',
           'four' => 'Header 4',
-          'five' => 'Header 5'
+          'five' => 'Header 5',
         ],
         [
           'case' => 'Headers exist and match expected headers',
           'valid' => TRUE,
-          'failedItems' => []
+          'failedItems' => [],
         ],
         [
           'number_of_columns' => 6,
-          'strict' => FALSE
-        ]
+          'strict' => FALSE,
+        ],
       ],
-
 
       // #10: A valid header (list and order).
       [
@@ -367,17 +372,17 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
           'Header 2',
           'Header 3',
           'Header 4',
-          'Header 5'
+          'Header 5',
         ],
         [
           'case' => 'Headers exist and match expected headers',
           'valid' => TRUE,
-          'failedItems' => []
+          'failedItems' => [],
         ],
         [
           'number_of_columns' => 6,
-          'strict' => FALSE
-        ]
+          'strict' => FALSE,
+        ],
       ],
     ];
   }
@@ -385,32 +390,48 @@ class ValidatorValidHeadersTest extends ChadoTestKernelBase {
   /**
    * Test headers validator.
    *
+   * @param string $scenario
+   *   A human-readable short description of the test scenario.
+   * @param array $headers_input
+   *   An array of headers for input.
+   * @param array $expected
+   *   An array of expected validation results with the following keys:
+   *   - 'case': validation test case message.
+   *   - 'valid': true if validation passed, false if failed.
+   * @param array $expected_columns
+   *   Configuration values given to setExpectedColumns():
+   *   - 'number_of_columns': number of column headers to expect after splitting
+   *     the line.
+   *   - 'strict': indicates if number of columns must be exact.
+   *
    * @dataProvider provideHeadersToHeadersValidator
    */
-  public function testHeaders($scenario, $headers_input, $expected, $expected_columns) {
+  public function testHeaders(string $scenario, array $headers_input, array $expected, array $expected_columns) {
 
     $this->validator_instance->setExpectedColumns($expected_columns['number_of_columns'], $expected_columns['strict']);
     $validation_status = $this->validator_instance->validateRow($headers_input);
 
-    foreach($validation_status as $key => $value) {
-      $this->assertEquals($value, $expected[ $key ],
+    foreach ($validation_status as $key => $value) {
+      $this->assertEquals($value, $expected[$key],
         'The validation status key: ' . $key . ' does not match the same key in the expected status of scenario: ' . $scenario);
     }
 
-    // Check that the header input array is the same as the failed item in scenario where
-    // header input array is provided.
+    // Check that the header input array is the same as the failed items if a
+    // non-empty header input array was provided.
     if ($headers_input) {
       // Reset the headers input if the headers provided is valid.
       $headers_input = ($validation_status['valid']) ? [] : $headers_input;
 
-      // Check both arrays headers and failedItems are the same in terms of items and order.
-      foreach($headers_input as $i => $header) {
+      // Check both headers_input and failedItems array are the same in terms of
+      // items and order.
+      foreach ($headers_input as $i => $header) {
         $this->assertEquals(
-          $validation_status['failedItems'][ $i ],
+          $validation_status['failedItems'][$i],
           $header,
           'A header in the header input array is in the wrong order in the failed items array in scenario: ' . $scenario
         );
       }
     }
   }
+
 }

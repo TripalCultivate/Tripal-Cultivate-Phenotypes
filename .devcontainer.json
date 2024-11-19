@@ -8,6 +8,7 @@
       "pgsqlversion": "16"
     }
   },
+  "initializeCommand": "docker pull knowpulse/tripalcultivate:baseonly-drupal10.4.x-dev-php8.3-pgsql16",
   "workspaceMount": "source=${localWorkspaceFolder},target=/var/www/drupal/web/modules/contrib/TripalCultivate-Phenotypes,type=bind",
   "workspaceFolder": "/var/www/drupal/web/modules/contrib/TripalCultivate-Phenotypes",
   "customizations": {
@@ -23,8 +24,8 @@
         "redhat.vscode-yaml",
         "ms-azuretools.vscode-docker",
         "github.vscode-github-actions",
-        "GitHub.vscode-pull-request-github"
-        //"valeryanm.vscode-phpsab"
+        "GitHub.vscode-pull-request-github",
+        "valeryanm.vscode-phpsab"
       ],
       "settings": {
         // This turns off basic PHP suggestions provided by Visual Studio Code (in lieu of Intelephense's).
@@ -91,7 +92,7 @@
         "php.validate.executablePath": "/usr/local/bin/php",
         "php.validate.run": "onType",
         "[php]": {
-          "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+          "editor.defaultFormatter": "valeryanm.vscode-phpsab"
         },
         /* PHP DocBlocker */
         "php-docblocker.gap": true,
@@ -116,14 +117,13 @@
         /* Composer */
         "composer.bin": "/usr/local/bin/composer",
         "tws.trimOnSave": true,
-        "tws.highlightTrailingWhiteSpace": true
+        "tws.highlightTrailingWhiteSpace": true,
       	/* PHP Sniffer & Beautifier */
-        /**
       	"phpsab.snifferEnable": true,
       	"phpsab.executablePathCS": "/var/www/drupal/vendor/bin/phpcs",
       	"phpsab.fixerEnable": true,
       	"phpsab.executablePathCBF": "/var/www/drupal/vendor/bin/phpcbf",
-      	"phpsab.standard": "Drupal,DrupalPractice",
+      	"phpsab.standard": "/var/www/drupal/web/modules/contrib/TripalCultivate/.codingstandards.xml",
       	"phpsab.snifferMode": "onType",
       	"phpsab.debug": false,
       	"phpsab.fixerArguments": [
@@ -132,7 +132,6 @@
       	"phpsab.snifferArguments": [
       		"--extensions=inc,theme,install,module,profile,php,phtml"
       	]
-        */
       }
     }
   },
