@@ -157,6 +157,8 @@ class TraitImporterRunTest extends ChadoTestKernelBase {
       $this->container->get('trpcultivate_phenotypes.traits'),
       $this->container->get('plugin.manager.trpcultivate_validator'),
       $this->container->get('entity_type.manager'),
+      $this->container->get('trpcultivate_phenotypes.template_generator'),
+      $this->container->get('renderer'),
     );
 
   }

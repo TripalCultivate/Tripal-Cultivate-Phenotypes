@@ -4,9 +4,11 @@ namespace Drupal\trpcultivate_phenotypes\Plugin\TripalImporter;
 
 use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Render\Renderer;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\tripal_chado\TripalImporter\ChadoImporterBase;
+use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesFileTemplateService;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTraitsService;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
@@ -128,6 +130,20 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   protected EntityTypeManager $service_entityTypeManager;
 
   /**
+   * The TripalCultivatePhenotypes File Template Service.
+   *
+   * @var Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesFileTemplateService
+   */
+  protected TripalCultivatePhenotypesFileTemplateService $service_FileTemplate;
+
+  /**
+   * The Drupal Renderer.
+   *
+   * @var Drupal\Core\Render\Renderer
+   */
+  protected Renderer $service_Renderer;
+
+  /**
    * Used to reference the validation result summary in the form.
    *
    * @var string
@@ -153,6 +169,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   The validator plugin manager.
    * @param Drupal\Core\Entity\EntityTypeManager $service_entityTypeManager
    *   The entity type manager.
+   * @param Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesFileTemplateService $service_FileTemplate
+   *   The service used to generate the termplate file.
+   * @param Drupal\Core\Render\Renderer $renderer
+   *   The Drupal renderer service.
    */
   public function __construct(
     array $configuration,
@@ -163,6 +183,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     TripalCultivatePhenotypesTraitsService $service_PhenoTraits,
     TripalCultivatePhenotypesValidatorManager $service_validatorPluginManager,
     EntityTypeManager $service_entityTypeManager,
+    TripalCultivatePhenotypesFileTemplateService $service_FileTemplate,
+    Renderer $renderer,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $chado_connection);
 
@@ -172,6 +194,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     $this->service_validatorPluginManager = $service_validatorPluginManager;
     $this->service_entityTypeManager = $service_entityTypeManager;
+    $this->service_FileTemplate = $service_FileTemplate;
+    $this->service_Renderer = $renderer;
   }
 
   /**
@@ -187,6 +211,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       $container->get('trpcultivate_phenotypes.traits'),
       $container->get('plugin.manager.trpcultivate_validator'),
       $container->get('entity_type.manager'),
+      $container->get('trpcultivate_phenotypes.template_generator'),
+      $container->get('renderer'),
     );
   }
 
@@ -809,7 +835,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // them out into a new array.
     $column_headers = array_column($this->headers, 'name');
 
-    $file_link = \Drupal::service('trpcultivate_phenotypes.template_generator')
+    $file_link = $this->service_FileTemplate
       ->generateFile($importer_id, $column_headers);
 
     // Additional notes to the headers.
@@ -828,7 +854,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       ],
     ];
 
-    return \Drupal::service('renderer')->renderPlain($build);
+    return $this->service_Renderer->renderPlain($build);
   }
 
   /**
