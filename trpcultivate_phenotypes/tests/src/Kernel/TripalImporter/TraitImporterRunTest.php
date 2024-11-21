@@ -1,50 +1,78 @@
 <?php
+
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\TripalImporter;
 
-use Drupal\Core\Url;
-use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
-use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
+use Drupal\Tests\user\Traits\UserCreationTrait;
+use Drupal\tripal\Services\TripalLogger;
+use Drupal\tripal_chado\Database\ChadoConnection;
+use Drupal\trpcultivate_phenotypes\Plugin\TripalImporter\TripalCultivatePhenotypesTraitsImporter;
 
 /**
- * Tests the functionality of the Trait Importer.
+ * Tests the functionality of the run() method of the Traits Importer.
  *
- * @group traitImporter
+ * @group traitsImporter
  */
 class TraitImporterRunTest extends ChadoTestKernelBase {
-
-	protected $defaultTheme = 'stark';
-
-	protected static $modules = ['system', 'user', 'file', 'tripal', 'tripal_chado', 'trpcultivate_phenotypes'];
 
   use UserCreationTrait;
   use PhenotypeImporterTestTrait;
 
-  protected $importer;
+  /**
+   * Theme used in the test environment.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
+   * Modules to enable.
+   *
+   * @var array
+   */
+  protected static $modules = [
+    'system',
+    'user',
+    'file',
+    'tripal',
+    'tripal_chado',
+    'trpcultivate_phenotypes',
+  ];
+
+  /**
+   * Our instance of the Traits Importer for testing.
+   *
+   * @var Drupal\trpcultivate_phenotypes\Plugin\TripalImporter\TripalCultivatePhenotypesTraitsImporter
+   */
+  protected TripalCultivatePhenotypesTraitsImporter $importer;
 
   /**
    * A Database query interface for querying Chado using Tripal DBX.
    *
-   * @var ChadoConnection
+   * @var \Drupal\tripal_chado\Database\ChadoConnection
    */
   protected ChadoConnection $chado_connection;
 
   /**
-   * Config factory
-   */
-  protected $config_factory;
-
-  /**
    * Saves details regarding the config.
+   *
+   * @var array
    */
   protected array $cvdbon;
 
   /**
    * The terms required by this module mapped to the cvterm_ids they are set to.
+   *
+   * @var array
    */
   protected array $terms;
 
+  /**
+   * A default listing of annotations associated with our importer.
+   *
+   * @var array
+   */
   protected $definitions = [
     'test-trait-importer' => [
       'id' => 'trpcultivate-phenotypes-traits-importer',
@@ -64,7 +92,7 @@ class TraitImporterRunTest extends ChadoTestKernelBase {
     ],
   ];
 
-	/**
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -73,8 +101,8 @@ class TraitImporterRunTest extends ChadoTestKernelBase {
     // Ensure we see all logging in tests.
     \Drupal::state()->set('is_a_test_environment', TRUE);
 
-		// Open connection to Chado
-		$this->chado_connection = $this->getTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
+    // Open connection to Chado.
+    $this->chado_connection = $this->getTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
 
     // Ensure we can access file_managed related functionality from Drupal.
     // ... users need access to system.action config?
@@ -92,16 +120,16 @@ class TraitImporterRunTest extends ChadoTestKernelBase {
 
     // We need to mock the logger to test the progress reporting.
     $container = \Drupal::getContainer();
-    $mock_logger = $this->getMockBuilder(\Drupal\tripal\Services\TripalLogger::class)
-      ->onlyMethods(['notice','error'])
+    $mock_logger = $this->getMockBuilder(TripalLogger::class)
+      ->onlyMethods(['notice', 'error'])
       ->getMock();
     $mock_logger->method('notice')
-       ->willReturnCallback(function($message, $context, $options) {
+      ->willReturnCallback(function ($message, $context, $options) {
          print str_replace(array_keys($context), $context, $message);
          return NULL;
-       });
+      });
     $mock_logger->method('error')
-      ->willReturnCallback(function($message, $context, $options) {
+      ->willReturnCallback(function ($message, $context, $options) {
         print str_replace(array_keys($context), $context, $message);
         return NULL;
       });
@@ -116,23 +144,30 @@ class TraitImporterRunTest extends ChadoTestKernelBase {
       ->execute();
     $this->assertIsNumeric($organism_id,
       "We were not able to create an organism for testing.");
-    $this->cvdbon = $this->setOntologyConfig('Tripalus');
 
+    $this->cvdbon = $this->setOntologyConfig('Tripalus');
     $this->terms = $this->setTermConfig();
 
-    $this->config_factory = \Drupal::configFactory();
-    $this->importer = new \Drupal\trpcultivate_phenotypes\Plugin\TripalImporter\TripalCultivatePhenotypesTraitsImporter(
+    $this->importer = new TripalCultivatePhenotypesTraitsImporter(
       [],
       'trpcultivate-phenotypes-traits-importer',
       $this->definitions,
-      $this->chado_connection
+      $this->chado_connection,
+      $this->container->get('trpcultivate_phenotypes.genus_ontology'),
+      $this->container->get('trpcultivate_phenotypes.traits'),
+      $this->container->get('plugin.manager.trpcultivate_validator'),
+      $this->container->get('entity_type.manager'),
+      $this->container->get('trpcultivate_phenotypes.template_generator'),
+      $this->container->get('renderer'),
     );
 
   }
 
   /**
-   * Tests focusing on the run() function using a simple example file that
-   * populates all columns.
+   * Tests the run() function using a simple example file.
+   *
+   * Example file located at:
+   *   tests/src/Fixtures/TraitImporterFiles/simple_example.txt.
    */
   public function testTraitImporterRunSimple() {
 
@@ -151,4 +186,5 @@ class TraitImporterRunTest extends ChadoTestKernelBase {
     $this->importer->postRun();
 
   }
+
 }
