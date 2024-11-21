@@ -1,24 +1,26 @@
 <?php
+
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Display\DisplayValidationResultWindowTest;
 
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
-use Drupal\Core\Render\RendererInterface;
 
- /**
-  * Tests Tripal Cultivate Phenotypes Validation Result Window.
-  *
-  * @group trpcultivate_phenotypes
-  * @group displays
-  */
+/**
+ * Tests Tripal Cultivate Phenotypes Validation Result Window.
+ *
+ * @group trpcultivate_phenotypes
+ * @group displays
+ */
 class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
 
   /**
    * Modules to enable.
+   *
+   * @var array
    */
   protected static $modules = [
     'tripal',
     'tripal_chado',
-    'trpcultivate_phenotypes'
+    'trpcultivate_phenotypes',
   ];
 
   /**
@@ -27,7 +29,6 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
    * @var Drupal\Core\Render\RendererInterface
    */
   protected $renderer;
-
 
   /**
    * {@inheritDoc}
@@ -47,11 +48,12 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
    * @return array
    *   Each scenario/element is an array with the following values.
    *   - A string, human-readable short description of the test scenario.
-   *   - An array that contains a set of values with each set containing the keys title, status and details
-   *     as returned by a validator. The details key contains values of the failed items structured
-   *     as a Drupal render array.
-   *   - The expected class name an item is tagged with. Each validation item corresponds to one
-   *     class name based on the the value of the status key.
+   *   - An array that contains a set of values with each set containing the
+   *     keys title, status and details as returned by a validator. The details
+   *     key contains values of the failed items structured as
+   *     a Drupal renderarray.
+   *   - The expected class name an item is tagged with. Each validation item
+   *     corresponds to one class name based on the the value of the status key.
    */
   public function provideValidationResultRenderArray() {
 
@@ -171,10 +173,10 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
                   'table' => [
                     '#type' => 'table',
                     '#caption' => 'Validator Case Message',
-                    '#header' => ['Header 1', 'Header 2',],
+                    '#header' => ['Header 1', 'Header 2'],
                     '#attributes' => [],
                     '#rows' => [
-                      ['Row 1 - Value 1', 'Row 1 - Value 2',],
+                      ['Row 1 - Value 1', 'Row 1 - Value 2'],
                     ],
                   ],
                 ],
@@ -184,7 +186,7 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         ],
         ['tcp-validate-fail'],
       ],
-      // #6: A failed validator: one row in a table element with wrapping CSS rule.
+      // #6: Failed validator: one row in table element with wrapping CSS rule.
       [
         'failed and one row in a table element with attributes',
         [
@@ -201,10 +203,10 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
                   'table' => [
                     '#type' => 'table',
                     '#caption' => 'Validator Case Message',
-                    '#header' => ['Header 1', 'Header 2',],
-                    '#attributes' => ['class' => ['tcp-raw-row',],],
+                    '#header' => ['Header 1', 'Header 2'],
+                    '#attributes' => ['class' => ['tcp-raw-row']],
                     '#rows' => [
-                      ['Row #1 - Value #1', 'Row #1 - Value #2',],
+                      ['Row #1 - Value #1', 'Row #1 - Value #2'],
                     ],
                   ],
                 ],
@@ -234,21 +236,21 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
                     '#header' => ['Header 1', 'Header 2', 'Header 3'],
                     '#attributes' => [],
                     '#rows' => [
-                      ['Row #1 - Value #1', 'Row #1 - Value #2', 'Row #1 - Value #3',],
-                      ['Row #2 - Value #1', 'Row #2 - Value #2', 'Row #2 - Value #3',],
-                      ['Row #3 - Value #1', 'Row #3 - Value #2', 'Row #3 - Value #3',],
-                      ['Row #4 - Value #1', 'Row #4 - Value #2', 'Row #4 - Value #3',],
-                      ['Row #5 - Value #1', 'Row #5 - Value #2', 'Row #5 - Value #3',],
-                      ['Row #6 - Value #1', 'Row #6 - Value #2', 'Row #6 - Value #3',],
-                      ['Row #7 - Value #1', 'Row #7 - Value #2', 'Row #7 - Value #3',],
-                      ['Row #8 - Value #1', 'Row #8 - Value #2', 'Row #8 - Value #3',],
-                      ['Row #9 - Value #1', 'Row #9 - Value #2', 'Row #9 - Value #3',],
-                      ['Row #10 - Value #1', 'Row #10 - Value #2', 'Row #10 - Value #3',],
-                      ['Row #11 - Value #1', 'Row #11 - Value #2', 'Row #11 - Value #3',],
-                      ['Row #12 - Value #1', 'Row #12 - Value #2', 'Row #12 - Value #3',],
-                      ['Row #13 - Value #1', 'Row #13 - Value #2', 'Row #13 - Value #3',],
-                      ['Row #14 - Value #1', 'Row #14 - Value #2', 'Row #14 - Value #3',],
-                      ['Row #15 - Value #1', 'Row #15 - Value #2', 'Row #15 - Value #3',],
+                      ['Row #1 - Value #1', 'Row #1 - Value #2', 'Row #1 - Value #3'],
+                      ['Row #2 - Value #1', 'Row #2 - Value #2', 'Row #2 - Value #3'],
+                      ['Row #3 - Value #1', 'Row #3 - Value #2', 'Row #3 - Value #3'],
+                      ['Row #4 - Value #1', 'Row #4 - Value #2', 'Row #4 - Value #3'],
+                      ['Row #5 - Value #1', 'Row #5 - Value #2', 'Row #5 - Value #3'],
+                      ['Row #6 - Value #1', 'Row #6 - Value #2', 'Row #6 - Value #3'],
+                      ['Row #7 - Value #1', 'Row #7 - Value #2', 'Row #7 - Value #3'],
+                      ['Row #8 - Value #1', 'Row #8 - Value #2', 'Row #8 - Value #3'],
+                      ['Row #9 - Value #1', 'Row #9 - Value #2', 'Row #9 - Value #3'],
+                      ['Row #10 - Value #1', 'Row #10 - Value #2', 'Row #10 - Value #3'],
+                      ['Row #11 - Value #1', 'Row #11 - Value #2', 'Row #11 - Value #3'],
+                      ['Row #12 - Value #1', 'Row #12 - Value #2', 'Row #12 - Value #3'],
+                      ['Row #13 - Value #1', 'Row #13 - Value #2', 'Row #13 - Value #3'],
+                      ['Row #14 - Value #1', 'Row #14 - Value #2', 'Row #14 - Value #3'],
+                      ['Row #15 - Value #1', 'Row #15 - Value #2', 'Row #15 - Value #3'],
                     ],
                   ],
                 ],
@@ -268,7 +270,7 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
             'details' => [
               '#theme' => 'image_style',
               '#style_name' => 'thumbnail',
-              '#uri' =>  __DIR__ . '/../Fixtures/png.png',
+              '#uri' => __DIR__ . '/../Fixtures/png.png',
             ],
           ],
         ],
@@ -340,10 +342,10 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
               'table' => [
                 '#type' => 'table',
                 '#captionzzzz' => 'Validator Case Message',
-                '#header-array' => ['Header 1', 'Header 2',],
+                '#header-array' => ['Header 1', 'Header 2'],
                 '#row' => [
-                  ['Row #1 - Value #1', 'Row #1 - Value #2', 'Row #1 - Value #3', 'Row #1 - Value #4',],
-                ]
+                  ['Row #1 - Value #1', 'Row #1 - Value #2', 'Row #1 - Value #3', 'Row #1 - Value #4'],
+                ],
               ],
             ],
           ],
@@ -368,16 +370,16 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
       ],
     ];
 
-    // This is now the validation result window markup with all validation result details rendered.
+    // This is now the validation result window markup with all validation
+    // result details rendered.
     $validation_window_markup = $this->renderer->renderRoot($validation_window);
-
 
     // For every validation item in a test scenario, test that:
     // 1. The validation item has been set the correct status-based class name.
     // 2. The validation item has the correct title text.
-    // 3. The details render array rendered markup is present in the overall markup output.
-
-    foreach($validation_result_input as $i => $validation_item) {
+    // 3. The details render array rendered markup is present in the overall
+    // markup output.
+    foreach ($validation_result_input as $i => $validation_item) {
       $class_name = $expected_class[$i];
       $this->assertStringContainsString(
         $class_name,
@@ -400,4 +402,5 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
       );
     }
   }
+
 }

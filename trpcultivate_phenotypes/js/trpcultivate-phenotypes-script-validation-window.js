@@ -12,13 +12,15 @@
   Drupal.behaviors.validationWindow = {
     attach: function (context, settings) {
 
-      // Inspect each rendered validation item in the DOM to see if failed details
-      // would required a visual cue indicating more items are available for scroll.
+      // Inspect each rendered validation item in the DOM to see if failed
+      // details would required a visual cue indicating more items are
+      // available for scroll.
 
-      // Each detail window can grow vertically up to 200 px in height. Any window
-      // exceeding this limit will have overflowing content to be hidden, requiring
-      // the use of the scrollbar to view concealed content. A visual cue element
-      // is added to partially reveal item at the bottom edge of the details window.
+      // Each detail window can grow vertically up to 200 px in height.
+      // Any window exceeding this limit will have overflowing content to be
+      // hidden, requiring the use of the scrollbar to view concealed content.
+      // A visual cue element is added to partially reveal item at the bottom
+      // edge of the details window.
       var heightLimit = 200;
 
       // Reference each details wrapper created per validation item.
