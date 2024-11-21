@@ -1,5 +1,5 @@
 <?php
-namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Display\DisplayValidationResultWindow;
+namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Display\DisplayValidationResultWindowTest;
 
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\Core\Render\RendererInterface;
@@ -10,7 +10,7 @@ use Drupal\Core\Render\RendererInterface;
   * @group trpcultivate_phenotypes
   * @group displays
   */
-class DisplayValidationResultWindow extends ChadoTestKernelBase {
+class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
 
   /**
    * Modules to enable.
