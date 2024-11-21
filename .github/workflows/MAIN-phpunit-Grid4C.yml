@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 4.x
+      - g5.125-supportD11
 
 ## UPDATES
 ## Update the version numbers in the job name and the action parameters
