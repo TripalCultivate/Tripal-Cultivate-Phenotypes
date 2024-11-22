@@ -68,7 +68,7 @@ The following compatibility is proven via automated testing workflows.
 | **PHP 8.2** | ![Grid1B-Badge] | ![Grid2B-Badge] | ![Grid3B-Badge] |                 |                 |
 | **PHP 8.3** | ![Grid1C-Badge] | ![Grid2C-Badge] | ![Grid3C-Badge] | ![Grid4C-Badge] | ![Grid5C-Badge] |
 
-[our CodeClimate project page]: https://github.com/TripalCultivate/TripalCultivate-Phenotypes
+[our CodeClimate project page]: https://codeclimate.com/github/TripalCultivate/TripalCultivate-Phenotypes
 [MaintainabilityBadge]: https://api.codeclimate.com/v1/badges/03fa542e0d95dedb97e8/maintainability
 [TestCoverageBadge]: https://api.codeclimate.com/v1/badges/03fa542e0d95dedb97e8/test_coverage
 
