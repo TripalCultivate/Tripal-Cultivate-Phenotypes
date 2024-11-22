@@ -334,31 +334,51 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
           'tcp-validate-todo',
         ],
       ],
-      // #10: Malformed render array.
+    ];
+  }
+
+  /**
+   * Test an object as a render array.
+   */
+  public function testObjectAsRenderArray() {
+
+    $object_render_array = [
       [
-        'malformed render array',
-        [
-          [
-            'title' => 'Validation Title Text - Fail',
-            'status' => 'fail',
-            'details' => [
-              '#not_my_type' => 'not_a_type',
-              '#not_a_property' => 'some property',
-              '#markup' => 'Lorem ipsum dolor sit amet',
-              'table' => [
-                '#type' => 'table',
-                '#captionzzzz' => 'Validator Case Message',
-                '#header-array' => ['Header 1', 'Header 2'],
-                '#row' => [
-                  ['Row #1 - Value #1', 'Row #1 - Value #2', 'Row #1 - Value #3', 'Row #1 - Value #4'],
-                ],
-              ],
-            ],
-          ],
-        ],
-        ['tcp-validate-fail'],
+        'title' => 'Validation Title - Fail',
+        'status' => 'fail',
+        'details' => new \stdClass(),
       ],
     ];
+
+    $validation_window = [
+      '#type' => 'inline_template',
+      '#theme' => 'result_window',
+      '#data' => [
+        'validation_result' => $object_render_array,
+      ],
+    ];
+
+    $exception_caught = FALSE;
+    $exception_message = '';
+    $expected_message = 'Object of type stdClass cannot be printed.';
+    try {
+      $this->renderer->renderRoot($validation_window);
+    }
+    catch (\Exception $e) {
+      $exception_caught = TRUE;
+      $exception_message = $e->getMessage();
+    }
+
+    $this->assertTrue(
+      $exception_caught,
+      'An exception message was expected when passing an object as render array'
+    );
+
+    $this->assertStringContainsString(
+      $expected_message,
+      $exception_message,
+      'The exception message does not match expected message when passing an object'
+    );
   }
 
   /**
