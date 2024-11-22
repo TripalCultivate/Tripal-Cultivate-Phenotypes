@@ -754,7 +754,143 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       }
     }
 
+    // ---------------------- Process Validation Results -----------------------
+    // GenusExists.
+    $validator_name = 'genus_exists';
+    if (array_key_exists($validator_name, $failures)) {
+      if (empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+      else {
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processGenusExistsFailures($failures[$validator_name]);
+      }
+    }
+
+    // DuplicateTraits.
+    /*
+    $validator_name = 'duplicate_traits';
+    print_r($failures[$validator_name]);
+
+    if (array_key_exists($validator_name, $failures)) {
+      if (empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+      else {
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processDuplicateTraitsFailures($failures[$validator_name]);
+      }
+    }
+    */
     return $messages;
+  }
+
+  /**
+   * Processes messages from GenusExists for the user.
+   */
+  public function processGenusExistsFailures(array $validation_result) {
+    if ($validation_result['case'] == 'Genus does not exist') {
+      $title = 'The selected genus does not exist in the database.';
+      $items = $validation_result['failedItems']['genus_provided'];
+    }
+    elseif ($validation_result['case'] == 'Genus exists but is not configured') {
+      $title = 'The selected genus exists in the database but is not configured for this module.';
+      $items = $validation_result['failedItems']['genus_provided'];
+    }
+    // Build the render array.
+    $render_array = [
+      '#type' => 'item',
+      '#title' => $title,
+      'items' => [
+        '#theme' => 'item_list',
+        '#type' => 'ul',
+        '#items' => $items,
+      ],
+    ];
+
+    return $render_array;
+  }
+
+  /**
+   * Processes messages from DuplicateTraits for the user.
+   */
+  public function processDuplicateTraitsFailures(array $failures) {
+    // Define our table headers.
+    $trait = 'Trait Name';
+    $method = 'Method Short Name';
+    $unit = 'Unit';
+    $table_header = ['Line Number', $trait, $method, $unit];
+
+    // For this validator there are can be up to 2 tables:
+    // - 'table_file': Duplicates found within the input file.
+    // - 'table_database'': Duplicates found within the database.
+    $table = [];
+    // Loop through each row in the $failures array and piece apart the
+    // different cases into the different tables.
+    foreach ($failures as $line_no => $validation_result) {
+      if ($validation_result['case'] == 'A duplicate trait was found within the input file') {
+        array_push($table['file']['rows'], [
+          $line_no,
+          $validation_result['failedItems']['combo_provided'][$trait],
+          $validation_result['failedItems']['combo_provided'][$method],
+          $validation_result['failedItems']['combo_provided'][$unit],
+        ]);
+      }
+      elseif ($validation_result['case'] == 'A duplicate trait was found in the database') {
+        array_push($table['database']['rows'], [
+          $line_no,
+          $validation_result['failedItems']['combo_provided'][$trait],
+          $validation_result['failedItems']['combo_provided'][$method],
+          $validation_result['failedItems']['combo_provided'][$unit],
+        ]);
+      }
+      elseif ($validation_result['case'] == 'A duplicate trait was found within both the input file and the database') {
+        array_push($table['file']['rows'], [
+          $line_no,
+          $validation_result['failedItems']['combo_provided'][$trait],
+          $validation_result['failedItems']['combo_provided'][$method],
+          $validation_result['failedItems']['combo_provided'][$unit],
+        ]);
+        array_push($table['database']['rows'], [
+          $line_no,
+          $validation_result['failedItems']['combo_provided'][$trait],
+          $validation_result['failedItems']['combo_provided'][$method],
+          $validation_result['failedItems']['combo_provided'][$unit],
+        ]);
+      }
+    }
+    // Check which tables were created, and assign the correct caption
+    // Note that both tables can exist at the same time.
+    if (array_key_exists('file', $table)) {
+      $table['file']['caption'] = 'These traits were found to be duplicated within your input file.';
+    }
+    if (array_key_exists('file', $table)) {
+      $table['database']['caption'] = 'These traits were found to be duplicated within the database.';
+    }
+
+    // Finally, loop through our tables and build our render arrays.
+    $render_arrays = [];
+    foreach ($table as $type) {
+      array_push($render_arrays, [
+        '#type' => 'html_tag',
+        '#tag' => 'ul',
+        'lists' => [
+          [
+            '#type' => 'html_tag',
+            '#tag' => 'li',
+            'table' => [
+              '#type' => 'table',
+              '#caption' => $table[$type]['caption'],
+              '#header' => $table_header,
+              '#attributes' => [],
+              '#rows' => $table[$type]['rows'],
+            ],
+          ],
+        ],
+      ]);
+    }
+
+    return $render_arrays;
   }
 
   /**
