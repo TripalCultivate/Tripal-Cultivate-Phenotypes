@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Display\DisplayValidationResultWindowTest;
 
+use Drupal\Core\Url;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 
 /**
@@ -39,7 +40,7 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
     // Set test environment.
     \Drupal::state()->set('is_a_test_environment', TRUE);
 
-    $this->renderer = \Drupal::service('renderer');
+    $this->renderer = $this->container->get('renderer');
   }
 
   /**
@@ -48,12 +49,17 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
    * @return array
    *   Each scenario/element is an array with the following values.
    *   - A string, human-readable short description of the test scenario.
-   *   - An array that contains a set of values with each set containing the
-   *     keys title, status and details as returned by a validator. The details
-   *     key contains values of the failed items structured as
-   *     a Drupal renderarray.
+   *   - One or more validation status arrays. Each array contains the following
+   *     keys:
+   *     - 'title': Validation title text that is paired with appropriate status
+   *        icon in the markup output.
+   *     - 'status': The status of the validation that indicates if it passed
+   *        (pass), failed (fail) or upcoming task (todo).
+   *     - 'details': A Drupal render array that will generate the required
+   *        markup to output any failed items, only if 'status'
+   *        is set to 'fail'.
    *   - The expected class name an item is tagged with. Each validation item
-   *     corresponds to one class name based on the the value of the status key.
+   *     corresponds to one class name based on the value of the status key.
    */
   public function provideValidationResultRenderArray() {
 
@@ -265,34 +271,34 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         'an image',
         [
           [
-            'title' => 'Validation Title Text - Todo',
-            'status' => 'todo',
+            'title' => 'Validation Title Text - Fail',
+            'status' => 'fail',
             'details' => [
-              '#theme' => 'image_style',
+              '#theme' => 'image',
               '#style_name' => 'thumbnail',
-              '#uri' => __DIR__ . '/../Fixtures/png.png',
+              '#uri' => 'public://logo.svg',
             ],
           ],
         ],
-        ['tcp-validate-todo'],
+        ['tcp-validate-fail'],
       ],
       // #8: A link type Drupal render array.
       [
         'a link',
         [
           [
-            'title' => 'Validation Title Text - Todo',
-            'status' => 'todo',
+            'title' => 'Validation Title Text - Fail',
+            'status' => 'fail',
             'details' => [
               '#type' => 'link',
               '#title' => 'KnowPulse',
-              '#url' => 'knowpulse.usask.ca',
+              '#url' => Url::fromUri('https://knowpulse.usask.ca'),
             ],
           ],
         ],
-        ['tcp-validate-todo'],
+        ['tcp-validate-fail'],
       ],
-      // Pass, fail and todo concurrent validation items.
+      // #9: Pass, fail and todo concurrent validation items.
       [
         'concurrent validation items',
         [
@@ -358,9 +364,25 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
   /**
    * Test result window display.
    *
-   * @dataProvider provideValidationresultRenderArray
+   * @param string $scenario
+   *   A string, human-readable short description of the test scenario.
+   * @param array $validation_result_input
+   *   One or more validation status arrays. Each array contains the following
+   *     keys:
+   *     - 'title': Validation title text that is paired with appropriate status
+   *        icon in the markup output.
+   *     - 'status': The status of the validation that indicates if it passed
+   *        (pass), failed (fail) or upcoming task (todo).
+   *     - 'details': A Drupal render array that will generate the required
+   *        markup to output any failed items, only if 'status'
+   *        is set to 'fail'.
+   * @param array $expected_class
+   *   The expected class name an item is tagged with. Each validation item
+   *   corresponds to one class name based on the value of the status key.
+   *
+   * @dataProvider provideValidationResultRenderArray
    */
-  public function testResultWindowDisplay($scenario, $validation_result_input, $expected_class) {
+  public function testResultWindowDisplay(string $scenario, array $validation_result_input, array $expected_class) {
 
     $validation_window = [
       '#type' => 'inline_template',
@@ -375,11 +397,18 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
     $validation_window_markup = $this->renderer->renderRoot($validation_window);
 
     // For every validation item in a test scenario, test that:
-    // 1. The validation item has been set the correct status-based class name.
-    // 2. The validation item has the correct title text.
-    // 3. The details render array rendered markup is present in the overall
-    // markup output.
+    // 1. The number of validation items matches the number of list markup (li).
+    // Get all list item element used to wrap every validation item.
+    preg_match_all('/<li class="tcp-validate-(?:pass|fail|todo)" title="[^"]*"?>/', $validation_window_markup, $matches);
+
+    $this->assertEquals(
+      count($validation_result_input),
+      count($matches[0]),
+      'The number of validation items do not match the number of list markup items in scenario ' . $scenario
+    );
+
     foreach ($validation_result_input as $i => $validation_item) {
+      // 2. The validation item has been set the correct status-based class.
       $class_name = $expected_class[$i];
       $this->assertStringContainsString(
         $class_name,
@@ -387,13 +416,22 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         'The class name ' . $class_name . ' of validation input #' . $i . ' in scenario ' . $scenario . ', was not found in the validation window markup'
       );
 
+      // 3. The order of validation item is as the order it was in the array.
       $title_text = $validation_item['title'];
+      $this->assertStringContainsString(
+        $title_text,
+        $matches[0][$i],
+        'The title text ' . $title_text . ' of validation input #' . $i . ' in scenario ' . $scenario . ', was not in the expected order in the validation window markup'
+      );
+
+      // 4. The validation item has the correct title text.
       $this->assertStringContainsString(
         $title_text,
         $validation_window_markup,
         'The title text ' . $title_text . ' of validation input #' . $i . ' in scenario ' . $scenario . ', was not found in the validation window markup'
       );
 
+      // 5. The details rendered markup is present in the overall markup output.
       $details_markup = $this->renderer->renderRoot($validation_item['details']);
       $this->assertStringContainsString(
         $details_markup,
