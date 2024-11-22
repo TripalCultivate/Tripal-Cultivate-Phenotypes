@@ -1,24 +1,18 @@
 <?php
 
-/**
- * @file
- * Construct form to manage and configure Ontology terms.
- */
-
 namespace Drupal\trpcultivate_phenotypes\Form;
 
-use Drupal\Core\Link;
-use Drupal\Core\Url;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\TypedConfigManager;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-
-use Drupal\tripal_chado\Database\ChadoConnection;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
 use Drupal\tripal_chado\Controller\ChadoCVTermAutocompleteController;
+use Drupal\tripal_chado\Database\ChadoConnection;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesGenusOntologyService;
 use Drupal\trpcultivate_phenotypes\Service\TripalCultivatePhenotypesTermsService;
-
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class definition TripalCultivatePhenotypesOntologySettingsForm.
@@ -64,13 +58,15 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
   /**
    * Class constructor.
    */
-  public function __construct(ConfigFactoryInterface $config_factory,
+  public function __construct(
+    ConfigFactoryInterface $config_factory,
+    TypedConfigManager $config_type_manager,
     TripalCultivatePhenotypesGenusOntologyService $genus_ontology,
     TripalCultivatePhenotypesTermsService $terms,
-    ChadoConnection $chado
+    ChadoConnection $chado,
   ) {
 
-    parent::__construct($config_factory);
+    parent::__construct($config_factory, $config_type_manager);
 
     // Services: genus ontology, terms and chado database.
     $this->service_genusontology = $genus_ontology;
@@ -92,6 +88,7 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
     // Return services terms and genus ontology.
     return new static(
       $container->get('config.factory'),
+      $container->get('config.typed'),
       $container->get('trpcultivate_phenotypes.genus_ontology'),
       $container->get('trpcultivate_phenotypes.terms'),
       $container->get('tripal_chado.database')
@@ -118,13 +115,10 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    // @TODO: add check if there is data to disable all term field elements
+    // @todo add check if there is data to disable all term field elements
     // preventing user from changing values.
-
-    // @TODO: Tripal add vocabulary not available, mark with # sign in
+    // @todo Tripal add vocabulary not available, mark with # sign in
     // ontology instructions/guide.
-
-
     // Inspect if this Tripal instance contains records in organism table.
     $genus_count = $this->chado->select('1:organism')
       ->countQuery()
@@ -140,8 +134,8 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
       return $form;
     }
     else {
-      // With organism created, inform to execute Tripal job if term configurations
-      // have been set a value. Test genus configuration.
+      // With organism created, inform to execute Tripal job if term
+      // configurations have been set a value. Test genus configuration.
       $term_genus = $this->service_terms
         ->getTermId($this->config_vars['terms']['genus']['config_map']);
 
@@ -176,9 +170,8 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
     $form['description'] = [
       '#markup' => $this->t('Tripal Cultivate Phenotypes require that phenotypic traits be housed in
         a Controlled Vocabulary (CV) and pre-define terms used throughout the various processes.
-        Use Ontology Terms configuration to setup terms that best support your data.')
+        Use Ontology Terms configuration to setup terms that best support your data.'),
     ];
-
 
     // DB, CV and ONTOLOGY:
     $form['ontology_fieldset'] = [
@@ -195,8 +188,9 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
       '#theme' => 'header_instructions',
       '#data' => [
         'section' => 'ontology',
-        'link_01' => '#', // Not currently available.
-        'link_02' => $link->toRenderable()
+        // Not currently available.
+        'link_01' => '#',
+        'link_02' => $link->toRenderable(),
       ],
     ];
 
@@ -210,38 +204,38 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
         $this->t('<strong><u>GENUS</u></strong>'),
         $this->t('Trait Vocabularies'),
         $this->t('Associated Database'),
-        $this->t('Crop Ontology')
+        $this->t('Crop Ontology'),
       ],
     ];
 
-    // Each genus, create table fields for cv, method, unit, db and crop ontology.
+    // Each genus, create table cell for cv, method, unit, db and crop ontology.
     // Prepare vocabulary and database select field options.
     $vocabulary = $this->chado->query("
       SELECT cv_id, name FROM {1:cv} ORDER BY name ASC
     ")
-    ->fetchAllKeyed(0, 1);
+      ->fetchAllKeyed(0, 1);
     $vocabulary_options = (count($vocabulary) > 0) ? $vocabulary : [];
 
     $database = $this->chado->query("
       SELECT db_id, name FROM {1:db} ORDER BY name ASC
     ")
-    ->fetchAllKeyed(0, 1);
+      ->fetchAllKeyed(0, 1);
     $database_options = (count($database) > 0) ? $database : [];
 
     $i = 0;
-    foreach($this->config_vars['ontology'] as $genus => $vars) {
+    foreach ($this->config_vars['ontology'] as $genus => $vars) {
       $config_token = array_values($vars);
 
       // Get genus ontology configuration set of values.
       $config_value = $this->service_genusontology
         ->getGenusOntologyConfigValues($genus);
 
-      // Genus configurations are created during install and any additional 
+      // Genus configurations are created during install and any additional
       // organism inserted post-install should be accounted for.
       if (is_null($config_value)) {
         // Detected a genus with a null value for all configuration
         // variables. Register this genus as a new genus configuration entry.
-        $new_genus[ $genus ] = array_fill_keys($vars, 0);
+        $new_genus[$genus] = array_fill_keys($vars, 0);
         $this->service_genusontology->saveGenusOntologyConfigValues($new_genus);
 
         $config_value = $this->service_genusontology
@@ -250,31 +244,31 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
 
       if (is_array($config_value)) {
         // Label - Genus.
-        $form['ontology_fieldset']['wrapper']['table_fields'][ $i ][ $genus . '_label' ] = [
+        $form['ontology_fieldset']['wrapper']['table_fields'][$i][$genus . '_label'] = [
           '#type' => 'item',
-          '#title' => ucwords($genus)
+          '#title' => ucwords($genus),
         ];
 
         $j = 0;
         $config_i = 0;
 
         // Loop - Trait, DB and Crop Ontology.
-        while($j < 3) {
+        while ($j < 3) {
           // Each genus, has 3 columns for CV, DB and Crop Ontology.
-          // CV requires 3 select field whereas the other two require only one each.
+          // CV requires 3 select field, whereas, the rest require 2 each.
           $fld_count = ($j == 0) ? 3 : 1;
 
           // Render x number of fields determined by field count.
           $k = 1;
-          while($k <=  $fld_count) {
+          while ($k <= $fld_count) {
             $options = ($j == 1) ? $database_options : $vocabulary_options;
 
-            $fld_options = [0 => 'Select: ' . ucfirst(str_replace('_', ' ', $config_token[ $config_i ]))] + $options;
-            $v = $config_value[ $config_token[ $config_i ] ];
+            $fld_options = [0 => 'Select: ' . ucfirst(str_replace('_', ' ', $config_token[$config_i]))] + $options;
+            $v = $config_value[$config_token[$config_i]];
             $default_value = ($v > 0) ? $v : 0;
 
             // Select field.
-            $form['ontology_fieldset']['wrapper']['table_fields'][ $i ][ $j ][ $k ][ $genus . '_' . $config_token[ $config_i ] ] = [
+            $form['ontology_fieldset']['wrapper']['table_fields'][$i][$j][$k][$genus . '_' . $config_token[$config_i]] = [
               '#type' => 'select',
               '#options' => $fld_options,
               '#attributes' => ['style' => 'width: 150px'],
@@ -299,7 +293,6 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
       $i++;
     }
 
-
     // ALLOW NEW TRAITS.
     $allow_new = $this->config(static::SETTINGS)
       ->get($this->sysvar_ontology . '.allownew');
@@ -308,11 +301,10 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
       '#type' => 'checkbox',
       '#title' => $this->t('Allow new traits to be added to the Controlled Vocabulary during upload.'),
       '#description' => $this->t('This applies to all organism listed above.'),
-      '#default_value' => $allow_new
+      '#default_value' => $allow_new,
     ];
 
-
-    // TERMS
+    // TERMS.
     $form['term_fieldset'] = [
       '#type' => 'details',
       '#title' => $this->t('Controlled Vocabulary Terms - Property/Relationship Types and Measurement Metadata'),
@@ -326,12 +318,12 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
       '#data' => [
         'section' => 'terms',
         'link_01' => '',
-        'link_02' => ''
+        'link_02' => '',
       ],
     ];
 
     // Render each term as autocomplete field element.
-    foreach($this->config_vars['terms'] as $config => $prop) {
+    foreach ($this->config_vars['terms'] as $config => $prop) {
       // Field description.
       $describe = $this->t($prop['help_text']);
       // Field placeholder and title text.
@@ -341,7 +333,7 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
       $default_value = ChadoCVTermAutocompleteController::formatCVterm($config_value);
 
       // Field render array.
-      $form['term_fieldset'][ $config ] = [
+      $form['term_fieldset'][$config] = [
         '#type' => 'textfield',
         '#title' => $title,
         '#attributes' => ['class' => ['tcp-autocomplete'], 'placeholder' => $placeholder],
@@ -364,18 +356,18 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
     // For a give genus, if one field was altered then user is trying
     // to set a value and this validate should ensure that other
     // configuration variables are set.
-    foreach($this->config_vars['ontology'] as $genus => $vars) {
+    foreach ($this->config_vars['ontology'] as $genus => $vars) {
       $var_set_ctr = 0;
       $fld_names = [];
       $trait_cv_values = [];
 
-      foreach($vars as $i => $config) {
+      foreach ($vars as $i => $config) {
         // Crop ontology is an optional field.
         if ($config == 'crop_ontology') {
           continue;
         }
 
-        $fld_names[ $i ] = $genus . '_' . $config;
+        $fld_names[$i] = $genus . '_' . $config;
         if ((int) $form_state->getValue($fld_names[$i]) > 0) {
           $var_set_ctr++;
         }
@@ -383,18 +375,18 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
         // Get the cv values set for trait, method and unit to
         // check if each is a unique cv id.
         if (in_array($config, ['trait', 'method', 'unit'])) {
-          $trait_cv_values[] = (int) $form_state->getValue($fld_names[ $i ]);
+          $trait_cv_values[] = (int) $form_state->getValue($fld_names[$i]);
         }
       }
 
       if ($var_set_ctr > 0) {
         // A field/s have been set, make sure all were set.
         unset($config);
-        foreach($fld_names as $field) {
+        foreach ($fld_names as $field) {
           if ($form_state->getValue($field) <= 0) {
             // Field is empty.
             $form_state->setErrorByName($field, $this->t('Error: could not save form. Required field
-              (GENUS: FIELD) @fld is empty.', [ '@fld' => str_replace('_', ' ', $field) ]));
+              (GENUS: FIELD) @fld is empty.', ['@fld' => str_replace('_', ' ', $field)]));
           }
         }
 
@@ -409,7 +401,7 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
     }
 
     // Validate each term exits and field is not empty.
-    foreach($this->config_vars['terms'] as $config => $prop) {
+    foreach ($this->config_vars['terms'] as $config => $prop) {
       if ($fld = $form_state->getValue($config)) {
         // Has a value, test term exists.
         $id = ChadoCVTermAutocompleteController::getCVtermId($fld);
@@ -433,13 +425,13 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Save genus ontology.
     $values_genusontology = [];
-    foreach($this->config_vars['ontology'] as $genus => $vars) {
+    foreach ($this->config_vars['ontology'] as $genus => $vars) {
       // Trait, method, unit, database and crop ontology.
-      foreach($vars as $i => $config) {
+      foreach ($vars as $config) {
         $fld_name = $genus . '_' . $config;
         $fld_value = $form_state->getValue($fld_name);
 
-        $values_genusontology[ $genus ][ $config ] = $fld_value;
+        $values_genusontology[$genus][$config] = $fld_value;
       }
     }
 
@@ -454,11 +446,11 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
 
     // Save terms.
     $values_term = [];
-    foreach(array_keys($this->config_vars['terms']) as $config) {
+    foreach (array_keys($this->config_vars['terms']) as $config) {
       $fld = $form_state->getValue($config);
       $id = ChadoCVTermAutocompleteController::getCVtermId($fld);
 
-      $values_term[ $config ] = $id;
+      $values_term[$config] = $id;
     }
 
     $this->service_terms
@@ -466,4 +458,5 @@ class TripalCultivatePhenotypesOntologySettingsForm extends ConfigFormBase {
 
     return parent::submitForm($form, $form_state);
   }
+
 }

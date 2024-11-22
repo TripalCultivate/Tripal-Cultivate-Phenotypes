@@ -1,33 +1,28 @@
 <?php
 
-/**
- * @file
- * Unit test of R Transfomration rules configuration page.
- */
-
 namespace Drupal\Tests\trpcultivate_phenotypes\Unit;
 
-use Drupal\trpcultivate_phenotypes\Form\TripalCultivatePhenotypesRSettingsForm;
 use Drupal\Core\Config\Config;
-use Drupal\Core\Form\FormState;
-use Drupal\Tests\UnitTestCase;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\Form\FormState;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Tests\UnitTestCase;
+use Drupal\trpcultivate_phenotypes\Form\TripalCultivatePhenotypesRSettingsForm;
 
- /**
-  *  Class definition ConfigRRulesFormTest.
-  *
-  * @coversDefaultClass Drupal\trpcultivate_phenotypes\Form\TripalCultivatePhenotypesRSettingsForm
-  * @group trpcultivate_phenotypes
-  */
+/**
+ * Class definition ConfigRRulesFormTest.
+ *
+ * @coversDefaultClass Drupal\trpcultivate_phenotypes\Form\TripalCultivatePhenotypesRSettingsForm
+ * @group trpcultivate_phenotypes
+ */
 class ConfigRRulesFormTest extends UnitTestCase {
 
   private $rrulesform;
 
   /**
-   * Initialization of container, configurations, service
-   * and service class required by the test.
+   * {@inheritdoc}
    */
   protected function setUp(): void {
     parent::setUp();
@@ -41,15 +36,15 @@ class ConfigRRulesFormTest extends UnitTestCase {
     $r_config_mock = $this->prophesize(Config::class);
 
     $r_config_mock->get('trpcultivate.phenotypes.r_config.chars')->willReturn([
-      '(', ')', '/', '-', ':', ';', '%'
+      '(', ')', '/', '-', ':', ';', '%',
     ]);
 
     $r_config_mock->get('trpcultivate.phenotypes.r_config.words')->willReturn([
-      'of', 'to', 'have', 'on', 'at'
+      'of', 'to', 'have', 'on', 'at',
     ]);
 
     $r_config_mock->get('trpcultivate.phenotypes.r_config.replace')->willReturn([
-      '# = num', '/ = div', '? = unsure', '- = to'
+      '# = num', '/ = div', '? = unsure', '- = to',
     ]);
 
     // When RRules form rebuilds calling the module settings, return
@@ -61,12 +56,16 @@ class ConfigRRulesFormTest extends UnitTestCase {
     // Isolated configuration for R Rules.
     $r_config = $all_config_mock->reveal();
 
-    // Translation requirement of the container
+    // Translation requirement of the container.
     $translation_mock = $this->prophesize(TranslationInterface::class);
     $translation = $translation_mock->reveal();
 
+    // Typed Config Manager requirement for ConfigForm dependancy injection.
+    $typed_config_mock = $this->prophesize(TypedConfigManagerInterface::class);
+    $typed_config = $typed_config_mock->reveal();
+
     // Class RRulesForm class instance.
-    $rrules_form = new TripalCultivatePhenotypesRSettingsForm($r_config);
+    $rrules_form = new TripalCultivatePhenotypesRSettingsForm($r_config, $typed_config);
     $rrules_form->setStringTranslation($translation);
 
     $container->set('rrules.config', $rrules_form);
@@ -77,15 +76,15 @@ class ConfigRRulesFormTest extends UnitTestCase {
    * Test submit form functionality of RRulesForm class.
    */
   /*
-   public function testSubmitForm() {
-    $form = [];
-    $form_state = new FormState();
+  public function testSubmitForm() {
+  $form = [];
+  $form_state = new FormState();
 
-    $form_state->setValue('words', 'num,log');
-    $form_state->setValue('chars', '#,*');
-    $form_state->setValue('words', 'num,log');
+  $form_state->setValue('words', 'num,log');
+  $form_state->setValue('chars', '#,*');
+  $form_state->setValue('words', 'num,log');
 
-    $this->rrulesform->submitForm($form, $form_state);
+  $this->rrulesform->submitForm($form, $form_state);
   }*/
 
   /**
@@ -112,7 +111,6 @@ class ConfigRRulesFormTest extends UnitTestCase {
     $this->assertEquals('textarea', $config_form['replace']['#type']);
   }
 
-
   /**
    * Test validate functionality of RRulesForm class.
    */
@@ -125,9 +123,9 @@ class ConfigRRulesFormTest extends UnitTestCase {
     // words - any words at least 2 characters long and not and empty string.
     // Failed, Has validation error:
     $field = 'words';
-    foreach(['R', 'r', '.', '~', '1', '       ', ' '] as $rule) {
-      // Ensure we reset the form state after each iteration
-      // so that we are not accidentally keeping errors from previous iterations.
+    foreach (['R', 'r', '.', '~', '1', '       ', ' '] as $rule) {
+      // Ensure we reset the form state after each iteration so tha
+      // we are not accidentally keeping errors from previous iterations.
       $form_state->clearErrors();
 
       // Set the value in the form state -expecting an error.
@@ -140,9 +138,9 @@ class ConfigRRulesFormTest extends UnitTestCase {
     }
 
     // Valid words:
-    foreach(['Hello', 'hello', 'plant', 'seeds', 'this', 'that', 'no'] as $rule) {
-      // Ensure we reset the form state after each iteration
-      // so that we are not accidentally keeping errors from previous iterations.
+    foreach (['Hello', 'hello', 'plant', 'seeds', 'this', 'that', 'no'] as $rule) {
+      // Ensure we reset the form state after each iteration so that
+      // we are not accidentally keeping errors from previous iterations.
       $form_state->clearErrors();
 
       $form_state->setValue($field, $rule);
@@ -152,14 +150,13 @@ class ConfigRRulesFormTest extends UnitTestCase {
         "The word '$rule' should be valid but there are form errors for some reason.");
     }
 
-
     // Validation: SPECIAL CHARACTERS Rule
     // chars - any special characters 1 character long.
     // Failed, Has validation error:
     $field = 'chars';
-    foreach(['hello', ',', 'A', 'a', '1'] as $rule) {
-      // Ensure we reset the form state after each iteration
-      // so that we are not accidentally keeping errors from previous iterations.
+    foreach (['hello', ',', 'A', 'a', '1'] as $rule) {
+      // Ensure we reset the form state after each iteration so that
+      // we are not accidentally keeping errors from previous iterations.
       $form_state->clearErrors();
 
       $form_state->setValue($field, $rule);
@@ -170,9 +167,9 @@ class ConfigRRulesFormTest extends UnitTestCase {
     }
 
     // Valid char:
-    foreach(['~', '@', '>', '+', '-', '$', ':'] as $rule) {
-      // Ensure we reset the form state after each iteration
-      // so that we are not accidentally keeping errors from previous iterations.
+    foreach (['~', '@', '>', '+', '-', '$', ':'] as $rule) {
+      // Ensure we reset the form state after each iteration so that
+      // we are not accidentally keeping errors from previous iterations.
       $form_state->clearErrors();
 
       $form_state->setValue($field, $rule);
@@ -182,15 +179,14 @@ class ConfigRRulesFormTest extends UnitTestCase {
         "The char '$rule' should be valid but there are form errors for some reason.");
     }
 
-
     // Validation: MATCH AND REPLACE Rule
     // match = replace - any non-whitespace value for match or replace and
     // must follow match = replace pattern.
     // Failed, Has validation error:
     $field = 'replace';
-    foreach([' ',', = a', 'hi=hello', 'hi= hello', 'hi => hello'] as $rule) {
-      // Ensure we reset the form state after each iteration
-      // so that we are not accidentally keeping errors from previous iterations.
+    foreach ([' ', ', = a', 'hi=hello', 'hi= hello', 'hi => hello'] as $rule) {
+      // Ensure we reset the form state after each iteration so that
+      // we are not accidentally keeping errors from previous iterations.
       $form_state->clearErrors();
 
       $form_state->setValue($field, $rule);
@@ -200,11 +196,10 @@ class ConfigRRulesFormTest extends UnitTestCase {
         "We expected errors for '$rule' but there were not any.");
     }
 
-
     // Valid words:
-    foreach(['hi = hello', 'yes = no', 'a = b'] as $rule) {
-      // Ensure we reset the form state after each iteration
-      // so that we are not accidentally keeping errors from previous iterations.
+    foreach (['hi = hello', 'yes = no', 'a = b'] as $rule) {
+      // Ensure we reset the form state after each iteration so that
+      // we are not accidentally keeping errors from previous iterations.
       $form_state->clearErrors();
 
       $form_state->setValue($field, $rule);
@@ -214,6 +209,5 @@ class ConfigRRulesFormTest extends UnitTestCase {
         "The replacement '$rule' should be valid but there are form errors for some reason.");
     }
   }
-
 
 }
