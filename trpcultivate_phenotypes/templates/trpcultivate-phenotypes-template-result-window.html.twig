@@ -28,7 +28,7 @@
   <summary>Validation Result</summary>
   <ul>
     {% for item in data.validation_result %}
-      <li class="{{ 'tcp-validate-' ~ item.status }}" title="{{ '%s: %s' | format(item.title, item.status | upper) }}">
+      <li class="tcp-validation-item {{ 'tcp-validate-' ~ item.status }}" title="{{ '%s: %s' | format(item.title, item.status | upper) }}">
 
         {{ item.title }}
 
