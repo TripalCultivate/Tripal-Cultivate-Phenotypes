@@ -655,7 +655,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       // --------------------- Validators run per row --------------------------
       // ----------------------------- RAW ROW ---------------------------------
       'valid_delimited_file' => [
-        'title' => 'Row is properly delimited',
+        'title' => 'Line is properly delimited',
         'status' => 'todo',
         'details' => '',
       ],
@@ -754,6 +754,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       }
     }
 
+    $raw_row_failed = FALSE;
+
     // ---------------------- Process Validation Results -----------------------
     // GenusExists.
     $validator_name = 'genus_exists';
@@ -767,13 +769,24 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       }
     }
 
-    // DuplicateTraits.
-    /*
-    $validator_name = 'duplicate_traits';
-    print_r($failures[$validator_name]);
-
+    // ValidDelimtiedFile.
+    $validator_name = 'valid_delimited_file';
     if (array_key_exists($validator_name, $failures)) {
       if (empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+      else {
+        $raw_row_failed = TRUE;
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processValidDelimitedFileFailures($failures[$validator_name]);
+      }
+    }
+
+    // DuplicateTraits.
+    $validator_name = 'duplicate_traits';
+    if (array_key_exists($validator_name, $failures)) {
+      // Only pass if raw row validation didn't fail.
+      if (empty($failures[$validator_name]) && (!$raw_row_failed)) {
         $messages[$validator_name]['status'] = 'pass';
       }
       else {
@@ -781,7 +794,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         $messages[$validator_name]['details'] = $this->processDuplicateTraitsFailures($failures[$validator_name]);
       }
     }
-    */
     return $messages;
   }
 
@@ -812,6 +824,70 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   }
 
   /**
+   * Processes messages from ValidDelimitedFile for the user.
+   */
+  public function processValidDelimitedFileFailures(array $failures) {
+    // Define our table headers.
+    $table_header = ['Line Number', 'Line Contents'];
+
+    // For this validator there are can be up to 2 tables:
+    // - 'table'->'unsupported': Empty rows or no supported delimiters present.
+    // - 'table'->'delimited': Rows that don't delimit to the expected number of
+    //   columns.
+    $table = [];
+    // Loop through each row in the $failures array and piece apart the
+    // different cases into different tables.
+    foreach ($failures as $line_no => $validation_result) {
+      if (($validation_result['case'] == 'Raw row is empty') ||
+          ($validation_result['case'] == 'None of the delimiters supported by the file type was used')) {
+        array_push($table['unsupported']['rows'], [
+          $line_no,
+          $validation_result['failedItems']['raw_row'],
+        ]);
+      }
+      elseif ($validation_result['case'] == 'Raw row is not delimited') {
+        array_push($table['delimited']['rows'], [
+          $line_no,
+          $validation_result['failedItems']['raw_row'],
+        ]);
+      }
+    }
+    // Check which tables were created, and assign the correct caption
+    // Note that both tables can exist at the same time.
+    if (array_key_exists('unsupported', $table)) {
+      $table['unsupported']['caption'] = 'The following rows do not contain a valid delimiter supported by this importer.';
+    }
+    if (array_key_exists('delimited', $table)) {
+      // @todo Ideally the expected number of columns would be in this message
+      $table['delimited']['caption'] = 'The following rows did not contain the expected number of columns.';
+    }
+
+    // Finally, loop through our tables and build our render arrays.
+    $render_arrays = [];
+    foreach ($table as $type) {
+      array_push($render_arrays, [
+        '#type' => 'html_tag',
+        '#tag' => 'ul',
+        'lists' => [
+          [
+            '#type' => 'html_tag',
+            '#tag' => 'li',
+            'table' => [
+              '#type' => 'table',
+              '#caption' => $table[$type]['caption'],
+              '#header' => $table_header,
+              '#attributes' => [],
+              '#rows' => $table[$type]['rows'],
+            ],
+          ],
+        ],
+      ]);
+    }
+
+    return $render_arrays;
+  }
+
+  /**
    * Processes messages from DuplicateTraits for the user.
    */
   public function processDuplicateTraitsFailures(array $failures) {
@@ -822,11 +898,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $table_header = ['Line Number', $trait, $method, $unit];
 
     // For this validator there are can be up to 2 tables:
-    // - 'table_file': Duplicates found within the input file.
-    // - 'table_database'': Duplicates found within the database.
+    // - 'table'->'file': Duplicates found within the input file.
+    // - 'table'->'database': Duplicates found within the database.
     $table = [];
     // Loop through each row in the $failures array and piece apart the
-    // different cases into the different tables.
+    // different cases into different tables.
     foreach ($failures as $line_no => $validation_result) {
       if ($validation_result['case'] == 'A duplicate trait was found within the input file') {
         array_push($table['file']['rows'], [
@@ -864,7 +940,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     if (array_key_exists('file', $table)) {
       $table['file']['caption'] = 'These traits were found to be duplicated within your input file.';
     }
-    if (array_key_exists('file', $table)) {
+    if (array_key_exists('database', $table)) {
       $table['database']['caption'] = 'These traits were found to be duplicated within the database.';
     }
 
