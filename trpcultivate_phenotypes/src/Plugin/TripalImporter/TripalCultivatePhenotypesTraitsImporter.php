@@ -838,19 +838,27 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Loop through each row in the $failures array and piece apart the
     // different cases into different tables.
     foreach ($failures as $line_no => $validation_result) {
+      // Keeps track of which type(s) of table this one line encounters.
+      $table_type = '';
+
       if (($validation_result['case'] == 'Raw row is empty') ||
           ($validation_result['case'] == 'None of the delimiters supported by the file type was used')) {
-        array_push($table['unsupported']['rows'], [
-          $line_no,
-          $validation_result['failedItems']['raw_row'],
-        ]);
+        $table_type = 'unsupported';
       }
       elseif ($validation_result['case'] == 'Raw row is not delimited') {
-        array_push($table['delimited']['rows'], [
-          $line_no,
-          $validation_result['failedItems']['raw_row'],
-        ]);
+        $table_type = 'delimited';
       }
+
+      // Checked all cases, now add a row to our appropriate table.
+      if (!array_key_exists($table_type, $table)) {
+        // Declare the table array for this type of table if it hasn't been seen
+        // yet.
+        $table[$table_type]['rows'] = [];
+      }
+      array_push($table[$table_type]['rows'], [
+        $line_no,
+        $validation_result['failedItems']['raw_row'],
+      ]);
     }
     // Check which tables were created, and assign the correct caption
     // Note that both tables can exist at the same time.
@@ -874,10 +882,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
             '#tag' => 'li',
             'table' => [
               '#type' => 'table',
-              '#caption' => $table[$type]['caption'],
+              '#caption' => $type['caption'],
               '#header' => $table_header,
               '#attributes' => [],
-              '#rows' => $table[$type]['rows'],
+              '#rows' => $type['rows'],
             ],
           ],
         ],
@@ -904,30 +912,25 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Loop through each row in the $failures array and piece apart the
     // different cases into different tables.
     foreach ($failures as $line_no => $validation_result) {
+      // Keeps track of which type(s) of table this one line encounters.
+      $table_types = [];
       if ($validation_result['case'] == 'A duplicate trait was found within the input file') {
-        array_push($table['file']['rows'], [
-          $line_no,
-          $validation_result['failedItems']['combo_provided'][$trait],
-          $validation_result['failedItems']['combo_provided'][$method],
-          $validation_result['failedItems']['combo_provided'][$unit],
-        ]);
+        $table_types = ['file'];
       }
       elseif ($validation_result['case'] == 'A duplicate trait was found in the database') {
-        array_push($table['database']['rows'], [
-          $line_no,
-          $validation_result['failedItems']['combo_provided'][$trait],
-          $validation_result['failedItems']['combo_provided'][$method],
-          $validation_result['failedItems']['combo_provided'][$unit],
-        ]);
+        $table_types = ['database'];
       }
       elseif ($validation_result['case'] == 'A duplicate trait was found within both the input file and the database') {
-        array_push($table['file']['rows'], [
-          $line_no,
-          $validation_result['failedItems']['combo_provided'][$trait],
-          $validation_result['failedItems']['combo_provided'][$method],
-          $validation_result['failedItems']['combo_provided'][$unit],
-        ]);
-        array_push($table['database']['rows'], [
+        $table_types = ['file', 'database'];
+      }
+      // Now set values that should appear in this table row for each type
+      // according to the case that was triggered for this line number.
+      foreach ($table_types as $type) {
+        // Declare the array storing rows for this table type, if not already.
+        if (!array_key_exists($type, $table)) {
+          $table[$type]['rows'] = [];
+        }
+        array_push($table[$type]['rows'], [
           $line_no,
           $validation_result['failedItems']['combo_provided'][$trait],
           $validation_result['failedItems']['combo_provided'][$method],
@@ -935,8 +938,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         ]);
       }
     }
-    // Check which tables were created, and assign the correct caption
-    // Note that both tables can exist at the same time.
+    // Check which tables were created, and assign the correct caption.
+    // Note that both tables can exist at the same time, hence not an 'elseif'.
     if (array_key_exists('file', $table)) {
       $table['file']['caption'] = 'These traits were found to be duplicated within your input file.';
     }
@@ -956,10 +959,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
             '#tag' => 'li',
             'table' => [
               '#type' => 'table',
-              '#caption' => $table[$type]['caption'],
+              '#caption' => $type['caption'],
               '#header' => $table_header,
               '#attributes' => [],
-              '#rows' => $table[$type]['rows'],
+              '#rows' => $type['rows'],
             ],
           ],
         ],
