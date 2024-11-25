@@ -4,6 +4,7 @@ namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Display\DisplayValidationR
 
 use Drupal\Core\Url;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
+use Symfony\Component\DomCrawler\Crawler;
 
 /**
  * Tests Tripal Cultivate Phenotypes Validation Result Window.
@@ -12,6 +13,13 @@ use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
  * @group displays
  */
 class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
+
+  /**
+   * Theme used in the test environment.
+   *
+   * @var string
+   */
+  protected string $defaultTheme = 'stark';
 
   /**
    * Modules to enable.
@@ -418,12 +426,19 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
 
     // For every validation item in a test scenario, test that:
     // 1. The number of validation items matches the number of list markup (li).
-    // Get all list item element used to wrap every validation item.
-    preg_match_all('/<li class="tcp-validate-(?:pass|fail|todo)" title="[^"]*"?>/', $validation_window_markup, $matches);
+    // Break the validation window markup into each validation item to allow
+    // matching expected output within each validation item. This is done
+    // using the Symphony DOMCrawler to handle the fact that the details
+    // section may also contain li tags.
+    $crawler = new Crawler($validation_window_markup);
+    $returned_validationitem_markup = [];
+    foreach ($crawler->filter('li.tcp-validation-item') as $crawler_item) {
+      $returned_validationitem_markup[] = $crawler_item->ownerDocument->saveHTML($crawler_item);
+    }
 
     $this->assertEquals(
       count($validation_result_input),
-      count($matches[0]),
+      count($returned_validationitem_markup),
       'The number of validation items do not match the number of list markup items in scenario ' . $scenario
     );
 
@@ -432,7 +447,7 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
       $class_name = $expected_class[$i];
       $this->assertStringContainsString(
         $class_name,
-        $validation_window_markup,
+        $returned_validationitem_markup[$i],
         'The class name ' . $class_name . ' of validation input #' . $i . ' in scenario ' . $scenario . ', was not found in the validation window markup'
       );
 
@@ -440,14 +455,14 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
       $title_text = $validation_item['title'];
       $this->assertStringContainsString(
         $title_text,
-        $matches[0][$i],
+        $returned_validationitem_markup[$i],
         'The title text ' . $title_text . ' of validation input #' . $i . ' in scenario ' . $scenario . ', was not in the expected order in the validation window markup'
       );
 
       // 4. The validation item has the correct title text.
       $this->assertStringContainsString(
         $title_text,
-        $validation_window_markup,
+        $returned_validationitem_markup[$i],
         'The title text ' . $title_text . ' of validation input #' . $i . ' in scenario ' . $scenario . ', was not found in the validation window markup'
       );
 
@@ -455,7 +470,7 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
       $details_markup = $this->renderer->renderRoot($validation_item['details']);
       $this->assertStringContainsString(
         $details_markup,
-        $validation_window_markup,
+        $returned_validationitem_markup[$i],
         'The details markup of validation input #' . $i . ' in scenario ' . $scenario . ', was not found in the validation window markup'
       );
     }
