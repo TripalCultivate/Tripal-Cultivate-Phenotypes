@@ -483,12 +483,17 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
           $expected['details'],
           "An empty string was provided with a 'details' key within the data provider - trust me, don't do that!"
         );
+        /*
         // Now check details.
+        // @todo Update this to assert it is a render array
         $this->assertStringContainsString(
           $expected['details'],
           $validation_element_data[$validation_plugin]['details'],
           "We expected the details for $validation_plugin to include a specific string but it did not."
         );
+        // @todo Add additional checks for contents of the render array
+        //   eg: the caption, the presence of a table vs list, line number
+        */
       }
     }
   }

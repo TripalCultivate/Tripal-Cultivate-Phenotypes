@@ -754,46 +754,50 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       }
     }
 
+    // print_r($failures);
     $raw_row_failed = FALSE;
 
     // ---------------------- Process Validation Results -----------------------
     // GenusExists.
     $validator_name = 'genus_exists';
     if (array_key_exists($validator_name, $failures)) {
-      if (empty($failures[$validator_name])) {
-        $messages[$validator_name]['status'] = 'pass';
-      }
-      else {
+      if (!empty($failures[$validator_name])) {
         $messages[$validator_name]['status'] = 'fail';
         $messages[$validator_name]['details'] = $this->processGenusExistsFailures($failures[$validator_name]);
       }
-    }
-
-    // ValidDelimtiedFile.
-    $validator_name = 'valid_delimited_file';
-    if (array_key_exists($validator_name, $failures)) {
-      if (empty($failures[$validator_name])) {
+      else {
         $messages[$validator_name]['status'] = 'pass';
       }
-      else {
+    }
+
+    // ValidDelimitedFile.
+    $validator_name = 'valid_delimited_file';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
+        // Set this flag so that data row-level validation won't pass.
         $raw_row_failed = TRUE;
         $messages[$validator_name]['status'] = 'fail';
         $messages[$validator_name]['details'] = $this->processValidDelimitedFileFailures($failures[$validator_name]);
+      }
+      else {
+        $messages[$validator_name]['status'] = 'pass';
       }
     }
 
     // DuplicateTraits.
     $validator_name = 'duplicate_traits';
     if (array_key_exists($validator_name, $failures)) {
-      // Only pass if raw row validation didn't fail.
-      if (empty($failures[$validator_name]) && (!$raw_row_failed)) {
-        $messages[$validator_name]['status'] = 'pass';
-      }
-      else {
+      if (!empty($failures[$validator_name])) {
         $messages[$validator_name]['status'] = 'fail';
         $messages[$validator_name]['details'] = $this->processDuplicateTraitsFailures($failures[$validator_name]);
       }
+      // Only pass if raw row validation didn't fail.
+      elseif (!$raw_row_failed) {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+      // Otherwise, leave status as 'todo' since 1+ raw rows failed.
     }
+
     return $messages;
   }
 
