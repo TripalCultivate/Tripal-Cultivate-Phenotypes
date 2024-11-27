@@ -1,32 +1,28 @@
 <?php
 
-/**
- * @file
- * Unit test of Watermark configuration page.
- */
-
 namespace Drupal\Tests\trpcultivate_phenotypes\Unit;
 
-use Drupal\trpcultivate_phenotypes\Form\TripalCultivatePhenotypesWatermarkSettingsForm;
 use Drupal\Core\Config\Config;
-use Drupal\Core\Form\FormState;
-use Drupal\Tests\UnitTestCase;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\Messenger\MessengerInterface;
-use \Drupal\Core\File\FileUrlGeneratorInterface;
+use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\File\FileUrlGeneratorInterface;
+use Drupal\Core\Form\FormState;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Tests\UnitTestCase;
+use Drupal\trpcultivate_phenotypes\Form\TripalCultivatePhenotypesWatermarkSettingsForm;
 
 /**
-  *  Class definition ConfigWatermarkFormTest.
-  *
-  * @coversDefaultClass Drupal\trpcultivate_phenotypes\Form\TripalCultivatePhenotypesWatermarkSettingsForm
-  * @group trpcultivate_phenotypes
-  */
+ * Class definition ConfigWatermarkFormTest.
+ *
+ * @coversDefaultClass Drupal\trpcultivate_phenotypes\Form\TripalCultivatePhenotypesWatermarkSettingsForm
+ * @group trpcultivate_phenotypes
+ */
 class ConfigWatermarkFormTest extends UnitTestCase {
+
   /**
-   * Initialization of container, configurations, service
-   * and service class required by the test.
+   * {@inheritdoc}
    */
   protected function setUp(): void {
     parent::setUp();
@@ -39,9 +35,9 @@ class ConfigWatermarkFormTest extends UnitTestCase {
     // a configuration settings. Called in validateForm().
     $watermark_config_mock = $this->prophesize(Config::class);
     $watermark_config_mock->get('trpcultivate.phenotypes.watermark')->willReturn([
-      'charts' => false,
-      'image' => null,
-      'file_ext' => ['png', 'gif']
+      'charts' => FALSE,
+      'image' => NULL,
+      'file_ext' => ['png', 'gif'],
     ]);
     $watermark_config_mock->get('trpcultivate.phenotypes.directory.watermark')
       ->willReturn('public://TripalCultivatePhenotypes/watermark/');
@@ -55,19 +51,23 @@ class ConfigWatermarkFormTest extends UnitTestCase {
     // Isolated configuration for watermark configuration.
     $watermark_config = $all_config_mock->reveal();
 
-    // Class WatermarkForm class instance.
-    $watermark_form = new TripalCultivatePhenotypesWatermarkSettingsForm($watermark_config);
+    // Typed Config Manager requirement for ConfigForm dependancy injection.
+    $typed_config_mock = $this->prophesize(TypedConfigManagerInterface::class);
+    $typed_config = $typed_config_mock->reveal();
 
-    // Requirement of the container
-    //  -- Translation
+    // Class WatermarkForm class instance.
+    $watermark_form = new TripalCultivatePhenotypesWatermarkSettingsForm($watermark_config, $typed_config);
+
+    // Requirement of the container.
+    // -- Translation.
     $mock = $this->prophesize(TranslationInterface::class);
     $translation = $mock->reveal();
     $watermark_form->setStringTranslation($translation);
-    //  -- Messenger.
+    // -- Messenger.
     $mock = $this->prophesize(MessengerInterface::class);
     $messenger = $mock->reveal();
     $watermark_form->setMessenger($messenger);
-    //  -- File URL Generator.
+    // -- File URL Generator.
     $mock = $this->prophesize(FileUrlGeneratorInterface::class);
     $fileGenerator = $mock->reveal();
     $container->set('file_url_generator', $fileGenerator);
@@ -112,10 +112,12 @@ class ConfigWatermarkFormTest extends UnitTestCase {
 
     $form_state->clearErrors();
 
-    // Validate that when choosing not to watermark, an image file is not required.
+    // Validate that when choosing not to watermark,
+    // an image file is not required.
     $form_state->setValue('charts', 0);
     $form_state->setValue('file', []);
     $watermark->validateForm($form, $form_state);
     $this->assertFalse($form_state->hasAnyErrors());
   }
+
 }
