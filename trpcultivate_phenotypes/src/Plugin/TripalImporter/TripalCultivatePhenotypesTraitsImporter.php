@@ -770,6 +770,18 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       }
     }
 
+    // ValidDataFile.
+    $validator_name = 'valid_data_file';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processValidDataFileFailures($failures[$validator_name]);
+      }
+      else {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+    }
+
     // ValidDelimitedFile.
     $validator_name = 'valid_delimited_file';
     if (array_key_exists($validator_name, $failures)) {
@@ -813,6 +825,63 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       $title = 'The selected genus exists in the database but is not configured for this module.';
       $items = $validation_result['failedItems']['genus_provided'];
     }
+    // Build the render array.
+    $render_array = [
+      '#type' => 'item',
+      '#title' => $title,
+      'items' => [
+        '#theme' => 'item_list',
+        '#type' => 'ul',
+        '#items' => $items,
+      ],
+    ];
+
+    return $render_array;
+  }
+
+  /**
+   * Processes messages from ValidDataFile.
+   */
+  public function processValidDataFileFailures(array $validation_result) {
+    if (($validation_result['case'] == 'Filename is empty string') ||
+        ($validation_result['case'] == 'Invalid file id number')) {
+      $title = 'The file provided does not exist.';
+      $items = [
+        'Filename: ' . $validation_result['failedItems']['filename'],
+        'File ID: ' . $validation_result['failedItems']['fid'],
+      ];
+    }
+    elseif ($validation_result['case'] == 'Filename failed to load a file object') {
+      $title = 'The filename failed to load a file object.';
+      $items = $validation_result['failedItems']['filename'];
+    }
+    elseif ($validation_result['case'] == 'File id failed to load a file object') {
+      $title = 'The file ID failed to load a file object.';
+      $items = $validation_result['failedItems']['fid'];
+    }
+    elseif ($validation_result['case'] == 'The file has no data and is an empty file') {
+      $title = 'The file provided has no contents to import.';
+      $items = [
+        'Filename: ' . $validation_result['failedItems']['filename'],
+        'File ID: ' . $validation_result['failedItems']['fid'],
+      ];
+    }
+    elseif (($validation_result['case'] == 'Unsupported file MIME type') ||
+            ($validation_result['case'] == 'Unsupported file mime type and unsupported extension')) {
+      $title = 'The file type or extension is not supported by this importer.';
+      $items = [
+        'File type: ' . $validation_result['failedItems']['mime'],
+        'File extension: ' . $validation_result['failedItems']['extension'],
+      ];
+    }
+    elseif ($validation_result['case'] == 'Data file cannot be opened') {
+      $title = 'The file provided could not be opened.';
+      $items = [
+        'Filename: ' . $validation_result['failedItems']['filename'],
+        'File ID: ' . $validation_result['failedItems']['fid'],
+      ];
+    }
+
     // Build the render array.
     $render_array = [
       '#type' => 'item',
