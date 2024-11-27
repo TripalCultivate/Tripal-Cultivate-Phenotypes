@@ -796,6 +796,18 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       }
     }
 
+    // ValidHeaders.
+    $validator_name = 'valid_headers';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processValidHeadersFailures($failures[$validator_name]);
+      }
+      else {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+    }
+
     // DuplicateTraits.
     $validator_name = 'duplicate_traits';
     if (array_key_exists($validator_name, $failures)) {
@@ -868,6 +880,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     }
     elseif (($validation_result['case'] == 'Unsupported file MIME type') ||
             ($validation_result['case'] == 'Unsupported file mime type and unsupported extension')) {
+      // @todo Provide a list of the supported mime-type and file extensions.
       $title = 'The file type or extension is not supported by this importer.';
       $items = [
         'File type: ' . $validation_result['failedItems']['mime'],
@@ -880,6 +893,38 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         'Filename: ' . $validation_result['failedItems']['filename'],
         'File ID: ' . $validation_result['failedItems']['fid'],
       ];
+    }
+
+    // Build the render array.
+    $render_array = [
+      '#type' => 'item',
+      '#title' => $title,
+      'items' => [
+        '#theme' => 'item_list',
+        '#type' => 'ul',
+        '#items' => $items,
+      ],
+    ];
+
+    return $render_array;
+  }
+
+  /**
+   * Processes messages from ValidHeaders for the user.
+   */
+  public function processValidHeadersFailures(array $validation_result) {
+    if ($validation_result['case'] == 'Header row is an empty value') {
+      $title = 'The file has an empty row where the header was expected.';
+      $items = [];
+    }
+    elseif ($validation_result['case'] == 'Headers do not match expected headers') {
+      $title = 'One or more of the column headers in the input file does not match what was expected. Please check if your column header is in the correct order and matches the template exactly. The provided column headers are:';
+      $items = $validation_result['failedItems'];
+    }
+    elseif ($validation_result['case'] == 'Headers provided does not have the expected number of headers') {
+      // @todo Get the number of expected headers from getExpectedColumns.
+      $title = 'This importer requires a strict number of 6 column headers. Please remove additional column headers from the file. The provided column headers are:';
+      $items = $validation_result['failedItems'];
     }
 
     // Build the render array.
