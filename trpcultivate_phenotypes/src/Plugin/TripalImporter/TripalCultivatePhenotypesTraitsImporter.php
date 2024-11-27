@@ -808,6 +808,20 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       }
     }
 
+    // EmptyCell.
+    $validator_name = 'empty_cell';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processEmptyCellFailures($failures[$validator_name]);
+      }
+      // Only pass if raw row validation didn't fail.
+      elseif (!$raw_row_failed) {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+      // Otherwise, leave status as 'todo' since 1+ raw rows failed.
+    }
+
     // DuplicateTraits.
     $validator_name = 'duplicate_traits';
     if (array_key_exists($validator_name, $failures)) {
@@ -1011,6 +1025,52 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     }
 
     return $render_arrays;
+  }
+
+  /**
+   * Processes messages from EmptyCell for the user.
+   */
+  public function processEmptyCellFailures(array $failures) {
+    // Define our table header.
+    $table_header = ['Line Number', 'Column Header'];
+    $table['rows'] = [];
+
+    foreach ($failures as $line_no => $validation_result) {
+      if ($validation_result['case'] == 'Empty value found in required column(s)') {
+        $table['caption'] = 'The following line number and column header combinations were empty, but a value is required.';
+        // Convert indices in failedItems to column headers.
+        $failed_indices = $validation_result['failedItems']['empty_indices'];
+        // For each index with an empty value, grab the column name from our
+        // $headers property and add it as a row in our table.
+        foreach ($failed_indices as $index) {
+          array_push($table['rows'], [
+            $line_no,
+            $this->headers[$index]['name'],
+          ]);
+        }
+      }
+    }
+
+    // Build the render array for our table.
+    $render_array = [
+      '#type' => 'html_tag',
+      '#tag' => 'ul',
+      'lists' => [
+        [
+          '#type' => 'html_tag',
+          '#tag' => 'li',
+          'table' => [
+            '#type' => 'table',
+            '#caption' => $table['caption'],
+            '#header' => $table_header,
+            '#attributes' => [],
+            '#rows' => $table['rows'],
+          ],
+        ],
+      ],
+    ];
+
+    return $render_array;
   }
 
   /**
