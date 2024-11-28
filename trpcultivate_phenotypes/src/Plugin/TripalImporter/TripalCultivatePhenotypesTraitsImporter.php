@@ -822,6 +822,20 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       // Otherwise, leave status as 'todo' since 1+ raw rows failed.
     }
 
+    // Valid Data Type using the ValueInList validator.
+    $validator_name = 'valid_data_type';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processValueInListFailures($failures[$validator_name]);
+      }
+      // Only pass if raw row validation didn't fail.
+      elseif (!$raw_row_failed) {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+      // Otherwise, leave status as 'todo' since 1+ raw rows failed.
+    }
+
     // DuplicateTraits.
     $validator_name = 'duplicate_traits';
     if (array_key_exists($validator_name, $failures)) {
@@ -1046,6 +1060,51 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
           array_push($table['rows'], [
             $line_no,
             $this->headers[$index]['name'],
+          ]);
+        }
+      }
+    }
+
+    // Build the render array for our table.
+    $render_array = [
+      '#type' => 'html_tag',
+      '#tag' => 'ul',
+      'lists' => [
+        [
+          '#type' => 'html_tag',
+          '#tag' => 'li',
+          'table' => [
+            '#type' => 'table',
+            '#caption' => $table['caption'],
+            '#header' => $table_header,
+            '#attributes' => [],
+            '#rows' => $table['rows'],
+          ],
+        ],
+      ],
+    ];
+
+    return $render_array;
+  }
+
+  /**
+   * Processes messages from ValueInList for the user.
+   */
+  public function processValueInListFailures(array $failures) {
+    // Define our table header.
+    $table_header = ['Line Number', 'Column Header', 'Failed Value'];
+    $table['rows'] = [];
+
+    foreach ($failures as $line_no => $validation_result) {
+      if ($validation_result['case'] == 'Invalid value(s) in required column(s)') {
+        $table['caption'] = 'The following line number and column header combinations contained an invalid value. Note that values are case sensitive.';
+        // For each index with an invalid value, grab the column name from our
+        // $headers property and add it as a row in our table.
+        foreach ($validation_result['failedItems'] as $index => $failed_value) {
+          array_push($table['rows'], [
+            $line_no,
+            $this->headers[$index]['name'],
+            $failed_value,
           ]);
         }
       }
