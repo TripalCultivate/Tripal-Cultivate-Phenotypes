@@ -62,13 +62,13 @@ maintainability issues and test coverage.
 
 The following compatibility is proven via automated testing workflows.
 
-|  Drupal     |  10.2.x         |  10.3.x         |  10.4.x         |
-|-------------|-----------------|-----------------|-----------------|
-| **PHP 8.1** | ![Grid1A-Badge] | ![Grid2A-Badge] | ![Grid3A-Badge] |
-| **PHP 8.2** | ![Grid1B-Badge] | ![Grid2B-Badge] | ![Grid3B-Badge] |
-| **PHP 8.3** | ![Grid1C-Badge] | ![Grid2C-Badge] | ![Grid3C-Badge] |
+|  Drupal     |  10.3.x         |  10.4.x         |  10.5.x         | 11.0.x          | 11.1.x          |
+|-------------|-----------------|-----------------|-----------------|-----------------|-----------------|
+| **PHP 8.1** | ![Grid1A-Badge] | ![Grid2A-Badge] | ![Grid3A-Badge] |                 |                 |
+| **PHP 8.2** | ![Grid1B-Badge] | ![Grid2B-Badge] | ![Grid3B-Badge] |                 |                 |
+| **PHP 8.3** | ![Grid1C-Badge] | ![Grid2C-Badge] | ![Grid3C-Badge] | ![Grid4C-Badge] | ![Grid5C-Badge] |
 
-[our CodeClimate project page]: https://github.com/TripalCultivate/TripalCultivate-Phenotypes
+[our CodeClimate project page]: https://codeclimate.com/github/TripalCultivate/TripalCultivate-Phenotypes
 [MaintainabilityBadge]: https://api.codeclimate.com/v1/badges/03fa542e0d95dedb97e8/maintainability
 [TestCoverageBadge]: https://api.codeclimate.com/v1/badges/03fa542e0d95dedb97e8/test_coverage
 
@@ -83,3 +83,7 @@ The following compatibility is proven via automated testing workflows.
 [Grid3A-Badge]: https://github.com/TripalCultivate/TripalCultivate-Phenotypes/actions/workflows/MAIN-phpunit-Grid3A.yml/badge.svg
 [Grid3B-Badge]: https://github.com/TripalCultivate/TripalCultivate-Phenotypes/actions/workflows/MAIN-phpunit-Grid3B.yml/badge.svg
 [Grid3C-Badge]: https://github.com/TripalCultivate/TripalCultivate-Phenotypes/actions/workflows/MAIN-phpunit-Grid3C.yml/badge.svg
+
+[Grid4C-Badge]: https://github.com/TripalCultivate/TripalCultivate-Phenotypes/actions/workflows/MAIN-phpunit-Grid4C.yml/badge.svg
+
+[Grid5C-Badge]: https://github.com/TripalCultivate/TripalCultivate-Phenotypes/actions/workflows/MAIN-phpunit-Grid5C.yml/badge.svg
