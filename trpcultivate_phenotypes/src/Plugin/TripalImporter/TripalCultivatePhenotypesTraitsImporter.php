@@ -612,14 +612,13 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   UI. Specifically:
    *   - 'validation_line': A string associated with a line that will be
    *     displayed to the user in the validate UI
-   *     - 'title': A user-focussed message describing the validation that took
+   *     - 'title': A user-focused message describing the validation that took
    *       place.
-   *     - 'details': A user-focussed message describing the failure that
-   *       occurred and any relevant details to help the user fix it.
    *     - 'status': One of: 'todo', 'pass', 'fail'.
-   *     - 'raw_results': A nested array keyed by validator name, which contains
-   *       the raw return values when validation failed. Essentially, the
-   *       contents of $failures['validator_name'].
+   *     - 'details': A render array that will display details of any failures
+   *       to guide the user to fix problems with their input file. The type of
+   *       render array depends on the validator, but the most common types are
+   *       item list and table.
    */
   public function processValidationMessages($failures) {
     // Array to hold all the user feedback. Currently this includes an entry for
@@ -628,12 +627,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // in this array. Everything is set to status of 'todo' to start and will
     // only change to one of 'pass' or 'fail' if the $failures[] array is
     // defined for that validator, indicating that validation did take place.
-    // IMPORTANT: Order matters here and is not necessarily reflective of the
-    // order that validators are run in. Think of these validators as being in 2
-    // groups: Validators that get run once, and ones that get run for every
-    // line in the input file.
     $messages = [
-      // ----------------------- Validators run once ---------------------------
       // ----------------------------- METADATA --------------------------------
       'genus_exists' => [
         'title' => 'The genus is valid',
@@ -652,7 +646,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         'status' => 'todo',
         'details' => '',
       ],
-      // --------------------- Validators run per row --------------------------
       // ----------------------------- RAW ROW ---------------------------------
       'valid_delimited_file' => [
         'title' => 'Line is properly delimited',
@@ -677,87 +670,22 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       ],
     ];
 
-    // @todo an alternative way to identify the validators input type.
-    $raw_row_validators = [
-      'valid_delimited_file',
-    ];
-
-    $raw_row_failed = FALSE;
-
-    foreach (array_keys($messages) as $validator_name) {
-      // Check if this validator exists in the failures array, which indicates
-      // it was run. If it was not run then continue as it is already marked.
-      // @todo in $messages above.
-      if (!array_key_exists($validator_name, $failures)) {
-        continue;
-      }
-
-      // ----------------------------- PASS ----------------------------------
-      if (empty($failures[$validator_name])) {
-        // Check if $failures[$validator_name] is empty, which indicates there
-        // are no errors to report for this validator.
-        // If raw row validation fails at any point, make sure the data row
-        // validators are not set to 'pass' and remain as 'todo' since they
-        // haven't been run on every line. This approach works because the
-        // order of the validators in the default messages array ensures
-        // that the raw row validators are checked for failures directly
-        // before the data row validators. It also assumes that only data row
-        // validators are after raw row validators in the messages array.
-        if (!$raw_row_failed) {
-          $messages[$validator_name]['status'] = 'pass';
-        }
-      }
-
-      // ----------------------------- FAIL ----------------------------------
-      elseif (array_key_exists('case', $failures[$validator_name])) {
-        // Check if $failures[$validator_name] contains one of the results
-        // keys, indicating that this is not a row-level validator and therefore
-        // doesn't keep track of line numbers.
-        // @todo Update the message to not use the 'case' string by default
-        // and to incorporate the 'failed_details'.
-        $messages[$validator_name]['status'] = 'fail';
-
-        $case_message = $failures[$validator_name]['case'];
-        $messages[$validator_name]['details'] = $case_message;
-        $messages[$validator_name]['raw_results'] = $failures[$validator_name];
-      }
-      else {
-        // @todo Check if this is a validator that keeps track of line numbers.
-        // @assumption: Only row-level validators enter this else
-        // block since BOTH:
-        // a) $failures[$validator_name] is not empty
-        // b) $failures[$validator_name]['case'] is not set
-        // It would be better to validate that we have line numbers (integers)
-        // then leave the else {} for anything outside of these options to throw
-        // an exception for the developer. Reminder that:
-        // $failures[$validator_name]['valid'] and
-        // $failures[$validator_name]['failures']
-        // also are valid but this scenario should have already been caught by
-        // the previous if block.
-        // @todo Update this current approach to not report only the first
-        // failure, but instead collect all the cases and failedItems and
-        // formulate one concise, helpful feedback message.
-        // phpcs:ignore
-        // foreach ($failures[$validator_name] as $line_no => $validator_results) {
-        $messages[$validator_name]['status'] = 'fail';
-
-        $first_failed_row = array_key_first($failures[$validator_name]);
-
-        // A row failed raw-row validation, therefore data-row validators should
-        // remain set as 'todo' UNLESS failed.
-        if (in_array($validator_name, $raw_row_validators)) {
-          $raw_row_failed = TRUE;
-        }
-        $case_message = $failures[$validator_name][$first_failed_row]['case'] . ' at row #: ' . $first_failed_row;
-        $messages[$validator_name]['details'] = $case_message;
-        $messages[$validator_name]['raw_results'] = $failures[$validator_name];
-      }
-    }
-
-    // print_r($failures);
+    // A flag to indicate whether any data row level validation can be set to
+    // pass or remains as 'todo' if there are no failures at that stage. This is
+    // because we don't want to mislead the user to think all data rows pass
+    // validation if there are raw rows that failed, since they haven't been
+    // looked at yet by data row validators.
     $raw_row_failed = FALSE;
 
     // ---------------------- Process Validation Results -----------------------
+    // For each validator, first check if $failures[$validator_name] exists,
+    // which indicates it was run. If it was not run, then do nothing since it
+    // has already been amrked as "todo" in the $message array.
+    // Next, check if $failures[$validator_name] is empty, which indicates that
+    // validation passed and there are no errors to report for this validator.
+    // Otherwise, process failures for this validator with a dedicated method
+    // that will build a render array of the feedback for the user.
+    // -------------------------------------------------------------------------
     // GenusExists.
     $validator_name = 'genus_exists';
     if (array_key_exists($validator_name, $failures)) {
@@ -786,7 +714,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $validator_name = 'valid_delimited_file';
     if (array_key_exists($validator_name, $failures)) {
       if (!empty($failures[$validator_name])) {
-        // Set this flag so that data row-level validation won't pass.
+        // Set this flag so that data row-level validation doesn't pass.
         $raw_row_failed = TRUE;
         $messages[$validator_name]['status'] = 'fail';
         $messages[$validator_name]['details'] = $this->processValidDelimitedFileFailures($failures[$validator_name]);
