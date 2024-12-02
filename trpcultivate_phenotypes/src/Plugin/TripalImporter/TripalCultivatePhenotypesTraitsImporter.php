@@ -725,7 +725,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     }
 
     // ValidHeaders.
-    $validator_name = 'valid_headers';
+    $validator_name = 'valid_header';
     if (array_key_exists($validator_name, $failures)) {
       if (!empty($failures[$validator_name])) {
         $messages[$validator_name]['status'] = 'fail';
