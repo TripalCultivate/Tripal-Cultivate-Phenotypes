@@ -640,15 +640,15 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         'status' => 'todo',
         'details' => '',
       ],
-      // ---------------------------- HEADER ROW -------------------------------
-      'valid_header' => [
-        'title' => 'File has all of the column headers expected',
+      // ----------------------------- RAW ROW ---------------------------------
+      'valid_delimited_file' => [
+        'title' => 'Lines are properly delimited',
         'status' => 'todo',
         'details' => '',
       ],
-      // ----------------------------- RAW ROW ---------------------------------
-      'valid_delimited_file' => [
-        'title' => 'Line is properly delimited',
+      // ---------------------------- HEADER ROW -------------------------------
+      'valid_header' => [
+        'title' => 'File has all of the column headers expected',
         'status' => 'todo',
         'details' => '',
       ],
@@ -783,6 +783,20 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
   /**
    * Processes messages from GenusExists for the user.
+   *
+   * @param array $validation_result
+   *   An associative array that was returned by the GenusExists validator in
+   *   the event of failed validation. It contains the following keys:
+   *   - 'case': a developer-focused string describing the case checked.
+   *   - 'valid': FALSE to indicate that validation failed.
+   *   - 'failedItems': an array of items that failed with the following keys.
+   *     - 'genus_provided': The name of the genus provided.
+   *
+   * @return array
+   *   A render array which is used to display feedback to the user about
+   *   the case that failed and the failed items from the input file.
+   *   The type of render array is an itemized list containing the content of
+   *   'genus_provided'.
    */
   public function processGenusExistsFailures(array $validation_result) {
     if ($validation_result['case'] == 'Genus does not exist') {

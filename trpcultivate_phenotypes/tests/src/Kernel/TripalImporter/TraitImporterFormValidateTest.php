@@ -218,7 +218,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'genus_exists' => ['status' => 'pass'],
         'valid_data_file' => ['status' => 'pass'],
         'valid_delimited_file' => [
-          'title' => 'Line is properly delimited',
+          'title' => 'Lines are properly delimited',
           'status' => 'fail',
           'details' => 'Raw row is not delimited',
         ],
@@ -238,7 +238,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'genus_exists' => ['status' => 'pass'],
         'valid_data_file' => ['status' => 'pass'],
         'valid_delimited_file' => [
-          'title' => 'Row is properly delimited',
+          'title' => 'Lines are properly delimited',
           'status' => 'fail',
           'details' => 'Raw row is not delimited',
         ],
