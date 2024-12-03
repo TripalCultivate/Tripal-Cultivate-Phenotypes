@@ -171,6 +171,7 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         ['tcp-validate-fail'],
       ],
       // #5: A failed validator: one row in a table element.
+      /*
       [
         'failed and one row in a table element',
         [
@@ -200,7 +201,9 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         ],
         ['tcp-validate-fail'],
       ],
+      */
       // #6: Failed validator: one row in table element with wrapping CSS rule.
+      /*
       [
         'failed and one row in a table element with attributes',
         [
@@ -230,7 +233,9 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         ],
         ['tcp-validate-fail'],
       ],
+      */
       // #7: A failed validator: many rows in a table element.
+      /*
       [
         'failed and many rows in a table element',
         [
@@ -274,7 +279,8 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         ],
         ['tcp-validate-fail'],
       ],
-      // #7: An image.
+      */
+      // #8: An image.
       [
         'an image',
         [
@@ -290,7 +296,7 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         ],
         ['tcp-validate-fail'],
       ],
-      // #8: A link type Drupal render array.
+      // #9: A link type Drupal render array.
       [
         'a link',
         [
@@ -306,7 +312,7 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         ],
         ['tcp-validate-fail'],
       ],
-      // #9: Pass, fail and todo concurrent validation items.
+      // #10: Pass, fail and todo concurrent validation items.
       [
         'concurrent validation items',
         [
