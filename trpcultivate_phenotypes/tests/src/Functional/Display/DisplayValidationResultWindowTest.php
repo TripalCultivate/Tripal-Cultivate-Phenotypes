@@ -1,10 +1,10 @@
 <?php
 
-namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\Display\DisplayValidationResultWindowTest;
+namespace Drupal\Tests\trpcultivate_phenotypes\Functional\Display;
 
 use Drupal\Core\Url;
-use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
-use Symfony\Component\DomCrawler\Crawler;
+use Drupal\Tests\tripal_chado\Functional\ChadoTestBrowserBase;
+use Drupal\KernelTests\AssertContentTrait;
 
 /**
  * Tests Tripal Cultivate Phenotypes Validation Result Window.
@@ -12,14 +12,16 @@ use Symfony\Component\DomCrawler\Crawler;
  * @group trpcultivate_phenotypes
  * @group displays
  */
-class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
+class DisplayValidationResultWindowTest extends ChadoTestBrowserBase {
+
+  use AssertContentTrait;
 
   /**
    * Theme used in the test environment.
    *
    * @var string
    */
-  protected string $defaultTheme = 'stark';
+  protected $defaultTheme = 'stark';
 
   /**
    * Modules to enable.
@@ -171,7 +173,6 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         ['tcp-validate-fail'],
       ],
       // #5: A failed validator: one row in a table element.
-      /*
       [
         'failed and one row in a table element',
         [
@@ -201,9 +202,7 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         ],
         ['tcp-validate-fail'],
       ],
-      */
       // #6: Failed validator: one row in table element with wrapping CSS rule.
-      /*
       [
         'failed and one row in a table element with attributes',
         [
@@ -233,9 +232,7 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         ],
         ['tcp-validate-fail'],
       ],
-      */
       // #7: A failed validator: many rows in a table element.
-      /*
       [
         'failed and many rows in a table element',
         [
@@ -279,7 +276,6 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
         ],
         ['tcp-validate-fail'],
       ],
-      */
       // #8: An image.
       [
         'an image',
@@ -434,12 +430,12 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
     // 1. The number of validation items matches the number of list markup (li).
     // Break the validation window markup into each validation item to allow
     // matching expected output within each validation item. This is done
-    // using the Symphony DOMCrawler to handle the fact that the details
-    // section may also contain li tags.
-    $crawler = new Crawler($validation_window_markup);
+    // using the Kernel AssertContent trait in order to break the rendered HTML
+    // into SimpleXML objects using CSS selectors.
+    $this->setRawContent($validation_window_markup);
     $returned_validationitem_markup = [];
-    foreach ($crawler->filter('li.tcp-validation-item') as $crawler_item) {
-      $returned_validationitem_markup[] = $crawler_item->ownerDocument->saveHTML($crawler_item);
+    foreach ($this->cssSelect('li.tcp-validation-item') as $selected_item) {
+      $returned_validationitem_markup[] = $selected_item->asXML();
     }
 
     $this->assertEquals(
@@ -474,6 +470,9 @@ class DisplayValidationResultWindowTest extends ChadoTestKernelBase {
 
       // 5. The details rendered markup is present in the overall markup output.
       $details_markup = $this->renderer->renderRoot($validation_item['details']);
+      // @todo still failing due to whitespace differences.
+      // Note: we cant use assertXmlStringEqualsXmlString() since we need
+      // to check that it CONTAINS not that its EQUAL.
       $this->assertStringContainsString(
         $details_markup,
         $returned_validationitem_markup[$i],
