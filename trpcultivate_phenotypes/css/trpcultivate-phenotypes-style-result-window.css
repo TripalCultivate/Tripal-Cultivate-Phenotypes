@@ -36,6 +36,13 @@
   font-style: italic;
 }
 
+/* Gin Sticky table headers have a weird negative
+  margin that overlays leader text in a validation item.
+  This style counteracts that without overriding it. */
+.tcp-result-window .gin-layer-wrapper {
+  margin-block-start: var(--gin-spacing-xs);
+}
+
 /* Iconography - validation result */
 .tcp-validate-todo {
   background-image: url(../images/tcp-validate-todo.jpg);
