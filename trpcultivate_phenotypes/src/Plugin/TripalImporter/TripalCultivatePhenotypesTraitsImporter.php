@@ -793,10 +793,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *     - 'genus_provided': The name of the genus provided.
    *
    * @return array
-   *   A render array which is used to display feedback to the user about
-   *   the case that failed and the failed items from the input file.
-   *   The type of render array is an itemized list containing the contents of
-   *   the 'failedItems' array from $validation_result.
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case that failed and the failed items from the
+   *   input file. Each item in the list contains the genus that was selected
+   *   in the form which failed validation.
    */
   public function processGenusExistsFailures(array $validation_result) {
     if ($validation_result['case'] == 'Genus does not exist') {
@@ -837,10 +837,13 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *     - 'extension': The extension of the input file if not supported.
    *
    * @return array
-   *   A render array which is used to display feedback to the user about
-   *   the case that failed and the failed items from the input file.
-   *   The type of render array is an itemized list containing the contents of
-   *   the 'failedItems' array from $validation_result.
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case that failed and the failed items from the
+   *   input file. Each item in the list contains a label of the item that
+   *   failed (synonymous with the key used in 'failedItems') followed by that
+   *   failed item. For example:
+   *   - Filename: $validation_result['failedItems']['filename']
+   *   - File ID: $validation_result['failedItems']['fid']
    */
   public function processValidDataFileFailures(array $validation_result) {
     if (($validation_result['case'] == 'Filename is empty string') ||
@@ -853,11 +856,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     }
     elseif ($validation_result['case'] == 'Filename failed to load a file object') {
       $title = 'The filename failed to load a file object.';
-      $items = $validation_result['failedItems']['filename'];
+      $items = 'Filename: ' . $validation_result['failedItems']['filename'];
     }
     elseif ($validation_result['case'] == 'File id failed to load a file object') {
       $title = 'The file ID failed to load a file object.';
-      $items = $validation_result['failedItems']['fid'];
+      $items = 'File ID: ' . $validation_result['failedItems']['fid'];
     }
     elseif ($validation_result['case'] == 'The file has no data and is an empty file') {
       $title = 'The file provided has no contents to import.';
@@ -910,12 +913,14 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *     - an array of column headers that was in the input file.
    *
    * @return array
-   *   A render array which is used to display feedback to the user about
-   *   the case that failed and the failed items from the input file.
-   *   The type of render array is an itemized list containing the contents of
-   *   the 'failedItems' array from $validation_result.
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case that failed and the failed items from the
+   *   input file. Each header that was provided in the input file is listed as
+   *   an item in the render array.
    */
   public function processValidHeadersFailures(array $validation_result) {
+    // @todo This case might not be possible to trigger since ValidDelimitedFile
+    // already checks for empty lines.
     if ($validation_result['case'] == 'Header row is an empty value') {
       $title = 'The file has an empty row where the header was expected.';
       $items = [];
@@ -951,22 +956,21 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * Processes failed validation from ValidDelimitedFile into a render array.
    *
    * @param array $failures
-   *   An associative array that was used to store validation failures by the
+   *   An associative array that stores the validation failures by the
    *   ValidDelimitedFile validator. It is keyed by the line number of the input
    *   file where validation failed, and the value is an associative array
    *   returned by the validator. Here is the overall structure of $failures:
    *   - [LINE NUMBER]:
    *     - 'case': a developer-focused string describing the case checked.
    *     - 'valid': FALSE to indicate that validation failed.
-   *     - 'failedItems': an array of items that failed, either:
+   *     - 'failedItems': an array of items that failed:
    *       - 'raw_row': A string indicating the row is empty OR the contents of
    *         the row as it appears in the file.
    *
    * @return array
-   *   A single render array or a list of two render arrays, which is used to
-   *   display feedback to the user about the case(s) that failed and the failed
-   *   items from the input file.
-   *   The following render array types are created only if the case is seen
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case(s) that failed and the failed items from the
+   *   input file. This unordered list will include a table for each case seen
    *   in the $failures array:
    *   - A table for lines that are empty or contain unsupported delimiters
    *   - A table for lines that once delimited, do not contain the expected
