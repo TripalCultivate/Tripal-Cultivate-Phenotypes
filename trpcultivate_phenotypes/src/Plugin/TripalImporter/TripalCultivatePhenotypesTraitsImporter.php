@@ -1027,10 +1027,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $tables = [];
     foreach ($table as $type) {
       array_push($tables, [
-        ['#markup' => $type['caption']],
+        [
+          '#markup' => $type['caption']
+        ],
         [
           '#type' => 'table',
-          //'#caption' => $type['caption'],
           '#header' => $table_header,
           '#attributes' => [],
           '#rows' => $type['rows'],
@@ -1047,7 +1048,21 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   }
 
   /**
-   * Processes messages from EmptyCell for the user.
+   * Processes failed validation from EmptyCell into a render array.
+   *
+   * @param array $failures
+   *   An associative array that stores the validation failures by the
+   *   EmptyCell validator. It is keyed by the line number of the input
+   *   file where validation failed, and the value is an associative array
+   *   returned by the validator. Here is the overall structure of $failures:
+   *   - [LINE NUMBER]:
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed:
+   *       - 'empty_indices': A list of column indices in the line which were
+   *         checked and found to be empty.
+   *
+   * @return array
    */
   public function processEmptyCellFailures(array $failures) {
     // Define our table header.
@@ -1072,15 +1087,15 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     // Build the render array for our table.
     $render_array = [
-      '#type' => 'html_tag',
-      '#tag' => 'ul',
-      'lists' => [
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => [
         [
-          '#type' => 'html_tag',
-          '#tag' => 'li',
-          'table' => [
+          [
+            '#markup' => $table['caption']
+          ],
+          [
             '#type' => 'table',
-            '#caption' => $table['caption'],
             '#header' => $table_header,
             '#attributes' => [],
             '#rows' => $table['rows'],
@@ -1093,7 +1108,20 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   }
 
   /**
-   * Processes messages from ValueInList for the user.
+   * Processes failed validation from ValueInList into a render array.
+   *
+   * @param array $failures
+   *   An associative array that stores the validation failures by the
+   *   ValueinList validator. It is keyed by the line number of the input
+   *   file where validation failed, and the value is an associative array
+   *   returned by the validator. Here is the overall structure of $failures:
+   *   - [LINE NUMBER]:
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed, where the key => value
+   *       pairs map to the index => cell value(s) that failed validation.
+   *
+   * @return array
    */
   public function processValueInListFailures(array $failures) {
     // Define our table header.
@@ -1117,15 +1145,15 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     // Build the render array for our table.
     $render_array = [
-      '#type' => 'html_tag',
-      '#tag' => 'ul',
-      'lists' => [
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => [
         [
-          '#type' => 'html_tag',
-          '#tag' => 'li',
-          'table' => [
+          [
+            '#markup' => $table['caption']
+          ],
+          [
             '#type' => 'table',
-            '#caption' => $table['caption'],
             '#header' => $table_header,
             '#attributes' => [],
             '#rows' => $table['rows'],
@@ -1138,7 +1166,25 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   }
 
   /**
-   * Processes messages from DuplicateTraits for the user.
+   * Processes failed validation from DuplicateTraits into a render array.
+   *
+   * @param array $failures
+   *   An associative array that stores the validation failures by the
+   *   DuplicateTraits validator. It is keyed by the line number of the input
+   *   file where validation failed, and the value is an associative array
+   *   returned by the validator. Here is the overall structure of $failures:
+   *   - [LINE NUMBER]:
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed, keyed by:
+   *       - 'combo_provided': The combination of trait, method, and unit
+   *         provided in the file. The keys used are the same name of the column
+   *         header for the cell containing the failed value.
+   *         - 'Trait Name': The trait name provided in the file
+   *         - 'Method Short Name': The method name provided in the file
+   *         - 'Unit': The unit provided in the file
+   *
+   * @return array
    */
   public function processDuplicateTraitsFailures(array $failures) {
     // Define our table headers.
@@ -1190,28 +1236,27 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     }
 
     // Finally, loop through our tables and build our render arrays.
-    $render_arrays = [];
+    $tables = [];
     foreach ($table as $type) {
-      array_push($render_arrays, [
-        '#type' => 'html_tag',
-        '#tag' => 'ul',
-        'lists' => [
-          [
-            '#type' => 'html_tag',
-            '#tag' => 'li',
-            'table' => [
-              '#type' => 'table',
-              '#caption' => $type['caption'],
-              '#header' => $table_header,
-              '#attributes' => [],
-              '#rows' => $type['rows'],
-            ],
-          ],
+      array_push($tables, [
+        [
+          '#markup' => $type['caption']
         ],
+        [
+          '#type' => 'table',
+          '#header' => $table_header,
+          '#attributes' => [],
+          '#rows' => $type['rows'],
+        ]
       ]);
     }
+    $render_array = [
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => $tables,
+    ];
 
-    return $render_arrays;
+    return $render_array;
   }
 
   /**
