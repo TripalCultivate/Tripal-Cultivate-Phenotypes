@@ -1024,28 +1024,26 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     }
 
     // Finally, loop through our tables and build our render array(s).
-    $render_arrays = [];
+    $tables = [];
     foreach ($table as $type) {
-      array_push($render_arrays, [
-        '#type' => 'html_tag',
-        '#tag' => 'ul',
-        'lists' => [
-          [
-            '#type' => 'html_tag',
-            '#tag' => 'li',
-            'table' => [
-              '#type' => 'table',
-              '#caption' => $type['caption'],
-              '#header' => $table_header,
-              '#attributes' => [],
-              '#rows' => $type['rows'],
-            ],
-          ],
-        ],
+      array_push($tables, [
+        ['#markup' => $type['caption']],
+        [
+          '#type' => 'table',
+          //'#caption' => $type['caption'],
+          '#header' => $table_header,
+          '#attributes' => [],
+          '#rows' => $type['rows'],
+        ]
       ]);
     }
+    $render_array = [
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => $tables,
+    ];
 
-    return $render_arrays;
+    return $render_array;
   }
 
   /**
