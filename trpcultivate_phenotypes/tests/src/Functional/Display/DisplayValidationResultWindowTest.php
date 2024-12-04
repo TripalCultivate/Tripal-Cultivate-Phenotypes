@@ -3,6 +3,7 @@
 namespace Drupal\Tests\trpcultivate_phenotypes\Functional\Display;
 
 use Drupal\Core\Url;
+use Drupal\Component\Utility\Html;
 use Drupal\Tests\tripal_chado\Functional\ChadoTestBrowserBase;
 use Drupal\KernelTests\AssertContentTrait;
 
@@ -435,7 +436,10 @@ class DisplayValidationResultWindowTest extends ChadoTestBrowserBase {
     $this->setRawContent($validation_window_markup);
     $returned_validationitem_markup = [];
     foreach ($this->cssSelect('li.tcp-validation-item') as $selected_item) {
-      $returned_validationitem_markup[] = $selected_item->asXML();
+      $returned_validationitem_markup[] = [
+        'markup' => $selected_item->asXML(),
+        'element' => $selected_item,
+      ];
     }
 
     $this->assertEquals(
@@ -444,40 +448,66 @@ class DisplayValidationResultWindowTest extends ChadoTestBrowserBase {
       'The number of validation items do not match the number of list markup items in scenario ' . $scenario
     );
 
-    foreach ($validation_result_input as $i => $validation_item) {
+    // Now for each validation item:
+    foreach ($validation_result_input as $i => $expected_validation_item) {
+      $returned_markup = $returned_validationitem_markup[$i]['markup'];
+      $returned_element = $returned_validationitem_markup[$i]['element'];
+
       // 2. The validation item has been set the correct status-based class.
       $class_name = $expected_class[$i];
       $this->assertStringContainsString(
         $class_name,
-        $returned_validationitem_markup[$i],
-        'The class name ' . $class_name . ' of validation input #' . $i . ' in scenario ' . $scenario . ', was not found in the validation window markup'
+        $returned_markup,
+        'The class name ' . $class_name . ' of validation item #' . $i . ' in scenario "' . $scenario . '" was not found in the expected rendered validation item.'
       );
 
-      // 3. The order of validation item is as the order it was in the array.
-      $title_text = $validation_item['title'];
+      // 3. The title of validation item was rendered in the correct item.
+      $title_text = $expected_validation_item['title'];
       $this->assertStringContainsString(
         $title_text,
-        $returned_validationitem_markup[$i],
-        'The title text ' . $title_text . ' of validation input #' . $i . ' in scenario ' . $scenario . ', was not in the expected order in the validation window markup'
+        $returned_markup,
+        'The title "' . $title_text . '" of validation item #' . $i . ' in scenario "' . $scenario . '" was not found in the expected rendered validation item.'
       );
 
-      // 4. The validation item has the correct title text.
-      $this->assertStringContainsString(
-        $title_text,
-        $returned_validationitem_markup[$i],
-        'The title text ' . $title_text . ' of validation input #' . $i . ' in scenario ' . $scenario . ', was not found in the validation window markup'
-      );
-
-      // 5. The details rendered markup is present in the overall markup output.
-      $details_markup = $this->renderer->renderRoot($validation_item['details']);
-      // @todo still failing due to whitespace differences.
-      // Note: we cant use assertXmlStringEqualsXmlString() since we need
-      // to check that it CONTAINS not that its EQUAL.
-      $this->assertStringContainsString(
-        $details_markup,
-        $returned_validationitem_markup[$i],
-        'The details markup of validation input #' . $i . ' in scenario ' . $scenario . ', was not found in the validation window markup'
-      );
+      // 5. The details rendered markup is present in the correct item.
+      // -- a) we do not expect any markup so confirm there isn't any.
+      if (empty($expected_validation_item['details'])) {
+        // We expect the rendered details to be within a div wrapper in the
+        // validation item. Therefore, in this case we just want to check that
+        // the div element in this validation item does not have any children.
+        $this->assertEmpty(
+          $returned_element->div->children(),
+          'The details section of validation item #' . $i . ' in scenario "' . $scenario . '" was supposed to be empty but was not.'
+        );
+      }
+      // -- b) we do expect markup so confirm it matches what we got.
+      else {
+        $details_markup = $this->renderer->renderRoot($expected_validation_item['details']);
+        // Mimic the AssertContentTrait::parse() method on the details markup
+        // in order to compare it with the parsed validation item. This approach
+        // is used to remove false failures caused by whitespace and slight
+        // differences in HTML syntax.
+        $details_dom = Html::load($details_markup);
+        $expected_details_element = @simplexml_import_dom($details_dom);
+        $expected_details_element = $expected_details_element->body;
+        $this->assertIsObject(
+          $expected_details_element,
+          'The rendered and parsed details element of validation item #' . $i . ' in scenario "' . $scenario . '" is not valid.',
+        );
+        // Unfortunatly we cannot simply check that the returned element
+        // contains the Details element. Instead, we use our knowledge
+        // of the validation item setup to return the children of the details
+        // div section wrapper and ensure they match the details element.
+        $rendered_details_element = $returned_element->div;
+        unset($rendered_details_element->attributes()->class);
+        // @debug print "Expected Details Element: " . print_r($expected_details_element, TRUE);
+        // @debug print "Rendered Details Element: " . print_r($rendered_details_element, TRUE);
+        $this->assertEquals(
+          $expected_details_element,
+          $rendered_details_element,
+          'The details markup of validation item #' . $i . ' in scenario "' . $scenario . '" was not found in the expected rendered validation item.'
+        );
+      }
     }
   }
 
