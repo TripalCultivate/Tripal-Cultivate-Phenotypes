@@ -991,50 +991,50 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Loop through each row in the $failures array and piece apart the
     // different cases into different tables.
     foreach ($failures as $line_no => $validation_result) {
-      // Keeps track of which type(s) of table this one line encounters.
-      $table_type = '';
+      // Keeps track of which table this one line's validation result gets added
+      // to based on the case it triggered.
+      $table_case = '';
 
       if (($validation_result['case'] == 'Raw row is empty') ||
           ($validation_result['case'] == 'None of the delimiters supported by the file type was used')) {
-        $table_type = 'unsupported';
+        $table_case = 'unsupported';
       }
       elseif ($validation_result['case'] == 'Raw row is not delimited') {
-        $table_type = 'delimited';
+        $table_case = 'delimited';
       }
 
       // Checked all cases, now add a row to our appropriate table.
-      if (!array_key_exists($table_type, $table)) {
-        // Declare the table array for this type of table if it hasn't been seen
-        // yet.
-        $table[$table_type]['rows'] = [];
+      if (!array_key_exists($table_case, $table)) {
+        // Declare the array storing rows for this table, if not already.
+        $table[$table_case]['rows'] = [];
       }
-      array_push($table[$table_type]['rows'], [
+      array_push($table[$table_case]['rows'], [
         $line_no,
         $validation_result['failedItems']['raw_row'],
       ]);
     }
-    // Check which tables were created, and assign the correct caption
+    // Check which tables were created, and assign the correct message.
     // Note that both tables can exist at the same time.
     if (array_key_exists('unsupported', $table)) {
-      $table['unsupported']['caption'] = 'The following rows do not contain a valid delimiter supported by this importer.';
+      $table['unsupported']['message'] = 'The following rows do not contain a valid delimiter supported by this importer.';
     }
     if (array_key_exists('delimited', $table)) {
-      // @todo Ideally the expected number of columns would be in this message
-      $table['delimited']['caption'] = 'The following rows did not contain the expected number of columns.';
+      $num_expected_columns = count($this->headers);
+      $table['delimited']['message'] = "This importer requires a strict number of $num_expected_columns columns for each row. The following rows do not contain the expected number of columns.";
     }
 
-    // Finally, loop through our tables and build our render array(s).
+    // Finally, loop through our tables and build our render array.
     $tables = [];
-    foreach ($table as $type) {
+    foreach ($table as $table_case) {
       array_push($tables, [
         [
-          '#markup' => $type['caption']
+          '#markup' => $table_case['message'],
         ],
         [
           '#type' => 'table',
           '#header' => $table_header,
           '#attributes' => [],
-          '#rows' => $type['rows'],
+          '#rows' => $table_case['rows'],
         ]
       ]);
     }
@@ -1071,7 +1071,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     foreach ($failures as $line_no => $validation_result) {
       if ($validation_result['case'] == 'Empty value found in required column(s)') {
-        $table['caption'] = 'The following line number and column header combinations were empty, but a value is required.';
+        $table['message'] = 'The following line number and column header combinations were empty, but a value is required.';
         // Convert indices in failedItems to column headers.
         $failed_indices = $validation_result['failedItems']['empty_indices'];
         // For each index with an empty value, grab the column name from our
@@ -1092,7 +1092,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       '#items' => [
         [
           [
-            '#markup' => $table['caption']
+            '#markup' => $table['message'],
           ],
           [
             '#type' => 'table',
@@ -1130,7 +1130,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     foreach ($failures as $line_no => $validation_result) {
       if ($validation_result['case'] == 'Invalid value(s) in required column(s)') {
-        $table['caption'] = 'The following line number and column header combinations contained an invalid value. Note that values are case sensitive.';
+        $table['message'] = 'The following line number and column header combinations contained an invalid value. Note that values should be case sensitive.';
         // For each index with an invalid value, grab the column name from our
         // $headers property and add it as a row in our table.
         foreach ($validation_result['failedItems'] as $index => $failed_value) {
@@ -1150,7 +1150,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       '#items' => [
         [
           [
-            '#markup' => $table['caption']
+            '#markup' => $table['message'],
           ],
           [
             '#type' => 'table',
@@ -1200,25 +1200,26 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Loop through each row in the $failures array and piece apart the
     // different cases into different tables.
     foreach ($failures as $line_no => $validation_result) {
-      // Keeps track of which type(s) of table this one line encounters.
-      $table_types = [];
+      // Keeps track of which table this one line's validation result gets added
+      // to based on the case it triggered.
+      $table_case = [];
       if ($validation_result['case'] == 'A duplicate trait was found within the input file') {
-        $table_types = ['file'];
+        $table_case = ['file'];
       }
       elseif ($validation_result['case'] == 'A duplicate trait was found in the database') {
-        $table_types = ['database'];
+        $table_case = ['database'];
       }
       elseif ($validation_result['case'] == 'A duplicate trait was found within both the input file and the database') {
-        $table_types = ['file', 'database'];
+        $table_case = ['file', 'database'];
       }
-      // Now set values that should appear in this table row for each type
-      // according to the case that was triggered for this line number.
-      foreach ($table_types as $type) {
-        // Declare the array storing rows for this table type, if not already.
-        if (!array_key_exists($type, $table)) {
-          $table[$type]['rows'] = [];
+      // Now set values that should appear for this row in the table(s) for this
+      // particular case.
+      foreach ($table_case as $case) {
+        // Declare the array storing rows for this table, if not already.
+        if (!array_key_exists($case, $table)) {
+          $table[$case]['rows'] = [];
         }
-        array_push($table[$type]['rows'], [
+        array_push($table[$case]['rows'], [
           $line_no,
           $validation_result['failedItems']['combo_provided'][$trait],
           $validation_result['failedItems']['combo_provided'][$method],
@@ -1226,27 +1227,27 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         ]);
       }
     }
-    // Check which tables were created, and assign the correct caption.
+    // Check which tables were created, and assign the correct message.
     // Note that both tables can exist at the same time, hence not an 'elseif'.
     if (array_key_exists('file', $table)) {
-      $table['file']['caption'] = 'These traits were found to be duplicated within your input file.';
+      $table['file']['message'] = 'These traits were found to be duplicated within your input file.';
     }
     if (array_key_exists('database', $table)) {
-      $table['database']['caption'] = 'These traits were found to be duplicated within the database.';
+      $table['database']['message'] = 'These traits were found to be duplicated within the database.';
     }
 
-    // Finally, loop through our tables and build our render arrays.
+    // Finally, loop through our tables and build our render array.
     $tables = [];
-    foreach ($table as $type) {
+    foreach ($table as $table_case) {
       array_push($tables, [
         [
-          '#markup' => $type['caption']
+          '#markup' => $table_case['message'],
         ],
         [
           '#type' => 'table',
           '#header' => $table_header,
           '#attributes' => [],
-          '#rows' => $type['rows'],
+          '#rows' => $table_case['rows'],
         ]
       ]);
     }
