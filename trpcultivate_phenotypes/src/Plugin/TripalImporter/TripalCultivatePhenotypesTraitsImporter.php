@@ -970,8 +970,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * @return array
    *   A render array of type unordered list which is used to display feedback
    *   to the user about the case(s) that failed and the failed items from the
-   *   input file. This unordered list will include a table for each case seen
-   *   in the $failures array:
+   *   input file. This unordered list will include a table for each potential
+   *   case in the $failures array:
    *   - A table for lines that are empty or contain unsupported delimiters
    *   - A table for lines that once delimited, do not contain the expected
    *     number of columns.
@@ -1063,6 +1063,12 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *         checked and found to be empty.
    *
    * @return array
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case(s) that failed and the failed items from the
+   *   input file. This unordered list will include a table that lists the row
+   *   and column combinations with empty cells. It has the following headers:
+   *   - 'Line Number'
+   *   - 'Column Header'
    */
   public function processEmptyCellFailures(array $failures) {
     // Define our table header.
@@ -1122,10 +1128,18 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *       pairs map to the index => cell value(s) that failed validation.
    *
    * @return array
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case(s) that failed and the failed items from the
+   *   input file. This unordered list will include a table that lists the row
+   *   and column combinations with an invalid value. It has the following
+   *   headers:
+   *   - 'Line Number'
+   *   - 'Column Header'
+   *   - 'Invalid Value'
    */
   public function processValueInListFailures(array $failures) {
     // Define our table header.
-    $table_header = ['Line Number', 'Column Header', 'Failed Value'];
+    $table_header = ['Line Number', 'Column Header', 'Invalid Value'];
     $table['rows'] = [];
 
     foreach ($failures as $line_no => $validation_result) {
@@ -1185,6 +1199,17 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *         - 'Unit': The unit provided in the file
    *
    * @return array
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case(s) that failed and the failed items from the
+   *   input file. This unordered list will include a table for each potential
+   *   case in the $failures array:
+   *   - A table for duplicate trait-method-unit combos seen in the input file
+   *   - A table for duplicate trait-method-unit combos found in the database
+   *   Both tables contain the following headers:
+   *   - 'Line Number'
+   *   - 'Trait Name'
+   *   - 'Method Short Name'
+   *   - 'Unit'
    */
   public function processDuplicateTraitsFailures(array $failures) {
     // Define our table headers.
