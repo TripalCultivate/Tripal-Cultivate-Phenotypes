@@ -601,17 +601,26 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * Configures and processes validation messages for the user.
    *
    * @param array $failures
-   *   An array containing the return values from any failed validators, keyed
-   *   by the unique name assigned to each validator-input type combination, and
-   *   further keyed by row number IF the validator was run on each data row.
+   *   An array containing the return values from any failed validators. If
+   *   validation was run for a validator instance, this is keyed by the unique
+   *   name assigned to each validator-input type combination. This key will
+   *   only contain values IF validation failed at any point that it was run. It
+   *   is further keyed by row number IF the validator failed on that row as a
+   *   row-level validator.
+   *   Specifically:
+   *   - [VALIDATOR INSTANCE NAME]
+   *     - [ROW NUMBER (only if row-level validator)]
+   *       - 'case': a developer-focused string describing the case checked.
+   *       - 'valid': FALSE to indicate that validation failed.
+   *       - 'failedItems': an array of items that failed. Structure of this
+   *         array is dependent on the validator.
    *
    * @return array
    *   An array of feedback to provide to the user. It summarizes the validation
    *   results reported by the validators in formValidate (i.e. $failures). This
-   *   array is keyed by a string that is associated with a line in the validate
-   *   UI. Specifically:
-   *   - 'validation_line': A string associated with a line that will be
-   *     displayed to the user in the validate UI
+   *   array is keyed by a validation line, which is a string that is associated
+   *   with a line in the validate UI dispalyed to the user. Specifically:
+   *   - [VALIDATION LINE]:
    *     - 'title': A user-focused message describing the validation that took
    *       place.
    *     - 'status': One of: 'todo', 'pass', 'fail'.
@@ -678,12 +687,13 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $raw_row_failed = FALSE;
 
     // ---------------------- Process Validation Results -----------------------
-    // For each validator, first check if $failures[$validator_name] exists,
-    // which indicates it was run. If it was not run, then do nothing since it
-    // has already been amrked as "todo" in the $message array.
-    // Next, check if $failures[$validator_name] is empty, which indicates that
+    // For each validator:
+    // 1. Check if $failures[$validator_name] exists, which indicates it was
+    // run. If it was not run, then do nothing since it has already been marked
+    // as "todo" in the $messages array.
+    // 2. Check if $failures[$validator_name] is empty, which indicates that
     // validation passed and there are no errors to report for this validator.
-    // Otherwise, process failures for this validator with a dedicated method
+    // 3. Otherwise, process failures for this validator with a dedicated method
     // that will build a render array of the feedback for the user.
     // -------------------------------------------------------------------------
     // GenusExists.
