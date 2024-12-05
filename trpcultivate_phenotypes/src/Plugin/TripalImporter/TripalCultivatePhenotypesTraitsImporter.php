@@ -810,11 +810,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    */
   public function processGenusExistsFailures(array $validation_result) {
     if ($validation_result['case'] == 'Genus does not exist') {
-      $title = 'The selected genus does not exist in the database.';
+      $title = 'The selected genus does not exist in this site. Please contact your administrator to have this added.';
       $items = $validation_result['failedItems']['genus_provided'];
     }
     elseif ($validation_result['case'] == 'Genus exists but is not configured') {
-      $title = 'The selected genus exists in the database but is not configured for this module.';
+      $title = 'The selected genus has not yet been configured for use with phenotypic data. Please contact your administrator to have this set up.';
       $items = $validation_result['failedItems']['genus_provided'];
     }
     // Build the render array.
@@ -1265,10 +1265,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Check which tables were created, and assign the correct message.
     // Note that both tables can exist at the same time, hence not an 'elseif'.
     if (array_key_exists('file', $table)) {
-      $table['file']['message'] = 'These traits were found to be duplicated within your input file.';
+      $table['file']['message'] = 'These trait-method-unit combinations occurred multiple times within your input file. The line number indicates the duplicated occurrence(s).';
     }
     if (array_key_exists('database', $table)) {
-      $table['database']['message'] = 'These traits were found to be duplicated within the database.';
+      $table['database']['message'] = 'These trait-method-unit combinations have already been imported into this site. Please confirm the existing version fully represents your data. If it does, then you can remove it from your input file. If not then you need to make the names more specific.';
     }
 
     // Finally, loop through our tables and build our render array.
