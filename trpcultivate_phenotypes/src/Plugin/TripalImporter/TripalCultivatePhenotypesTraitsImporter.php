@@ -857,39 +857,38 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    */
   public function processValidDataFileFailures(array $validation_result) {
     if (($validation_result['case'] == 'Filename is empty string') ||
-        ($validation_result['case'] == 'Invalid file id number')) {
-      $title = 'The file provided does not exist.';
-      $items = [
-        'Filename: ' . $validation_result['failedItems']['filename'],
-        'File ID: ' . $validation_result['failedItems']['fid'],
-      ];
-    }
-    elseif ($validation_result['case'] == 'Filename failed to load a file object') {
-      $title = 'The filename failed to load a file object.';
-      $items = 'Filename: ' . $validation_result['failedItems']['filename'];
-    }
-    elseif ($validation_result['case'] == 'File id failed to load a file object') {
-      $title = 'The file ID failed to load a file object.';
-      $items = 'File ID: ' . $validation_result['failedItems']['fid'];
+        ($validation_result['case'] == 'Invalid file id number') ||
+        ($validation_result['case'] == 'Filename failed to load a file object') ||
+        ($validation_result['case'] == 'File id failed to load a file object')) {
+      $message = 'A problem occurred in between uploading the file and submitting it for validation. Please try uploading and submitting it again, or contact your administrator if the problem persists.';
+      // All but one case returns the filename, so check that it exists before
+      // assigning it to items.
+      if (array_key_exists('filename', $validation_result['failedItems'])) {
+        $items = [
+          'Filename: ' . $validation_result['failedItems']['filename'],
+        ];
+      }
+      // Log a message for the administrator here? That includes the FID as well
+      // if available?
     }
     elseif ($validation_result['case'] == 'The file has no data and is an empty file') {
-      $title = 'The file provided has no contents to import.';
+      $message = 'The file provided has no contents in it to import. Please ensure your file has the expected header row and at least one row of data.';
       $items = [
         'Filename: ' . $validation_result['failedItems']['filename'],
-        'File ID: ' . $validation_result['failedItems']['fid'],
       ];
     }
     elseif (($validation_result['case'] == 'Unsupported file MIME type') ||
             ($validation_result['case'] == 'Unsupported file mime type and unsupported extension')) {
-      // @todo Provide a list of the supported mime-type and file extensions.
-      $title = 'The file type or extension is not supported by this importer.';
+      $message = "The type of file uploaded is not supported by this importer. Please ensure your file has one of the supported file extensions and was saved using software that supports that type of file. For example, a 'tsv' file should be saved as such by a spreadsheet editor such as Microsoft Excel.";
+      // Log a message to the administrator using these items:
       $items = [
         'File type: ' . $validation_result['failedItems']['mime'],
         'File extension: ' . $validation_result['failedItems']['extension'],
       ];
     }
     elseif ($validation_result['case'] == 'Data file cannot be opened') {
-      $title = 'The file provided could not be opened.';
+      $message = 'The file provided could not be opened. Please contact your administrator for help.';
+      // Log a message to the administrator using these items:
       $items = [
         'Filename: ' . $validation_result['failedItems']['filename'],
         'File ID: ' . $validation_result['failedItems']['fid'],
@@ -899,7 +898,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Build the render array.
     $render_array = [
       '#type' => 'item',
-      '#title' => $title,
+      '#title' => $message,
       'items' => [
         '#theme' => 'item_list',
         '#type' => 'ul',
@@ -1045,7 +1044,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
           '#header' => $table_header,
           '#attributes' => [],
           '#rows' => $table_case['rows'],
-        ]
+        ],
       ]);
     }
     $render_array = [
@@ -1204,9 +1203,9 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *       - 'combo_provided': The combination of trait, method, and unit
    *         provided in the file. The keys used are the same name of the column
    *         header for the cell containing the failed value.
-   *         - 'Trait Name': The trait name provided in the file
-   *         - 'Method Short Name': The method name provided in the file
-   *         - 'Unit': The unit provided in the file
+   *         - 'Trait Name': The trait name provided in the file.
+   *         - 'Method Short Name': The method name provided in the file.
+   *         - 'Unit': The unit provided in the file.
    *
    * @return array
    *   A render array of type unordered list which is used to display feedback
@@ -1283,7 +1282,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
           '#header' => $table_header,
           '#attributes' => [],
           '#rows' => $table_case['rows'],
-        ]
+        ],
       ]);
     }
     $render_array = [
