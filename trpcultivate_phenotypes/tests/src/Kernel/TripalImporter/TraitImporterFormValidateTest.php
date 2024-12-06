@@ -193,7 +193,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
     // #1: File is empty.
     $scenarios[] = [
       $valid_genus,
-      'empty_file.txt',
+      'empty_file.tsv',
       [
         'genus_exists' => ['status' => 'pass'],
         'valid_data_file' => [
