@@ -950,23 +950,17 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
             '#attributes' => [],
             '#rows' => [
               [
-                'data' => [
-                  [
-                    'data' => 'Expected Headers',
-                    'header' => TRUE,
-                  ],
-                  $expected_headers,
+                [
+                  'data' => 'Expected Headers',
+                  'header' => TRUE,
                 ],
-              ],
+              ] + $expected_headers,
               [
-                'data' => [
-                  [
-                    'data' => 'Provided Headers',
-                    'header' => TRUE,
-                  ],
-                  $provided_headers,
+                [
+                  'data' => 'Provided Headers',
+                  'header' => TRUE,
                 ],
-              ],
+              ] + $provided_headers,
             ],
           ],
         ],
