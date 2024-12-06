@@ -861,21 +861,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         ($validation_result['case'] == 'Filename failed to load a file object') ||
         ($validation_result['case'] == 'File id failed to load a file object')) {
       $message = 'A problem occurred in between uploading the file and submitting it for validation. Please try uploading and submitting it again, or contact your administrator if the problem persists.';
-      // All but one case returns the filename, so check that it exists before
-      // assigning it to items.
-      if (array_key_exists('filename', $validation_result['failedItems'])) {
-        $items = [
-          'Filename: ' . $validation_result['failedItems']['filename'],
-        ];
-      }
       // Log a message for the administrator here? That includes the FID as well
       // if available?
     }
     elseif ($validation_result['case'] == 'The file has no data and is an empty file') {
       $message = 'The file provided has no contents in it to import. Please ensure your file has the expected header row and at least one row of data.';
-      $items = [
-        'Filename: ' . $validation_result['failedItems']['filename'],
-      ];
     }
     elseif (($validation_result['case'] == 'Unsupported file MIME type') ||
             ($validation_result['case'] == 'Unsupported file mime type and unsupported extension')) {
@@ -895,15 +885,18 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       ];
     }
 
+    // Majority of cases return the filename, so check that it exists before
+    // assigning a value to help the user with debugging.
+    $filename = '';
+    if (array_key_exists('filename', $validation_result['failedItems'])) {
+      $filename = 'Filename: ' . $validation_result['failedItems']['filename'];
+    }
+
     // Build the render array.
     $render_array = [
       '#type' => 'item',
       '#title' => $message,
-      'items' => [
-        '#theme' => 'item_list',
-        '#type' => 'ul',
-        '#items' => $items,
-      ],
+      '#markup' => $filename,
     ];
 
     return $render_array;
@@ -928,33 +921,55 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   an item in the render array.
    */
   public function processValidHeadersFailures(array $validation_result) {
-    // @todo This case might not be possible to trigger since ValidDelimitedFile
-    // already checks for empty lines.
     if ($validation_result['case'] == 'Header row is an empty value') {
-      $title = 'The file has an empty row where the header was expected.';
-      $items = [];
+      $message = 'The file has an empty row where the header was expected.';
     }
     elseif ($validation_result['case'] == 'Headers do not match expected headers') {
-      $title = 'One or more of the column headers in the input file does not match what was expected. Please check if your column header is in the correct order and matches the template exactly. The provided column headers were:';
-      $items = $validation_result['failedItems'];
+      $message = 'One or more of the column headers in the input file does not match what was expected. Please check if your column header is in the correct order and matches the template exactly.';
     }
-    // @todo Keep this case or remove it? It's not possible to trigger this for
-    // the Traits Importer as ValidDelimitedFile will check for strict number of
-    // columns in the header.
     elseif ($validation_result['case'] == 'Headers provided does not have the expected number of headers') {
       $num_expected_columns = count($this->headers);
-      $title = "This importer requires a strict number of $num_expected_columns column headers. Please remove additional column headers from the file. The provided column headers were:";
-      $items = $validation_result['failedItems'];
+      $message = "This importer requires a strict number of $num_expected_columns column headers. Please remove additional column headers from the file. The provided column headers were:";
     }
+    // Get the expected and actual headers to build the rows in our table render
+    // array.
+    $expected_headers = array_column($this->headers, 'name');
+    $provided_headers = $validation_result['failedItems'];
 
     // Build the render array.
     $render_array = [
-      '#type' => 'item',
-      '#title' => $title,
-      'items' => [
-        '#theme' => 'item_list',
-        '#type' => 'ul',
-        '#items' => $items,
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => [
+        [
+          [
+            '#markup' => $message,
+          ],
+          [
+            '#type' => 'table',
+            '#attributes' => [],
+            '#rows' => [
+              [
+                'data' => [
+                  [
+                    'data' => 'Expected Headers',
+                    'header' => TRUE,
+                  ],
+                  $expected_headers,
+                ],
+              ],
+              [
+                'data' => [
+                  [
+                    'data' => 'Provided Headers',
+                    'header' => TRUE,
+                  ],
+                  $provided_headers,
+                ],
+              ],
+            ],
+          ],
+        ],
       ],
     ];
 
@@ -1042,7 +1057,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         [
           '#type' => 'table',
           '#header' => $table_header,
-          '#attributes' => [],
+          '#attributes' => ['class' => ['tcp-raw-row']],
           '#rows' => $table_case['rows'],
         ],
       ]);
