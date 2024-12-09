@@ -81,9 +81,13 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
    *   - Expected values set:
    *     - number_of_columns: the number of columns to expect.
    *     - strict: strict comparison flag.
-   *   - Expected exception message for both setter and getter:
-   *     - setter: setter exception message.
+   *   - Expected exception catch status and message for setter and getter:
+   *     - setter:
+   *       - catch_status: True to indicate an exception is expected.
+   *       - message: The setter exception message if catch_status is true.
    *     - getter: getter exception message.
+   *       - catch_status: True to indicate an exception is expected.
+   *       - message: The getter exception message if catch_status is true.
    */
   public function provideExpectedColumnsForSetter() {
     return [
@@ -94,8 +98,14 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
         FALSE,
         NULL,
         [
-          'setter' => 'setExpectedColumns() in validator requires an integer value greater than zero.',
-          'getter' => 'Cannot retrieve the number of expected columns as one has not been set by setExpectedColumns().',
+          'setter' => [
+            'catch_status' => TRUE,
+            'message'  => 'setExpectedColumns() in validator requires an integer value greater than zero.',
+          ],
+          'getter' => [
+            'catch_status' => TRUE,
+            'message' => 'Cannot retrieve the number of expected columns as one has not been set by setExpectedColumns().',
+          ],
         ],
       ],
 
@@ -109,8 +119,14 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
           'strict' => TRUE,
         ],
         [
-          'setter' => '',
-          'getter' => '',
+          'setter' => [
+            'catch_status' => FALSE,
+            'message' => '',
+          ],
+          'getter' => [
+            'catch_status' => FALSE,
+            'message' => '',
+          ],
         ],
       ],
     ];
@@ -159,9 +175,10 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
       $exception_message = $e->getMessage();
     }
 
+    $this->assertEquals($exception_caught, $exception['setter']['catch_status'], 'setExpectedColumns() exception catch status does not match expected status in scenario ' . $scenario);
     $this->assertEquals(
       $exception_message,
-      $exception['setter'],
+      $exception['setter']['message'],
       'Exception message does not match the expected message when trying to call setExpectedColumns() in scenario ' . $scenario
     );
 
@@ -178,9 +195,10 @@ class ValidatorTraitColumnCountTest extends ChadoTestKernelBase {
       $exception_message = $e->getMessage();
     }
 
+    $this->assertEquals($exception_caught, $exception['getter']['catch_status'], 'getExpectedColumns() exception catch status does not match expected status in scenario ' . $scenario);
     $this->assertEquals(
       $exception_message,
-      $exception['getter'],
+      $exception['getter']['message'],
       'Exception message does not match the expected message when trying to call getExpectedColumns() in scenario ' . $scenario
     );
 
