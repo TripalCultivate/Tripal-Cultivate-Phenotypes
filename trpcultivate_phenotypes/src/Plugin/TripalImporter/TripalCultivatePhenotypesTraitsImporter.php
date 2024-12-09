@@ -765,7 +765,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     if (array_key_exists($validator_name, $failures)) {
       if (!empty($failures[$validator_name])) {
         $messages[$validator_name]['status'] = 'fail';
-        $messages[$validator_name]['details'] = $this->processValueInListFailures($failures[$validator_name]);
+        $messages[$validator_name]['details'] = $this->processValueInListFailures(
+          $failures[$validator_name],
+          ['Quantitative', 'Qualitative']
+        );
       }
       // Only pass if raw row validation didn't fail.
       elseif (!$raw_row_failed) {
@@ -863,6 +866,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       $message = 'A problem occurred in between uploading the file and submitting it for validation. Please try uploading and submitting it again, or contact your administrator if the problem persists.';
       // Log a message for the administrator here? That includes the FID as well
       // if available?
+      // Lookup the name of the importer logger
     }
     elseif ($validation_result['case'] == 'The file has no data and is an empty file') {
       $message = 'The file provided has no contents in it to import. Please ensure your file has the expected header row and at least one row of data.';
@@ -870,7 +874,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     elseif (($validation_result['case'] == 'Unsupported file MIME type') ||
             ($validation_result['case'] == 'Unsupported file mime type and unsupported extension')) {
       $message = "The type of file uploaded is not supported by this importer. Please ensure your file has one of the supported file extensions and was saved using software that supports that type of file. For example, a 'tsv' file should be saved as such by a spreadsheet editor such as Microsoft Excel.";
-      // Log a message to the administrator using these items:
+      // Show to user AND log a message to the administrator using these items:
+      // - The file extension indicates this is "extension" but our system detected this is "mime type"
       $items = [
         'File type: ' . $validation_result['failedItems']['mime'],
         'File extension: ' . $validation_result['failedItems']['extension'],
@@ -917,8 +922,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * @return array
    *   A render array of type unordered list which is used to display feedback
    *   to the user about the case that failed and the failed items from the
-   *   input file. Each header that was provided in the input file is listed as
-   *   an item in the render array.
+   *   input file. This unordered list will include a table with a row of the
+   *   expected headers followed by a row of the provided headers.
    */
   public function processValidHeadersFailures(array $validation_result) {
     if ($validation_result['case'] == 'Header row is an empty value') {
@@ -929,7 +934,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     }
     elseif ($validation_result['case'] == 'Headers provided does not have the expected number of headers') {
       $num_expected_columns = count($this->headers);
-      $message = "This importer requires a strict number of $num_expected_columns column headers. Please remove additional column headers from the file. The provided column headers were:";
+      $message = "This importer requires a strict number of $num_expected_columns column headers. Please ensure your column header matches the template exactly and remove additional column headers from the file.";
     }
     // Get the expected and actual headers to build the rows in our table render
     // array.
@@ -1034,11 +1039,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Check which tables were created, and assign the correct message.
     // Note that both tables can exist at the same time.
     if (array_key_exists('unsupported', $table)) {
-      $table['unsupported']['message'] = 'The following rows do not contain a valid delimiter supported by this importer.';
+      $table['unsupported']['message'] = 'The following lines in the input file do not contain a valid delimiter supported by this importer.';
     }
     if (array_key_exists('delimited', $table)) {
       $num_expected_columns = count($this->headers);
-      $table['delimited']['message'] = "This importer requires a strict number of $num_expected_columns columns for each row. The following rows do not contain the expected number of columns.";
+      $table['delimited']['message'] = "This importer requires a strict number of $num_expected_columns columns for each line. The following lines do not contain the expected number of columns.";
     }
 
     // Finally, loop through our tables and build our render array.
@@ -1086,11 +1091,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   input file. This unordered list will include a table that lists the row
    *   and column combinations with empty cells. It has the following headers:
    *   - 'Line Number'
-   *   - 'Column Header'
+   *   - 'Column(s) with empty value'
    */
   public function processEmptyCellFailures(array $failures) {
     // Define our table header.
-    $table_header = ['Line Number', 'Column Header'];
+    $table_header = ['Line Number', 'Column(s) with empty value'];
     $table['rows'] = [];
 
     foreach ($failures as $line_no => $validation_result) {
@@ -1099,13 +1104,18 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         // Convert indices in failedItems to column headers.
         $failed_indices = $validation_result['failedItems']['empty_indices'];
         // For each index with an empty value, grab the column name from our
-        // $headers property and add it as a row in our table.
+        // $headers property and add to an array of header names.
+        $empty_headers = [];
         foreach ($failed_indices as $index) {
-          array_push($table['rows'], [
-            $line_no,
-            $this->headers[$index]['name'],
-          ]);
+          array_push($empty_headers, $this->headers[$index]['name']);
         }
+        // Implode the empty headers array into a string and then add it as a
+        // row to our table.
+        $columns_string = implode(", ", $empty_headers);
+        array_push($table['rows'], [
+          $line_no,
+          $columns_string,
+        ]);
       }
     }
 
@@ -1144,6 +1154,9 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *     - 'valid': FALSE to indicate that validation failed.
    *     - 'failedItems': an array of items that failed, where the key => value
    *       pairs map to the index => cell value(s) that failed validation.
+   * @param array $expected_values
+   *   A list of valid values that was provided to the ValueinList validator
+   *   instance that is being processed for feedback to the user.
    *
    * @return array
    *   A render array of type unordered list which is used to display feedback
@@ -1155,14 +1168,14 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   - 'Column Header'
    *   - 'Invalid Value'
    */
-  public function processValueInListFailures(array $failures) {
+  public function processValueInListFailures(array $failures, array $expected_values) {
     // Define our table header.
-    $table_header = ['Line Number', 'Column Header', 'Invalid Value'];
+    $table_header = ['Line Number', 'Column(s) with invalid value', 'Invalid Value'];
     $table['rows'] = [];
 
     foreach ($failures as $line_no => $validation_result) {
       if ($validation_result['case'] == 'Invalid value(s) in required column(s)') {
-        $table['message'] = 'The following line number and column header combinations contained an invalid value. Note that values should be case sensitive.';
+        $table['message'] = 'The following line number and column combinations did not contain one of the following allowed values: "' . implode('", "', $expected_values) . '". Note that values should be case sensitive. <strong>Empty cells indicate the value given was one of the allowed values.</strong>';
         // For each index with an invalid value, grab the column name from our
         // $headers property and add it as a row in our table.
         foreach ($validation_result['failedItems'] as $index => $failed_value) {
