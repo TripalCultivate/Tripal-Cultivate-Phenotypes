@@ -813,17 +813,17 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    */
   public function processGenusExistsFailures(array $validation_result) {
     if ($validation_result['case'] == 'Genus does not exist') {
-      $title = 'The selected genus does not exist in this site. Please contact your administrator to have this added.';
+      $message = 'The selected genus does not exist in this site. Please contact your administrator to have this added.';
       $items = $validation_result['failedItems']['genus_provided'];
     }
     elseif ($validation_result['case'] == 'Genus exists but is not configured') {
-      $title = 'The selected genus has not yet been configured for use with phenotypic data. Please contact your administrator to have this set up.';
+      $message = 'The selected genus has not yet been configured for use with phenotypic data. Please contact your administrator to have this set up.';
       $items = $validation_result['failedItems']['genus_provided'];
     }
     // Build the render array.
     $render_array = [
       '#type' => 'item',
-      '#title' => $title,
+      '#title' => $message,
       'items' => [
         '#theme' => 'item_list',
         '#type' => 'ul',
@@ -852,11 +852,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * @return array
    *   A render array of type unordered list which is used to display feedback
    *   to the user about the case that failed and the failed items from the
-   *   input file. Each item in the list contains a label of the item that
-   *   failed (synonymous with the key used in 'failedItems') followed by that
-   *   failed item. For example:
+   *   input file. The one item in the list is either the filename, as below:
    *   - Filename: $validation_result['failedItems']['filename']
-   *   - File ID: $validation_result['failedItems']['fid']
+   *   OR it is a message informing the user that their file's extension and
+   *   mime type are not compatible.
    */
   public function processValidDataFileFailures(array $validation_result) {
     if (($validation_result['case'] == 'Filename is empty string') ||
@@ -864,30 +863,49 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         ($validation_result['case'] == 'Filename failed to load a file object') ||
         ($validation_result['case'] == 'File id failed to load a file object')) {
       $message = 'A problem occurred in between uploading the file and submitting it for validation. Please try uploading and submitting it again, or contact your administrator if the problem persists.';
-      // Log a message for the administrator here? That includes the FID as well
-      // if available?
-      // Lookup the name of the importer logger
+      // All but one case returns the filename, so check that it exists before
+      // assigning it to items.
+      if (array_key_exists('filename', $validation_result['failedItems'])) {
+        $items = [
+          'Filename: ' . $validation_result['failedItems']['filename'],
+        ];
+      }
+      // Log a message for the administrator to help with debugging the issue.
+      // Get the current user.
+      $username = User::load(\Drupal::currentUser()->name());
+      // Get the fid of the uploaded file.
+      $fid = $validation_result['failedItems']['fid'];
+      $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but could not import it as something is wrong with the filename/FID.");
     }
+
     elseif ($validation_result['case'] == 'The file has no data and is an empty file') {
       $message = 'The file provided has no contents in it to import. Please ensure your file has the expected header row and at least one row of data.';
+      $items = [
+        'Filename: ' . $validation_result['failedItems']['filename'],
+      ];
     }
+
     elseif (($validation_result['case'] == 'Unsupported file MIME type') ||
             ($validation_result['case'] == 'Unsupported file mime type and unsupported extension')) {
       $message = "The type of file uploaded is not supported by this importer. Please ensure your file has one of the supported file extensions and was saved using software that supports that type of file. For example, a 'tsv' file should be saved as such by a spreadsheet editor such as Microsoft Excel.";
-      // Show to user AND log a message to the administrator using these items:
-      // - The file extension indicates this is "extension" but our system detected this is "mime type"
+      // Give more info to the user AND log a message to the administrator using
+      // these failed items:
+      $file_mime = $validation_result['failedItems']['mime'];
+      $file_extension = $validation_result['failedItems']['extension'];
       $items = [
-        'File type: ' . $validation_result['failedItems']['mime'],
-        'File extension: ' . $validation_result['failedItems']['extension'],
+        "The file extension indicates the file is \"$file_extension\" but our system detected the file is of type \"$file_mime\"",
       ];
+      $this->logger->info("The user $username uploaded a file to the Traits Importer with file extension \"$file_extension\" and mime type \"$file_mime\"");
     }
     elseif ($validation_result['case'] == 'Data file cannot be opened') {
       $message = 'The file provided could not be opened. Please contact your administrator for help.';
-      // Log a message to the administrator using these items:
+      $filename = $validation_result['failedItems']['filename'];
+      $fid = $validation_result['failedItems']['fid'];
       $items = [
-        'Filename: ' . $validation_result['failedItems']['filename'],
-        'File ID: ' . $validation_result['failedItems']['fid'],
+        'Filename: ' . $filename,
       ];
+      // Log more info for the administrator.
+      $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but the file could not be opened using \'@fopen\'");
     }
 
     // Majority of cases return the filename, so check that it exists before
@@ -901,7 +919,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $render_array = [
       '#type' => 'item',
       '#title' => $message,
-      '#markup' => $filename,
+      'items' => [
+        '#theme' => 'item_list',
+        '#type' => 'ul',
+        '#items' => $items,
+      ],
     ];
 
     return $render_array;
