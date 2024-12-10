@@ -1192,7 +1192,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    */
   public function processValueInListFailures(array $failures, array $expected_values) {
     // Define our table header.
-    $table_header = ['Line Number', 'Column(s) with invalid value', 'Invalid Value'];
+    // We will start with the line number and build the header from there as we
+    // go through the failures. There will be a column for each column checked
+    // by this validator instance and the column header will be the same as it
+    // is in the file.
+    $table_header = ['lineno' => 'Line Number'];
     $table['rows'] = [];
 
     foreach ($failures as $line_no => $validation_result) {
@@ -1201,11 +1205,23 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         // For each index with an invalid value, grab the column name from our
         // $headers property and add it as a row in our table.
         foreach ($validation_result['failedItems'] as $index => $failed_value) {
-          array_push($table['rows'], [
-            $line_no,
-            $this->headers[$index]['name'],
-            $failed_value,
-          ]);
+          // Grab the column name based on the index of the invalid value
+          // and add it to this table header if it's not already there.
+          $column_name = $this->headers[$index]['name'];
+          if (!array_key_exists($column_name, $table_header)) {
+            $table_header[$column_name] = $column_name;
+          }
+          // Now add a row to the table to indicate the invalid value.
+          // We use the column name as the key to ensure the invalid value
+          // is added to the right column. We also key the row with the line
+          // number to ensure that a line with more then one failure is
+          // compiled into a single row.
+          if (!array_key_exists($line_no, $table['rows'])) {
+            $table['rows'][$line_no] = [
+              'lineno' => $line_no,
+            ];
+          }
+          $table['rows'][$line_no][$column_name] = $failed_value;
         }
       }
     }
