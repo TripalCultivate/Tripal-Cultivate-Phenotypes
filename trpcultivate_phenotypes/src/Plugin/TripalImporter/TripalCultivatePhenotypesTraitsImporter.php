@@ -814,12 +814,13 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   public function processGenusExistsFailures(array $validation_result) {
     if ($validation_result['case'] == 'Genus does not exist') {
       $message = 'The selected genus does not exist in this site. Please contact your administrator to have this added.';
-      $items = $validation_result['failedItems']['genus_provided'];
+      $items[] = $validation_result['failedItems']['genus_provided'];
     }
     elseif ($validation_result['case'] == 'Genus exists but is not configured') {
       $message = 'The selected genus has not yet been configured for use with phenotypic data. Please contact your administrator to have this set up.';
-      $items = $validation_result['failedItems']['genus_provided'];
+      $items[] = $validation_result['failedItems']['genus_provided'];
     }
+
     // Build the render array.
     $render_array = [
       '#type' => 'item',

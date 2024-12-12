@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel\TripalImporter;
 
+use Drupal\KernelTests\AssertContentTrait;
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\Tests\trpcultivate_phenotypes\Traits\PhenotypeImporterTestTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
@@ -16,8 +17,9 @@ use Drupal\trpcultivate_phenotypes\Plugin\TripalImporter\TripalCultivatePhenotyp
  */
 class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
 
-  use UserCreationTrait;
+  use AssertContentTrait;
   use PhenotypeImporterTestTrait;
+  use UserCreationTrait;
 
   /**
    * Theme used in the test environment.
@@ -39,6 +41,13 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     'tripal_chado',
     'trpcultivate_phenotypes',
   ];
+
+  /**
+   * Drupal render service.
+   *
+   * @var Drupal\Core\Render\RendererInterface
+   */
+  protected $renderer;
 
   /**
    * A Database query interface for querying Chado using Tripal DBX.
@@ -119,7 +128,10 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     // Mock the 'info' log type as well.
     $container->set('tripal.logger', $mock_logger);
 
-    // Create an isntance of the Traits Importer.
+    // Get our renderer.
+    $this->renderer = $this->container->get('renderer');
+
+    // Create an instance of the Traits Importer.
     $this->importer = new TripalCultivatePhenotypesTraitsImporter(
       [],
       'trpcultivate-phenotypes-traits-importer',
@@ -130,7 +142,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       $this->container->get('plugin.manager.trpcultivate_validator'),
       $this->container->get('entity_type.manager'),
       $this->container->get('trpcultivate_phenotypes.template_generator'),
-      $this->container->get('renderer'),
+      $this->renderer,
     );
   }
 
@@ -146,11 +158,22 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     $validation_result['failedItems']['genus_provided'] = 'Tripalus';
 
     $render_array = $this->importer->processGenusExistsFailures($validation_result);
+    $rendered_markup = $this->renderer->renderRoot($render_array);
+    $this->setRawContent($rendered_markup);
+    //print_r($rendered_markup);
+
     // Check the render array here.
+    $selected_list_items = $this->cssSelect('div.form-item ul li');
+    $this->assertCount(1, $selected_list_items, 'We expect only one list item.');
+    // Grab the contents of 'SimpleXMLElement Object' and assert it is our
+    // genus.
+    //$this->assertEquals('Tripalus', $selected_list_items[0]->0);
+    //print_r($selected_list_items);
+
     // Trigger case of genus exists but it not configured.
     $validation_result = [];
     $validation_result['valid'] = FALSE;
-    $validation_result['case'] = 'Genus does not exist';
+    $validation_result['case'] = 'Genus exists but is not configured';
     $validation_result['failedItems']['genus_provided'] = 'Tripalus';
 
     $render_array = $this->importer->processGenusExistsFailures($validation_result);
