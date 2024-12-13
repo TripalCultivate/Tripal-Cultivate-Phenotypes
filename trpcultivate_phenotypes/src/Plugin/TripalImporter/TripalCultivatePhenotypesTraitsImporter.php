@@ -590,10 +590,35 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $storage[$this->validation_result] = $validation_feedback;
     $form_state->setStorage($storage);
 
-    if ($failed_validator === TRUE) {
+    // Check if the $validation_feedback contains 'fail' or 'todo' status.
+    // If either is found, prevent form submission.
+    $submit_form = TRUE;
+
+    foreach ($validation_feedback as $feedback_item) {
+      if ($feedback_item['status'] == 'todo' || $feedback_item['status'] == 'fail') {
+        $submit_form = FALSE;
+
+        // No need to inspect other validators, a single instance of fail/todo
+        // is sufficient to prevent form submission.
+        break;
+      }
+    }
+
+    if ($submit_form === FALSE) {
+      // Provide a general error message indicating that input values and/or the
+      // data file may contain one or more errors.
+      \Drupal::messenger()
+        ->addError('Your file import was not successful. Please check the Validation Result Window for errors and try again.');
+
       // Prevent this form from submitting and reload form with all the
       // validation failures in the storage system.
       $form_state->setRebuild(TRUE);
+    }
+    else {
+      // Display a successful message to user when file import was
+      // without any error.
+      \Drupal::messenger()
+        ->addStatus('<b>Your file import was successful and a Job Process Request has been created to securely save your data.</b>');
     }
   }
 
