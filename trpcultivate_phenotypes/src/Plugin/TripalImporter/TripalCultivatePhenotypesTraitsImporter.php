@@ -1336,7 +1336,9 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     foreach ($table as $table_case) {
       array_push($tables, [
         [
+          '#prefix' => '<div class="case-message">',
           '#markup' => $table_case['message'],
+          '#suffix' => '</div>',
         ],
         [
           '#type' => 'table',
