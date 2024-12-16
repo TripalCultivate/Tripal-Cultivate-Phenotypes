@@ -147,45 +147,74 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests the message processor method for the GenusExists validator.
+   * Data Provider for testProcessGenusExistsFailures().
+   *
+   * @return array
+   *   Each scenario is an array with the following:
+   *   - The validation result array that gets passed to the process method. It
+   *     contains the following keys:
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed with the following keys.
+   *       - 'genus_provided': The name of the genus provided.
+   *   - Expectations
    */
-  public function testProcessGenusExistsFailures() {
+  public function provideGenusExistsFailedCases() {
+    $scenarios = [];
 
-    // Trigger case of genus doesn't exist.
-    $validation_result = [];
-    $validation_result['valid'] = FALSE;
-    $validation_result['case'] = 'Genus does not exist';
-    $validation_result['failedItems']['genus_provided'] = 'Tripalus';
+    // #0: The genus does not exist
+    $scenarios[] = [
+      [
+        'case' => 'Genus does not exist',
+        'valid' => FALSE,
+        'failedItems' => [
+          'genus_provided' => 'Tripalus',
+        ],
+      ],
+    ];
 
+    // #1: The genus exists but is not configured.
+    $scenarios[] = [
+      [
+        'case' => 'Genus exists but is not configured',
+        'valid' => FALSE,
+        'failedItems' => [
+          'genus_provided' => 'Tripalus',
+        ],
+      ],
+    ];
+
+    return $scenarios;
+  }
+
+  /**
+   * Tests the message processor method for the GenusExists validator.
+   *
+   * @param array $validation_result
+   *   The validation result array that gets passed to the process method. It
+   *     contains the following keys:
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed with the following keys.
+   *       - 'genus_provided': The name of the genus provided.
+   *
+   * @dataProvider provideGenusExistsFailedCases
+   */
+  public function testProcessGenusExistsFailures(array $validation_result) {
+
+    // Call the process method on our validation result.
     $render_array = $this->importer->processGenusExistsFailures($validation_result);
+    // Render the array we were returned.
     $rendered_markup = $this->renderer->renderRoot($render_array);
     $this->setRawContent($rendered_markup);
-
-    // Check the render array here.
+    // Check the render array here. We expect an unordered list with one item in
+    // it - the genus provided.
     $selected_list_items = $this->cssSelect('div.form-item ul li');
     $this->assertCount(1, $selected_list_items, 'We expect only one list item in the render array from processing GenusExists failures.');
     // Grab the contents of 'SimpleXMLElement Object' and assert it is our
     // genus.
     $provided_genus = (string) $selected_list_items[0];
     $this->assertEquals('Tripalus', $provided_genus, 'The render array from processing GenusExists failures did not contain the expected genus.');
-
-    // Trigger case of genus exists but it not configured.
-    $validation_result = [];
-    $validation_result['valid'] = FALSE;
-    $validation_result['case'] = 'Genus exists but is not configured';
-    $validation_result['failedItems']['genus_provided'] = 'Tripalus';
-
-    $render_array = $this->importer->processGenusExistsFailures($validation_result);
-    $rendered_markup = $this->renderer->renderRoot($render_array);
-    $this->setRawContent($rendered_markup);
-
-    // Check the render array here.
-    $selected_list_items = $this->cssSelect('div.form-item ul li');
-    $this->assertCount(1, $selected_list_items, 'We expect only one list item in the render array from processing GenusExists failures.');
-    // Grab the contents of 'SimpleXMLElement Object' and assert it is our
-    // genus.
-    $provided_genus = (string) $selected_list_items[0];
-    $this->assertEquals('Tripalus', $provided_genus, "The render array from processing GenusExists failures did not contain the expected genus.");
   }
 
   /**
@@ -213,16 +242,16 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     $this->assertStringContainsString('multiple times within your input file', $table_message);
     // Second, check the table has 4 columns which contain our test elements.
     $selected_table_rows = $this->cssSelect('tbody tr td');
-    // Line number: 3
+    // Line number: 3.
     $line_number = (string) $selected_table_rows[0];
     $this->assertEquals(3, $line_number, "Did not get the expected line number in the rendered table from processing DuplicateTraits failures.");
-    // Trait Name: Test Trait
+    // Trait Name: Test Trait.
     $trait_name = (string) $selected_table_rows[1];
     $this->assertEquals($failures[3]['failedItems']['combo_provided']['Trait Name'], $trait_name, "Did not get the expected trait name in the rendered table from processing DuplicateTraits failures.");
-    // Method Short Name: Test Method Name
+    // Method Short Name: Test Method Name.
     $method_name = (string) $selected_table_rows[2];
     $this->assertEquals($failures[3]['failedItems']['combo_provided']['Method Short Name'], $method_name, "Did not get the expected method name in the rendered table from processing DuplicateTraits failures.");
-    // Unit: Test Unit
+    // Unit: Test Unit.
     $unit_name = (string) $selected_table_rows[3];
     $this->assertEquals($failures[3]['failedItems']['combo_provided']['Unit'], $unit_name, "Did not get the expected unit in the rendered table from processing DuplicateTraits failures.");
   }
