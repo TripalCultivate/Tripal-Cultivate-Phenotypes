@@ -218,17 +218,69 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
   }
 
   /**
-   * Tests the message processor method for the GenusExists validator.
+   * Data Provider for testProcessDuplicateTraitsFailures().
+   *
+   * @return array
+   *   Each scenario is an array with the following:
+   *   - The failures array that gets passed to the process method. It contains
+   *     the following keys:
+   *     - The line number that triggered this failed validation status.
+   *       - 'case': a developer-focused string describing the case checked.
+   *       - 'valid': FALSE to indicate that validation failed.
+   *       - 'failedItems': array of items that failed with the following keys:
+   *         - 'combo_provided': The combination of trait, method, and unit
+   *           provided in the file. The keys used are the same name of the
+   *           column header for the cell containing the failed value.
+   *           - 'Trait Name': The trait name provided in the file.
+   *           - 'Method Short Name': The method name provided in the file.
+   *           - 'Unit': The unit provided in the file.
+   *   - Expectations
    */
-  public function testDuplicateTraitsFailures() {
+  public function provideDuplicateTraitsFailedCases() {
+    $scenarios = [];
 
-    // Setup a duplicate in the file at line #3.
-    $failures = [];
-    $failures[3]['valid'] = FALSE;
-    $failures[3]['case'] = 'A duplicate trait was found within the input file';
-    $failures[3]['failedItems']['combo_provided']['Trait Name'] = 'Test Trait';
-    $failures[3]['failedItems']['combo_provided']['Method Short Name'] = 'Test Method Name';
-    $failures[3]['failedItems']['combo_provided']['Unit'] = 'Test Unit';
+    // #0: A duplicate trait was found at line #3 in the input file.
+    $scenarios[] = [
+      [
+        3 => [
+          'case' => 'A duplicate trait was found within the input file',
+          'valid' => FALSE,
+          'failedItems' => [
+            'combo_provided' => [
+              'Trait Name' => 'Test Trait',
+              'Method Short Name' => 'Test Method',
+              'Unit' => 'Test Unit',
+            ],
+          ],
+        ],
+      ],
+    ];
+
+    // #1: A duplicate trait was found in the database.
+    // #2: A duplicate trait was found within both the input file and database.
+    return $scenarios;
+  }
+
+  /**
+   * Tests the message processor method for the DuplicateTraits validator.
+   *
+   * @param array $failures
+   *   The failures array that gets passed to the process method. It contains
+   *   the following keys:
+   *   - The line number that triggered this failed validation status.
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed with the following keys.
+   *       - 'combo_provided': The combination of trait, method, and unit
+   *         provided in the file. The keys used are the same name of the column
+   *         header for the cell containing the failed value.
+   *         - 'Trait Name': The trait name provided in the file.
+   *         - 'Method Short Name': The method name provided in the file.
+   *         - 'Unit': The unit provided in the file.
+   *
+   * @dataProvider provideDuplicateTraitsFailedCases
+   */
+  public function testProcessDuplicateTraitsFailures(array $failures) {
 
     // Process our test failures array.
     $render_array = $this->importer->processDuplicateTraitsFailures($failures);
