@@ -258,12 +258,14 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
         ],
       ],
       [
-        'expected_message' => 'These trait-method-unit combinations occurred multiple times within your input file.',
-        'expected_line_no' => 3,
+        0 => [
+          'expected_message' => 'These trait-method-unit combinations occurred multiple times within your input file.',
+          'expected_line_no' => 3,
+        ],
       ],
     ];
 
-    // #1: A duplicate trait was found in the database.
+    // #1: A duplicate trait was found in the database on line #4.
     $scenarios[] = [
       [
         4 => [
@@ -279,12 +281,41 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
         ],
       ],
       [
-        'expected_message' => 'These trait-method-unit combinations have already been imported into this site.',
-        'expected_line_no' => 4,
+        0 => [
+          'expected_message' => 'These trait-method-unit combinations have already been imported into this site.',
+          'expected_line_no' => 4,
+        ],
       ],
     ];
 
-    // #2: A duplicate trait was found within both the input file and database.
+    // #2: A duplicate trait was found within both the input file and database
+    // on line #5.
+    $scenarios[] = [
+      [
+        5 => [
+          'case' => 'A duplicate trait was found within both the input file and the database',
+          'valid' => FALSE,
+          'failedItems' => [
+            'combo_provided' => [
+              'Trait Name' => 'Test Multi Trait',
+              'Method Short Name' => 'Test Multi Method',
+              'Unit' => 'Test Multi Unit',
+            ],
+          ],
+        ],
+      ],
+      [
+        0 => [
+          'expected_message' => 'These trait-method-unit combinations occurred multiple times within your input file.',
+          'expected_line_no' => 5,
+        ],
+        1 => [
+          'expected_message' => 'These trait-method-unit combinations have already been imported into this site.',
+          'expected_line_no' => 5,
+        ],
+      ],
+    ];
+
     return $scenarios;
   }
 
@@ -320,27 +351,37 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     $rendered_markup = $this->renderer->renderRoot($render_array);
     $this->setRawContent($rendered_markup);
 
+    // print_r($rendered_markup);
     // Check the render array.
     // First check the message above the table.
     $selected_message_markup = $this->cssSelect('ul li div.case-message');
-    $table_message = (string) $selected_message_markup[0];
-    $this->assertStringContainsString($expectations['expected_message'], $table_message, 'The message expected for this scenario did not match the message in the render array.');
+    foreach ($selected_message_markup as $index => $case_message) {
+      $table_message = (string) $case_message[0];
+      $this->assertStringContainsString($expectations[$index]['expected_message'], $table_message, 'The message expected for this scenario did not match the message in the render array.');
+    }
+
     // Second, check the table has 4 columns which contain our test elements.
     $selected_table_rows = $this->cssSelect('tbody tr td');
-    // @todo need a foreach here for multiple lines/rows in the table?
-    // Line number: 3.
-    $line_number = (string) $selected_table_rows[0];
-    $expected_line_no = $expectations['expected_line_no'];
-    $this->assertEquals($expected_line_no, $line_number, "Did not get the expected line number in the rendered table from processing DuplicateTraits failures.");
-    // Trait Name: Test Trait.
-    $trait_name = (string) $selected_table_rows[1];
-    $this->assertEquals($failures[$expected_line_no]['failedItems']['combo_provided']['Trait Name'], $trait_name, "Did not get the expected trait name in the rendered table from processing DuplicateTraits failures.");
-    // Method Short Name: Test Method Name.
-    $method_name = (string) $selected_table_rows[2];
-    $this->assertEquals($failures[$expected_line_no]['failedItems']['combo_provided']['Method Short Name'], $method_name, "Did not get the expected method name in the rendered table from processing DuplicateTraits failures.");
-    // Unit: Test Unit.
-    $unit_name = (string) $selected_table_rows[3];
-    $this->assertEquals($failures[$expected_line_no]['failedItems']['combo_provided']['Unit'], $unit_name, "Did not get the expected unit in the rendered table from processing DuplicateTraits failures.");
+    // print_r($selected_table_rows);
+    foreach ($selected_table_rows as $index => $table_row) {
+      // Line Number.
+      $line_number = (string) $selected_table_rows[$index];
+      $expected_line_no = $expectations[$index]['expected_line_no'];
+      $this->assertEquals($expected_line_no, $line_number, "Did not get the expected line number in the rendered table from processing DuplicateTraits failures.");
+      // Trait Name.
+      $trait_name = (string) $selected_table_rows[$index + 1];
+      $this->assertEquals($failures[$expected_line_no]['failedItems']['combo_provided']['Trait Name'], $trait_name, "Did not get the expected trait name in the rendered table from processing DuplicateTraits failures.");
+      // Method Short Name.
+      $method_name = (string) $selected_table_rows[$index + 2];
+      $this->assertEquals($failures[$expected_line_no]['failedItems']['combo_provided']['Method Short Name'], $method_name, "Did not get the expected method name in the rendered table from processing DuplicateTraits failures.");
+      // Unit.
+      $unit_name = (string) $selected_table_rows[$index + 3];
+      $this->assertEquals($failures[$expected_line_no]['failedItems']['combo_provided']['Unit'], $unit_name, "Did not get the expected unit in the rendered table from processing DuplicateTraits failures.");
+
+      // Add 4 to the current index to start the next row of the table.
+      $index = $index + 4;
+
+    }
   }
 
 }
