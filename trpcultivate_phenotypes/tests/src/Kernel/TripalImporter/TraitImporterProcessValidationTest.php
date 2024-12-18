@@ -351,7 +351,6 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     $rendered_markup = $this->renderer->renderRoot($render_array);
     $this->setRawContent($rendered_markup);
 
-    // print_r($rendered_markup);
     // Check the render array.
     // First check the message above the table.
     $selected_message_markup = $this->cssSelect('ul li div.case-message');
@@ -360,13 +359,19 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       $this->assertStringContainsString($expectations[$index]['expected_message'], $table_message, 'The message expected for this scenario did not match the message in the render array.');
     }
 
-    // Second, check the table has 4 columns which contain our test elements.
+    // Second, check that each table has 4 columns with our test elements.
     $selected_table_rows = $this->cssSelect('tbody tr td');
-    // print_r($selected_table_rows);
-    foreach ($selected_table_rows as $index => $table_row) {
+    foreach ($expectations as $index => $expected) {
+      // Multiply the index by 4 so that we are pulling values for the correct
+      // row. This is because $selected_table_rows increments for each cell but
+      // does not indicate the row #. Thus:
+      // Row 0: $selected_table_rows[0], ..[1], ..[2], ..[3]
+      // Row 1: $selected_table_rows[4], ..[5], ..[6], ..[7]
+      // etc...
+      $index = $index * 4;
       // Line Number.
       $line_number = (string) $selected_table_rows[$index];
-      $expected_line_no = $expectations[$index]['expected_line_no'];
+      $expected_line_no = $expected['expected_line_no'];
       $this->assertEquals($expected_line_no, $line_number, "Did not get the expected line number in the rendered table from processing DuplicateTraits failures.");
       // Trait Name.
       $trait_name = (string) $selected_table_rows[$index + 1];
@@ -377,9 +382,6 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       // Unit.
       $unit_name = (string) $selected_table_rows[$index + 3];
       $this->assertEquals($failures[$expected_line_no]['failedItems']['combo_provided']['Unit'], $unit_name, "Did not get the expected unit in the rendered table from processing DuplicateTraits failures.");
-
-      // Add 4 to the current index to start the next row of the table.
-      $index = $index + 4;
 
     }
   }
