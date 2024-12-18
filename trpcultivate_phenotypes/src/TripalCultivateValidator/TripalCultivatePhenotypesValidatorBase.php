@@ -89,7 +89,7 @@ abstract class TripalCultivatePhenotypesValidatorBase extends PluginBase impleme
   /**
    * {@inheritdoc}
    */
-  public function validateFile(int $fid) {
+  public function validateFile(int|null $fid) {
     $plugin_name = $this->getValidatorName();
     throw new \Exception("Method validateFile() from base class called for $plugin_name. If this plugin wants to support this type of validation then they need to override it.");
   }

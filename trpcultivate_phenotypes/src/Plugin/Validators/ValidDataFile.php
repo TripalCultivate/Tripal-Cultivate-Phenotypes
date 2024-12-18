@@ -97,7 +97,8 @@ class ValidDataFile extends TripalCultivatePhenotypesValidatorBase implements Co
    */
   public function validateFile(int|null $fid) {
 
-    // Parameter check, verify the file id number is not 0 or a negative value.
+    // Parameter check, verify the file id number is not null, 0 or
+    // a negative value.
     if (is_null($fid) || $fid <= 0) {
       return [
         'case' => 'Invalid file id number',
@@ -115,24 +116,13 @@ class ValidDataFile extends TripalCultivatePhenotypesValidatorBase implements Co
 
     // Check that the file input provided returned a file object.
     if (!$file_object) {
-      if (is_null($fid)) {
-        return [
-          'case' => 'Filename failed to load a file object',
-          'valid' => FALSE,
-          'failedItems' => [
-            'filename' => $filename,
-          ],
-        ];
-      }
-      else {
-        return [
-          'case' => 'File id failed to load a file object',
-          'valid' => FALSE,
-          'failedItems' => [
-            'fid' => $fid,
-          ],
-        ];
-      }
+      return [
+        'case' => 'File id failed to load a file object',
+        'valid' => FALSE,
+        'failedItems' => [
+          'fid' => $fid,
+        ],
+      ];
     }
 
     // File object loaded successfully. Any subsequent failed checks will

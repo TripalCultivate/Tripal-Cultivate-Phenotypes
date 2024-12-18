@@ -69,7 +69,6 @@ class ValidatorValidDataFileTest extends ChadoTestKernelBase {
     // Set the supported mime types for this test.
     $this->validator_instance->setSupportedMimeTypes([
       'tsv',
-      'txt',
     ]);
 
     $test_file_scenario = [

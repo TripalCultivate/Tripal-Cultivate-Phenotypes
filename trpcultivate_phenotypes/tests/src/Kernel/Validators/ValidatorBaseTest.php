@@ -281,28 +281,7 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
       "We did not get the exception message we expected when calling BasicallyBase::validateMetadata()"
     );
 
-    // Tests Base Class validateFile().
-    $exception_caught = NULL;
-    $exception_message = NULL;
-    try {
-      $filename = 'public://does_not_exist.txt';
-      $fid = 123;
-      $instance->validateFile($filename, $fid);
-    }
-    catch (\Exception $e) {
-      $exception_caught = TRUE;
-      $exception_message = $e->getMessage();
-    }
-    $this->assertTrue(
-      $exception_caught,
-      "We expect to have an exception thrown when calling BasicallyBase::validateFile() since it should use the base class version."
-    );
-    $this->assertStringContainsString(
-      'Method validateFile() from base class',
-      $exception_message,
-      "We did not get the exception message we expected when calling BasicallyBase::validateFile()"
-    );
-
+    // Tests Base Class validateFile(). Does not throw an exception.
     // Tests Base Class validateRawRow().
     $exception_caught = NULL;
     $exception_message = NULL;

@@ -84,7 +84,7 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    *     then this array should contain a key indicating what failed, and the
    *     resulting value from checking its mime-type/extension.
    */
-  public function validateFile(int $fid);
+  public function validateFile(int|null $fid);
 
   /**
    * Validates rows within the data file submitted to an importer.
