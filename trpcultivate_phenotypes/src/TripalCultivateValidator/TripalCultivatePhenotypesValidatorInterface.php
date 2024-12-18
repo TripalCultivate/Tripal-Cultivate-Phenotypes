@@ -69,8 +69,6 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    * This should validate the file object (e.g. it exists, is readable) but
    * should not validate the contents in any way.
    *
-   * @param array $filename
-   *   The full path and filename with extension of the file to validate.
    * @param int $fid
    *   The file ID of the file object.
    *
@@ -86,7 +84,7 @@ interface TripalCultivatePhenotypesValidatorInterface extends PluginInspectionIn
    *     then this array should contain a key indicating what failed, and the
    *     resulting value from checking its mime-type/extension.
    */
-  public function validateFile(string $filename, int $fid);
+  public function validateFile(int $fid);
 
   /**
    * Validates rows within the data file submitted to an importer.
