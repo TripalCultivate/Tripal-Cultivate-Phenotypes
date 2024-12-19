@@ -157,6 +157,10 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
    *     - 'valid': FALSE to indicate that validation failed.
    *     - 'failedItems': an array of items that failed with the following keys.
    *       - 'genus_provided': The name of the genus provided.
+   *   - An array of expectations in the rendered output which has the following
+   *     keys:
+   *     - 'expected_message': The message expected in the return value of the
+   *       process method for this scenario.
    */
   public function provideGenusExistsFailedCases() {
     $scenarios = [];
@@ -170,6 +174,9 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
           'genus_provided' => 'Tripalus',
         ],
       ],
+      [
+        'expected_message' => 'The selected genus does not exist in this site.',
+      ],
     ];
 
     // #1: The genus exists but is not configured.
@@ -180,6 +187,9 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
         'failedItems' => [
           'genus_provided' => 'Tripalus',
         ],
+      ],
+      [
+        'expected_message' => 'The selected genus has not yet been configured for use with phenotypic data.',
       ],
     ];
 
@@ -196,18 +206,25 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
    *     - 'valid': FALSE to indicate that validation failed.
    *     - 'failedItems': an array of items that failed with the following keys.
    *       - 'genus_provided': The name of the genus provided.
+   *   - An array of expectations in the rendered output which has the following
+   *     keys:
+   *     - 'expected_message': The message expected in the return value of the
+   *       process method for this scenario.
    *
    * @dataProvider provideGenusExistsFailedCases
    */
-  public function testProcessGenusExistsFailures(array $validation_result) {
-
+  public function testProcessGenusExistsFailures(array $validation_result, array $expectations) {
     // Call the process method on our validation result.
     $render_array = $this->importer->processGenusExistsFailures($validation_result);
     // Render the array we were returned.
     $rendered_markup = $this->renderer->renderRoot($render_array);
     $this->setRawContent($rendered_markup);
-    // Check the render array here. We expect an unordered list with one item in
-    // it - the genus provided.
+
+    // Check the render array here.
+    $selected_message_title = $this->cssSelect('div.form-item label');
+    $provided_message = (string) $selected_message_title[0];
+    $this->assertStringContainsString($expectations['expected_message'], $provided_message, 'The message expected from processing GenusExists failures for this scenario did not match the one in the rendered output.');
+    // Check for an unordered list with one item in it - the genus provided.
     $selected_list_items = $this->cssSelect('div.form-item ul li');
     $this->assertCount(1, $selected_list_items, 'We expect only one list item in the render array from processing GenusExists failures.');
     // Grab the contents of 'SimpleXMLElement Object' and assert it is our
@@ -316,7 +333,6 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     $rendered_markup = $this->renderer->renderRoot($render_array);
     $this->setRawContent($rendered_markup);
 
-    // print_r($rendered_markup);
     // Check the rendered output.
     // First check that we were given the correct message.
     $selected_message_markup = $this->cssSelect('ul li div.case-message');
