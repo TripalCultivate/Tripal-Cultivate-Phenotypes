@@ -951,18 +951,20 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   public function processValidHeadersFailures(array $validation_result) {
     if ($validation_result['case'] == 'Header row is an empty value') {
       $message = 'The file has an empty row where the header was expected.';
+      $provided_headers = [];
     }
     elseif ($validation_result['case'] == 'Headers do not match expected headers') {
       $message = 'One or more of the column headers in the input file does not match what was expected. Please check if your column header is in the correct order and matches the template exactly.';
+      $provided_headers = $validation_result['failedItems'];
     }
     elseif ($validation_result['case'] == 'Headers provided does not have the expected number of headers') {
       $num_expected_columns = count($this->headers);
-      $message = "This importer requires a strict number of $num_expected_columns column headers. Please ensure your column header matches the template exactly and remove additional column headers from the file.";
+      $message = "This importer requires a strict number of $num_expected_columns column headers. Please ensure your column header matches the template exactly and remove any additional column headers from the file.";
+      $provided_headers = $validation_result['failedItems'];
     }
     // Get the expected and actual headers to build the rows in our table render
     // array.
     $expected_headers = array_column($this->headers, 'name');
-    $provided_headers = $validation_result['failedItems'];
 
     // Build the render array.
     $render_array = [
@@ -971,24 +973,32 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       '#items' => [
         [
           [
+            '#prefix' => '<div class="case-message">',
             '#markup' => $message,
+            '#suffix' => '</div>',
           ],
           [
             '#type' => 'table',
             '#attributes' => [],
             '#rows' => [
               [
-                [
-                  'data' => 'Expected Headers',
-                  'header' => TRUE,
-                ],
-              ] + $expected_headers,
+                'data' => [
+                  'header' => [
+                    'data' => 'Expected Headers',
+                    'header' => TRUE,
+                  ],
+                ] + $expected_headers,
+                'class' => ['expected-headers'],
+              ],
               [
-                [
-                  'data' => 'Provided Headers',
-                  'header' => TRUE,
-                ],
-              ] + $provided_headers,
+                'data' => [
+                  'header' => [
+                    'data' => 'Provided Headers',
+                    'header' => TRUE,
+                  ],
+                ] + $provided_headers,
+                'class' => ['provided-headers'],
+              ],
             ],
           ],
         ],
