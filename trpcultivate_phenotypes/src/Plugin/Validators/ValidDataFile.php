@@ -74,7 +74,7 @@ class ValidDataFile extends TripalCultivatePhenotypesValidatorBase implements Co
    * Validate that the input file is a valid file.
    *
    * Checks include:
-   * - Parameter file id is valid.
+   * - $fid is positive number, strictly greater than 0, and cannot be null.
    * - Has Drupal File Id number assigned and can be loaded.
    * - File extension and mime type are configured by the importer.
    * - File exists and is not empty.

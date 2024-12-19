@@ -200,7 +200,52 @@ class ValidatorValidDataFileTest extends ChadoTestKernelBase {
   public function provideFileForDataFileValidator() {
 
     return [
-      // #0: Test a valid file - primary type (tsv).
+      // #0: Test a null file id number.
+      [
+        'null fid parameter',
+        'null-fid-parameter',
+        [
+          'validation_response' => [
+            'case' => 'Invalid file id number',
+            'valid' => FALSE,
+          ],
+          'failed_items_key' => [
+            'fid',
+          ],
+        ],
+      ],
+
+      // #1: Test a zero file id number.
+      [
+        'zero fid parameter',
+        'zero-fid-parameter',
+        [
+          'validation_response' => [
+            'case' => 'Invalid file id number',
+            'valid' => FALSE,
+          ],
+          'failed_items_key' => [
+            'fid',
+          ],
+        ],
+      ],
+
+      // #2: Test non-existent file id number.
+      [
+        'file id number does not exist',
+        'non-existent-fid',
+        [
+          'validation_response' => [
+            'case' => 'File id failed to load a file object',
+            'valid' => FALSE,
+          ],
+          'failed_items_key' => [
+            'fid',
+          ],
+        ],
+      ],
+
+      // #3: Test a valid file - primary type (tsv).
       [
         'valid tsv file',
         'file-valid',
@@ -213,7 +258,7 @@ class ValidatorValidDataFileTest extends ChadoTestKernelBase {
         ],
       ],
 
-      // #1: Test an empty file.
+      // #4: Test an empty file.
       [
         'file is empty',
         'file-empty',
@@ -229,7 +274,7 @@ class ValidatorValidDataFileTest extends ChadoTestKernelBase {
         ],
       ],
 
-      // #2: Test file that is not the right MIME type.
+      // #5: Test file that is not the right MIME type.
       [
         'incorrect mime type',
         'file-image',
@@ -245,7 +290,7 @@ class ValidatorValidDataFileTest extends ChadoTestKernelBase {
         ],
       ],
 
-      // #3. Test file of a type pretending to be another.
+      // #6. Test file of a type pretending to be another.
       [
         'pretentious file',
         'file-pretend',
@@ -261,7 +306,7 @@ class ValidatorValidDataFileTest extends ChadoTestKernelBase {
         ],
       ],
 
-      // #4: Test a locked file - cannot read a valid file.
+      // #7: Test a locked file - cannot read a valid file.
       [
         'file is locked',
         'file-locked',
@@ -272,51 +317,6 @@ class ValidatorValidDataFileTest extends ChadoTestKernelBase {
           ],
           'failed_items_key' => [
             'filename',
-            'fid',
-          ],
-        ],
-      ],
-
-      // #5: Test a null file id number.
-      [
-        'null fid parameter',
-        'null-fid-parameter',
-        [
-          'validation_response' => [
-            'case' => 'Invalid file id number',
-            'valid' => FALSE,
-          ],
-          'failed_items_key' => [
-            'fid',
-          ],
-        ],
-      ],
-
-      // #6: Test a zero file id number.
-      [
-        'zero fid parameter',
-        'zero-fid-parameter',
-        [
-          'validation_response' => [
-            'case' => 'Invalid file id number',
-            'valid' => FALSE,
-          ],
-          'failed_items_key' => [
-            'fid',
-          ],
-        ],
-      ],
-
-      // #7: Test non-existent file id number.
-      [
-        'file id number does not exist',
-        'non-existent-fid',
-        [
-          'validation_response' => [
-            'case' => 'File id failed to load a file object',
-            'valid' => FALSE,
-          ],
-          'failed_items_key' => [
             'fid',
           ],
         ],
