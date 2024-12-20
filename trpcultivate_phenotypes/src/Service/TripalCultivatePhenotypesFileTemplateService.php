@@ -1,13 +1,7 @@
 <?php
 
-/**
- * @file
- * Tripal Cultivate Phenotypes File Template service definition.
- */
-
 namespace Drupal\trpcultivate_phenotypes\Service;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\file\Entity\File;
@@ -16,39 +10,56 @@ use Drupal\file\Entity\File;
  * Class TripalCultivatePhenotypesFileTemplateService.
  */
 class TripalCultivatePhenotypesFileTemplateService {
-  // Module configuration.
+
+  /**
+   * Module configuration.
+   *
+   * @var Drupal\Core\Config\ConfigFactoryInterface
+   */
   protected $config;
 
-  // Drupal current user.
+  /**
+   * Drupal user account.
+   *
+   * @var Drupal\Core\Session\AccountInterface
+   */
   protected $user;
 
   /**
    * Constructor.
+   *
+   * @param Drupal\Core\Config\ConfigFactoryInterface $config
+   *   Configuration interface.
+   * @param Drupal\Core\Session\AccountInterface $user
+   *   Account interface.
    */
-  public function __construct(ConfigFactoryInterface $config, AccountInterface $current_user) {
+  public function __construct(ConfigFactoryInterface $config, AccountInterface $user) {
+    // Set the configuration.
     $this->config = $config->get('trpcultivate_phenotypes.settings');
-    $this->user   = $current_user;
+
+    // Set the current user.
+    $this->user = $user;
   }
 
   /**
    * Generate template file.
    *
    * @param string $importer_id
-   *   String, The plugin ID annotation definition.
+   *   String, The plugin ID annotation definition used to prefix the filename.
    * @param array $column_headers
-   *   Array keys (column headers) as defined by the header property in the importer.
+   *   An array of column headers to be written into the template file as the
+   *   column header row.
    *
-   * @return path
-   *   Path to the template file.
+   * @return string
+   *   Abosolute path to the template file.
    */
   public function generateFile($importer_id, $column_headers) {
-    // Fetch the configuration relating to directory for housing data collection template file.
-    // This directory had been setup during install and had / at the end as defined.
-    // @see config install and schema.
+    // Fetch the configuration relating to directory for housing data collection
+    // template file. This directory had been setup during install and had / at
+    // the end as defined. @see config install and schema.
     $dir_template_file = $this->config->get('trpcultivate.phenotypes.directory.template_file');
 
     // About the template file:
-
     // File extension.
     $fileextension = 'tsv';
     // MIME: TSV type file.
@@ -66,7 +77,7 @@ class TripalCultivatePhenotypesFileTemplateService {
     $file = File::create([
       'filename' => $filename,
       'filemime' => $filemime,
-      'uri' => $dir_template_file . $filename
+      'uri' => $dir_template_file . $filename,
     ]);
 
     // Mark file for deletion during a Drupal maintenance.
@@ -76,13 +87,12 @@ class TripalCultivatePhenotypesFileTemplateService {
 
     // Write the contents: headers into the file created and serve the path back
     // to the calling Importer as value to the href attribute of link to download a template file.
-
     // File uri of the created file.
     $fileuri = $file->getFileUri();
 
     // Before we can write contents, we need to ensure the upper level folders exist.
     if (!file_exists($dir_template_file)) {
-      mkdir($dir_template_file, 0777, true);
+      mkdir($dir_template_file, 0777, TRUE);
     }
 
     // Convert the headers array into a tsv string value and post into the first line of the file.
@@ -91,4 +101,5 @@ class TripalCultivatePhenotypesFileTemplateService {
 
     return $file->createFileUrl();
   }
+
 }
