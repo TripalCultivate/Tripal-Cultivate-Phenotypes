@@ -122,6 +122,24 @@ class ValidatorValidDataFileTest extends ChadoTestKernelBase {
         ],
         'permissions' => 'none',
       ],
+
+      // Test a txt file type.
+      'file-alternative' => [
+        'ext' => 'txt',
+        'mime' => 'text/plain',
+        'content' => [
+          'string' => implode("\t", ['Header 1', 'Header 2', 'Header 3']),
+        ],
+      ],
+
+      // A manaaged file with file object record but refereced file is missing.
+      'file-missing' => [
+        'ext' => 'tsv',
+        'mime' => 'text/tab-separated-values',
+        'content' => [
+          'string' => implode("\t", ['Header 1', 'Header 2', 'Header 3']),
+        ],
+      ],
     ];
 
     // Array to hold the file id and file uri of the generated files
@@ -149,6 +167,13 @@ class ValidatorValidDataFileTest extends ChadoTestKernelBase {
         'mime' => $file_mime_type,
         'extension' => $file_extension,
       ];
+
+      // With the file for file-missing scenario created, delete the file using
+      // PHP delete file function to maintain the file object record.
+      if ($test_scenario == 'file-missing') {
+        $missing_file_uri = $file->getFileUri();
+        unlink($missing_file_uri);
+      }
     }
 
     // Create test scenario where the file id is null.
@@ -290,7 +315,23 @@ class ValidatorValidDataFileTest extends ChadoTestKernelBase {
         ],
       ],
 
-      // #6. Test file of a type pretending to be another.
+      // #6: Test txt file type.
+      [
+        'txt file type',
+        'file-alternative',
+        [
+          'validation_response' => [
+            'case' => 'Unsupported file mime type and unsupported extension',
+            'valid' => FALSE,
+          ],
+          'failed_items_key' => [
+            'mime',
+            'extension',
+          ],
+        ],
+      ],
+
+      // #7. Test file of a type pretending to be another.
       [
         'pretentious file',
         'file-pretend',
@@ -306,10 +347,26 @@ class ValidatorValidDataFileTest extends ChadoTestKernelBase {
         ],
       ],
 
-      // #7: Test a locked file - cannot read a valid file.
+      // #8: Test a locked file - cannot read a valid file.
       [
         'file is locked',
         'file-locked',
+        [
+          'validation_response' => [
+            'case' => 'Data file cannot be opened',
+            'valid' => FALSE,
+          ],
+          'failed_items_key' => [
+            'filename',
+            'fid',
+          ],
+        ],
+      ],
+
+      // #9: Test a managed file id but the file is missing.
+      [
+        'file is missing',
+        'file-missing',
         [
           'validation_response' => [
             'case' => 'Data file cannot be opened',
