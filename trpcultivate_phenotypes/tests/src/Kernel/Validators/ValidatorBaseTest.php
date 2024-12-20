@@ -285,9 +285,8 @@ class ValidatorBaseTest extends ChadoTestKernelBase {
     $exception_caught = NULL;
     $exception_message = NULL;
     try {
-      $filename = 'public://does_not_exist.txt';
       $fid = 123;
-      $instance->validateFile($filename, $fid);
+      $instance->validateFile($fid);
     }
     catch (\Exception $e) {
       $exception_caught = TRUE;

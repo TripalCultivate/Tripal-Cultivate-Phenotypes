@@ -510,6 +510,27 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         resulting render array for $validation_plugin failures, but did not.");
       }
     }
+
+    // Assert that the default value of genus field is the genus
+    // entered/selected, indicating that on form validate error, the form was
+    // not submitted and reloaded with the genus value as default.
+    $this->assertEquals(
+      $form_state->getValue('genus'),
+      $submitted_genus,
+      'The import form should set the default value of genus to the genus entered if the form was not submitted due to validation error.'
+    );
+
+    // If the form was not submitted due to validation error, check to ensure
+    // that no Tripal Job was created in the process.
+    $tripal_jobs = $this->chado_connection->query(
+      'SELECT job_id FROM {tripal_jobs} ORDER BY job_id DESC LIMIT 1'
+    )
+      ->fetchField();
+
+    $this->assertFalse(
+      $tripal_jobs,
+      'A failed import due to validation error that did not submit should not create a job request.'
+    );
   }
 
 }
