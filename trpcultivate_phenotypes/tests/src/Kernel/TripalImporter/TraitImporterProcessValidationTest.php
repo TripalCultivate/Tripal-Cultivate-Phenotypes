@@ -143,6 +143,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       $this->container->get('entity_type.manager'),
       $this->container->get('trpcultivate_phenotypes.template_generator'),
       $this->renderer,
+      $this->container->get('messenger'),
     );
   }
 
