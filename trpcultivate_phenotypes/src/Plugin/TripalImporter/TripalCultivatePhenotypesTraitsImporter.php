@@ -3,6 +3,7 @@
 namespace Drupal\trpcultivate_phenotypes\Plugin\TripalImporter;
 
 use Drupal\Core\Entity\EntityTypeManager;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\Renderer;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -144,6 +145,13 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   protected Renderer $service_Renderer;
 
   /**
+   * The Drupal Messenger Service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $service_Messenger;
+
+  /**
    * Used to reference the validation result summary in the form.
    *
    * @var string
@@ -173,6 +181,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   The service used to generate the termplate file.
    * @param Drupal\Core\Render\Renderer $renderer
    *   The Drupal renderer service.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The Drupal messenger service.
    */
   public function __construct(
     array $configuration,
@@ -185,6 +195,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     EntityTypeManager $service_entityTypeManager,
     TripalCultivatePhenotypesFileTemplateService $service_FileTemplate,
     Renderer $renderer,
+    MessengerInterface $messenger,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $chado_connection);
 
@@ -196,6 +207,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $this->service_entityTypeManager = $service_entityTypeManager;
     $this->service_FileTemplate = $service_FileTemplate;
     $this->service_Renderer = $renderer;
+    $this->service_Messenger = $messenger;
   }
 
   /**
@@ -213,6 +225,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       $container->get('entity_type.manager'),
       $container->get('trpcultivate_phenotypes.template_generator'),
       $container->get('renderer'),
+      $container->get('messenger'),
     );
   }
 
@@ -353,7 +366,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // This is a reminder to user about expected trait data.
     $phenotypes_minder = $this->t('This importer allows for the upload of phenotypic trait dictionaries in preparation
       for uploading phenotypic data. <br /><strong>This importer Does NOT upload phenotypic measurements.</strong>');
-    \Drupal::messenger()->addWarning($phenotypes_minder);
+    $this->service_Messenger->addWarning($phenotypes_minder);
 
     // Field Genus:
     // Prepare select options with only active genus.
@@ -362,7 +375,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     if (!$active_genus) {
       $phenotypes_minder = $this->t('This module is <strong>NOT configured</strong> to import Traits for analyzed phenotypes.');
-      \Drupal::messenger()->addWarning($phenotypes_minder);
+      $this->service_Messenger->addWarning($phenotypes_minder);
     }
 
     // If there is only one genus, it should be the default.
@@ -398,6 +411,9 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * {@inheritdoc}
    */
   public function formSubmit($form, &$form_state) {
+    // Display successful message to user if file import was without any error.
+    $this->service_Messenger
+      ->addStatus($this->t('<b>Your file import was successful and a Job Process Request has been created to securely save your data.</b>'));
   }
 
   /**
@@ -590,7 +606,26 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $storage[$this->validation_result] = $validation_feedback;
     $form_state->setStorage($storage);
 
-    if ($failed_validator === TRUE) {
+    // Check if the $validation_feedback contains 'fail' or 'todo' status.
+    // If either is found, prevent form submission.
+    $submit_form = TRUE;
+
+    foreach ($validation_feedback as $feedback_item) {
+      if ($feedback_item['status'] == 'todo' || $feedback_item['status'] == 'fail') {
+        $submit_form = FALSE;
+
+        // No need to inspect other validators, a single instance of fail/todo
+        // is sufficient to prevent form submission.
+        break;
+      }
+    }
+
+    if ($submit_form === FALSE) {
+      // Provide a general error message indicating that input values and/or the
+      // data file may contain one or more errors.
+      $this->service_Messenger
+        ->addError($this->t('Your file import was not successful. Please check the Validation Result Window for errors and try again.'));
+
       // Prevent this form from submitting and reload form with all the
       // validation failures in the storage system.
       $form_state->setRebuild(TRUE);
