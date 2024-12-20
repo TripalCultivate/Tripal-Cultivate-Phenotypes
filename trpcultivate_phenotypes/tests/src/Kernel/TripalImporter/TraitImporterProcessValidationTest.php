@@ -206,6 +206,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
    *     - 'valid': FALSE to indicate that validation failed.
    *     - 'failedItems': an array of items that failed with the following keys.
    *       - 'genus_provided': The name of the genus provided.
+   * @param array $expectations
    *   - An array of expectations in the rendered output which has the following
    *     keys:
    *     - 'expected_message': The message expected in the return value of the

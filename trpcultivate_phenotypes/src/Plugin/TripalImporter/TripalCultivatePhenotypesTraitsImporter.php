@@ -849,11 +849,9 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   public function processGenusExistsFailures(array $validation_result) {
     if ($validation_result['case'] == 'Genus does not exist') {
       $message = 'The selected genus does not exist in this site. Please contact your administrator to have this added.';
-      $items[] = $validation_result['failedItems']['genus_provided'];
     }
     elseif ($validation_result['case'] == 'Genus exists but is not configured') {
       $message = 'The selected genus has not yet been configured for use with phenotypic data. Please contact your administrator to have this set up.';
-      $items[] = $validation_result['failedItems']['genus_provided'];
     }
 
     // Build the render array.
@@ -863,7 +861,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       'items' => [
         '#theme' => 'item_list',
         '#type' => 'ul',
-        '#items' => $items,
+        '#items' => $validation_result['failedItems']['genus_provided'],
       ],
     ];
 
@@ -908,7 +906,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       }
       // Log a message for the administrator to help with debugging the issue.
       // Get the current user.
-      $username = User::load(\Drupal::currentUser()->name());
+      $current_user = \Drupal::currentUser();
+      $username = $current_user->getAccountName();
       // Get the fid of the uploaded file.
       $fid = $validation_result['failedItems']['fid'];
       $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but could not import it as something is wrong with the filename/FID.");
@@ -942,13 +941,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       ];
       // Log more info for the administrator.
       $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but the file could not be opened using \'@fopen\'");
-    }
-
-    // Majority of cases return the filename, so check that it exists before
-    // assigning a value to help the user with debugging.
-    $filename = '';
-    if (array_key_exists('filename', $validation_result['failedItems'])) {
-      $filename = 'Filename: ' . $validation_result['failedItems']['filename'];
     }
 
     // Build the render array.
