@@ -475,7 +475,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         // Set failures for this validator name to an empty array to signal that
         // this validator has been run.
         $failures[$validator_name] = [];
-        $result = $validator->validateFile('', $file_id);
+        $result = $validator->validateFile($file_id);
 
         // Check if validation failed and save the results if it did.
         if (array_key_exists('valid', $result) && $result['valid'] === FALSE) {
