@@ -1343,17 +1343,21 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     // Finally, loop through our tables and build our render array.
     $tables = [];
-    foreach ($table as $table_case) {
+    foreach ($table as $table_key => $table_case) {
       array_push($tables, [
         [
-          '#prefix' => '<div class="case-message">',
+          '#prefix' => '<div class="case-message case-' . $table_key . '">',
           '#markup' => $table_case['message'],
           '#suffix' => '</div>',
         ],
         [
           '#type' => 'table',
           '#header' => $table_header,
-          '#attributes' => [],
+          '#attributes' => [
+            'class' => [
+              'table-case-' . $table_key,
+            ],
+          ],
           '#rows' => $table_case['rows'],
         ],
       ]);
