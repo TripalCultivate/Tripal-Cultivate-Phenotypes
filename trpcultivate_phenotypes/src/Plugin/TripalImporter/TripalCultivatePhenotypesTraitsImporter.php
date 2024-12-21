@@ -861,7 +861,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       'items' => [
         '#theme' => 'item_list',
         '#type' => 'ul',
-        '#items' => $validation_result['failedItems']['genus_provided'],
+        '#items' => [
+          [
+            '#markup' => $validation_result['failedItems']['genus_provided'],
+          ],
+        ],
       ],
     ];
 
