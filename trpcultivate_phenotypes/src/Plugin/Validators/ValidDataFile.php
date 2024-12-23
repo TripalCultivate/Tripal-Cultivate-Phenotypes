@@ -74,16 +74,14 @@ class ValidDataFile extends TripalCultivatePhenotypesValidatorBase implements Co
    * Validate that the input file is a valid file.
    *
    * Checks include:
-   * - Parameter filename or file id is valid.
+   * - File ID parameter is positive non-zero integer, and cannot be null.
    * - Has Drupal File Id number assigned and can be loaded.
    * - File extension and mime type are configured by the importer.
    * - File exists and is not empty.
    * - File can be opened.
    *
-   * @param string $filename
-   *   The full path to a file within the file system (Absolute file path).
    * @param int $fid
-   *   [OPTIONAL] The unique identifier (fid) of a file that is managed by
+   *   The unique identifier (fid) of a file that is managed by
    *   Drupal File System.
    *
    * @return array
@@ -96,82 +94,35 @@ class ValidDataFile extends TripalCultivatePhenotypesValidatorBase implements Co
    *     - 'fid': The fid of the provided file.
    *     - 'mime': The mime type of the input file if it is not supported.
    *     - 'extension': The extension of the input file if not supported.
-   *
-   * @throws \Exception
-   *   - If parameters $filename and $fid are both provided, but do not point to
-   *     the same file object.
    */
-  public function validateFile(string $filename, int|null $fid = NULL) {
+  public function validateFile(int|null $fid) {
 
-    // Parameter check, verify that the filename/file path is valid.
-    if (empty($filename) && is_null($fid)) {
-      return [
-        'case' => 'Filename is empty string',
-        'valid' => FALSE,
-        'failedItems' => [
-          'filename' => '',
-          'fid' => $fid,
-        ],
-      ];
-    }
-
-    // Parameter check, verify the file id number is not 0 or a negative value.
-    if (!is_null($fid) && $fid <= 0) {
+    // Parameter check, verify the file id number is not null, 0 or
+    // a negative value.
+    if (is_null($fid) || $fid <= 0) {
       return [
         'case' => 'Invalid file id number',
         'valid' => FALSE,
         'failedItems' => [
-          'filename' => $filename,
           'fid' => $fid,
         ],
       ];
     }
 
-    // Holds the file object when file is a managed file.
-    $file_object = NULL;
-
-    // Load file object.
-    if (is_numeric($fid) && $fid > 0) {
-      // Load the file object by fid number.
-      $file_object = $this->service_EntityTypeManager
-        ->getStorage('file')
-        ->load($fid);
-
-      // Verify that the filename (if provided) matches the filename in the file
-      // object returned by the file id.
-      if (!empty($filename) && $file_object->getFileName() != pathinfo($filename, PATHINFO_FILENAME)) {
-        throw new \Exception('The filename provided does not match the filename set in the file object.');
-      }
-    }
-    elseif ($filename) {
-      // Locate the file entity by uri and load the file object using the
-      // returned file id number that matched.
-      $file_object = $this->service_EntityTypeManager
-        ->getStorage('file')
-        ->loadByProperties(['uri' => $filename]);
-      $file_object = reset($file_object);
-    }
+    // Load the file object by fid number.
+    $file_object = $this->service_EntityTypeManager
+      ->getStorage('file')
+      ->load($fid);
 
     // Check that the file input provided returned a file object.
     if (!$file_object) {
-      if (is_null($fid)) {
-        return [
-          'case' => 'Filename failed to load a file object',
-          'valid' => FALSE,
-          'failedItems' => [
-            'filename' => $filename,
-          ],
-        ];
-      }
-      else {
-        return [
-          'case' => 'File id failed to load a file object',
-          'valid' => FALSE,
-          'failedItems' => [
-            'fid' => $fid,
-          ],
-        ];
-      }
+      return [
+        'case' => 'File id failed to load a file object',
+        'valid' => FALSE,
+        'failedItems' => [
+          'fid' => $fid,
+        ],
+      ];
     }
 
     // File object loaded successfully. Any subsequent failed checks will
