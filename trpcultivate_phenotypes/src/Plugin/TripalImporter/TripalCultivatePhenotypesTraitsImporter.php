@@ -914,7 +914,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       $username = $current_user->getAccountName();
       // Get the fid of the uploaded file.
       $fid = $validation_result['failedItems']['fid'];
-      $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but could not import it as something is wrong with the filename/FID.");
+      $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but could not import it as something is wrong with the filename/FID. More specifically, the case message '" . $validation_result['case'] . "' was reported.");
     }
 
     elseif ($validation_result['case'] == 'The file has no data and is an empty file') {
@@ -944,7 +944,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         'Filename: ' . $filename,
       ];
       // Log more info for the administrator.
-      $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but the file could not be opened using \'@fopen\'");
+      $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but the file could not be opened using \'@fopen\'. Filename was '$filename'.");
     }
 
     // Build the render array.
