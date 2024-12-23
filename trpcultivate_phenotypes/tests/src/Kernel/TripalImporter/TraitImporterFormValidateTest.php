@@ -150,8 +150,8 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
    *       - 'title': [REQUIRED if 'status' = 'fail'] A string that matches the
    *         title set in processValidationMessages() method in the Traits
    *         Importer class for this validator instance.
-   *       - 'details': [REQUIRED if 'status' = 'fail'] A string that is passed
-   *         to the user through the UI if this validation instance failed.
+   *       - 'details': [REQUIRED if 'status' = 'fail'] A string that is ideally
+   *         unique to the scenario that is expected to be in the render array.
    *   - an integer indicating the number of form validation messages we expect
    *     to see when the form is submitted.
    *     NOTE: These validation messages are produced by the form via Drupal and
@@ -176,7 +176,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'genus_exists' => [
           'title' => 'The genus is valid',
           'status' => 'fail',
-          'details' => 'Genus does not exist',
+          'details' => 'The selected genus does not exist in this site. Please contact your administrator to have this added.',
         ],
         'valid_data_file' => ['status' => 'todo'],
         'valid_delimited_file' => ['status' => 'todo'],
@@ -193,13 +193,13 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
     // #1: File is empty.
     $scenarios[] = [
       $valid_genus,
-      'empty_file.txt',
+      'empty_file.tsv',
       [
         'genus_exists' => ['status' => 'pass'],
         'valid_data_file' => [
           'title' => 'File is valid and not empty',
           'status' => 'fail',
-          'details' => 'The file has no data and is an empty file',
+          'details' => 'The file provided has no contents in it to import. Please ensure your file has the expected header row and at least one row of data.',
         ],
         'valid_delimited_file' => ['status' => 'todo'],
         'valid_header' => ['status' => 'todo'],
@@ -218,9 +218,9 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'genus_exists' => ['status' => 'pass'],
         'valid_data_file' => ['status' => 'pass'],
         'valid_delimited_file' => [
-          'title' => 'Row is properly delimited',
+          'title' => 'Lines are properly delimited',
           'status' => 'fail',
-          'details' => 'Raw row is not delimited',
+          'details' => 'This importer requires a strict number of 6 columns for each line. The following lines do not contain the expected number of columns.',
         ],
         'valid_header' => ['status' => 'todo'],
         'empty_cell' => ['status' => 'todo'],
@@ -238,9 +238,9 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'genus_exists' => ['status' => 'pass'],
         'valid_data_file' => ['status' => 'pass'],
         'valid_delimited_file' => [
-          'title' => 'Row is properly delimited',
+          'title' => 'Lines are properly delimited',
           'status' => 'fail',
-          'details' => 'Raw row is not delimited',
+          'details' => 'This importer requires a strict number of 6 columns for each line. The following lines do not contain the expected number of columns.',
         ],
         // Since the header row has the correct number of columns, validation
         // for valid_header is expected to pass.
@@ -280,7 +280,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'valid_header' => [
           'title' => 'File has all of the column headers expected',
           'status' => 'fail',
-          'details' => 'Headers do not match expected headers',
+          'details' => 'One or more of the column headers in the input file does not match what was expected. Please check if your column header is in the correct order and matches the template exactly.',
         ],
         'empty_cell' => ['status' => 'todo'],
         'valid_data_type' => ['status' => 'todo'],
@@ -302,7 +302,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'empty_cell' => [
           'title' => 'Required cells contain a value',
           'status' => 'fail',
-          'details' => 'Empty value found in required column(s) at row #: 3',
+          'details' => 'The following line number and column header combinations were empty, but a value is required.',
         ],
         'valid_data_type' => ['status' => 'pass'],
         'duplicate_traits' => ['status' => 'pass'],
@@ -324,7 +324,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'empty_cell' => [
           'title' => 'Required cells contain a value',
           'status' => 'fail',
-          'details' => 'Empty value found in required column(s) at row #: 4',
+          'details' => 'The following line number and column header combinations were empty, but a value is required.',
         ],
         'valid_data_type' => ['status' => 'pass'],
         'duplicate_traits' => ['status' => 'pass'],
@@ -346,7 +346,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'valid_data_type' => [
           'title' => 'Values in required cells are valid',
           'status' => 'fail',
-          'details' => 'Invalid value(s) in required column(s) at row #: 2',
+          'details' => 'The following line number and column combinations did not contain one of the following allowed values: "Quantitative", "Qualitative". Note that values should be case sensitive. <strong>Empty cells indicate the value given was one of the allowed values.</strong>',
         ],
         'duplicate_traits' => ['status' => 'pass'],
       ],
@@ -367,7 +367,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'duplicate_traits' => [
           'title' => 'All trait-method-unit combinations are unique',
           'status' => 'fail',
-          'details' => 'A duplicate trait was found within the input file at row #: 3',
+          'details' => 'These trait-method-unit combinations occurred multiple times within your input file. The line number indicates the duplicated occurrence(s).',
         ],
       ],
       $num_form_validation_messages,
@@ -394,8 +394,8 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
    *   - 'title': [REQUIRED if 'status' = 'fail'] A string that matches the
    *     title set in processValidationMessages() method in the Trait Importer
    *     class for this validator instance.
-   *   - 'details': [REQUIRED if 'status' = 'fail'] A string that is passed to
-   *     the user through the UI if this validation instance failed.
+   *   - 'details': [REQUIRED if 'status' = 'fail'] A string that is ideally
+   *     unique to the scenario that is expected to be in the render array.
    * @param int $expected_num_form_validation_errors
    *   The number of form validation messages we expect to see when the form is
    *   submitted. NOTE: These validation messages are produced by the form via
@@ -483,12 +483,31 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
           $expected['details'],
           "An empty string was provided with a 'details' key within the data provider - trust me, don't do that!"
         );
+
         // Now check details.
-        $this->assertStringContainsString(
-          $expected['details'],
+        $this->assertIsArray(
           $validation_element_data[$validation_plugin]['details'],
-          "We expected the details for $validation_plugin to include a specific string but it did not."
+          "We expected the details for $validation_plugin to be an array, but it is not."
         );
+
+        // Check for the key #type which is common in all render arrays.
+        $this->assertArrayHasKey('#type', $validation_element_data[$validation_plugin]['details'], "We expected the details for $validation_plugin to be a render array by having the #type key, but it does not.");
+
+        // Walk recursively through the render array, and report whether our
+        // 'details' item is present in the array or not.
+        $item_to_find = $expected['details'];
+        $found = FALSE;
+        array_walk_recursive(
+          $validation_element_data[$validation_plugin]['details'],
+          function ($item, $key) use (&$found, $item_to_find) {
+            if ($item == $item_to_find) {
+              $found = TRUE;
+            }
+          }
+        );
+
+        $this->assertTrue($found, "We expected to find \"$item_to_find\" in the
+        resulting render array for $validation_plugin failures, but did not.");
       }
     }
 
