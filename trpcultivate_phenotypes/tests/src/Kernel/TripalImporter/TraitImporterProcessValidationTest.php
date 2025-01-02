@@ -236,6 +236,90 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
   }
 
   /**
+   * Data Provider for testProcessValidDataFileFailures().
+   *
+   * @return array
+   *   Each scenario is an array with the following:
+   *   - The validation result array that gets passed to the process method. It
+   *     contains the following keys:
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed with the following keys.
+   *       - 'filename': The provided name of the file.
+   *       - 'fid': The fid of the provided file.
+   *       - 'mime': The mime type of the input file if it is not supported.
+   *       - 'extension': The extension of the input file if not supported.
+   *   - An array of expectations in the rendered output which has the following
+   *     keys:
+   *     - 'expected_message': The message expected in the return value of the
+   *       process method for this scenario.
+   */
+  public function provideValidDataFileFailedCases() {
+    $scenarios = [];
+
+    // #0: An invalid file ID is provided.
+    $scenarios[] = [
+      [
+        'case' => 'Invalid file id number',
+        'valid' => FALSE,
+        'failedItems' => [
+          'fid' => 'wrongid',
+        ],
+      ],
+      [
+        'expected_message' => 'A problem occurred in between uploading the file and submitting it for validation.',
+      ],
+    ];
+
+    // #1: An empty file was provided.
+    $scenarios[] = [
+      [
+        'case' => 'The file has no data and is an empty file',
+        'valid' => FALSE,
+        'failedItems' => [
+          'filename' => 'empty_file.txt',
+          'fid' => 123,
+        ],
+      ],
+      [
+        'expected_message' => 'The file provided has no contents in it to import. Please ensure your file has the expected header row and at least one row of data.',
+      ],
+    ];
+
+    // #2: The file MIME type is unsupported.
+    $scenarios[] = [
+      [
+        'case' => 'Unsupported file MIME type',
+        'valid' => FALSE,
+        'failedItems' => [
+          'mime' => 'application/pdf',
+          'extension' => 'tsv',
+        ],
+      ],
+      [
+        'expected_message' => 'The type of file uploaded is not supported by this importer. Please ensure your file has one of the supported file extensions and was saved using software that supports that type of file.',
+      ],
+    ];
+
+    // #3: The data file couldn't be opened.
+    $scenarios[] = [
+      [
+        'case' => 'Data file cannot be opened',
+        'valid' => FALSE,
+        'failedItems' => [
+          'filename' => 'unopenable.tsv',
+          'fid' => 456,
+        ],
+      ],
+      [
+        'expected_message' => 'The file provided could not be opened. Please contact your administrator for help.',
+      ],
+    ];
+
+    return $scenarios;
+  }
+
+  /**
    * Data Provider for testProcessValidHeadersFailures().
    *
    * @return array

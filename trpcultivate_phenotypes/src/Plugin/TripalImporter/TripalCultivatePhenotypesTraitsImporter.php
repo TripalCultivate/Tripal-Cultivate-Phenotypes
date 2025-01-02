@@ -896,24 +896,19 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   mime type are not compatible.
    */
   public function processValidDataFileFailures(array $validation_result) {
-    if (($validation_result['case'] == 'Filename is empty string') ||
-        ($validation_result['case'] == 'Invalid file id number') ||
-        ($validation_result['case'] == 'Filename failed to load a file object') ||
+
+    // Get the current user in case we trigger a case that needs to log a
+    // message to the administrator.
+    $current_user = \Drupal::currentUser();
+    $username = $current_user->getAccountName();
+
+    if (($validation_result['case'] == 'Invalid file id number') ||
         ($validation_result['case'] == 'File id failed to load a file object')) {
       $message = 'A problem occurred in between uploading the file and submitting it for validation. Please try uploading and submitting it again, or contact your administrator if the problem persists.';
-      // All but one case returns the filename, so check that it exists before
-      // assigning it to items.
-      if (array_key_exists('filename', $validation_result['failedItems'])) {
-        $items = [
-          'Filename: ' . $validation_result['failedItems']['filename'],
-        ];
-      }
-      // Log a message for the administrator to help with debugging the issue.
-      // Get the current user.
-      $current_user = \Drupal::currentUser();
-      $username = $current_user->getAccountName();
+
       // Get the fid of the uploaded file.
       $fid = $validation_result['failedItems']['fid'];
+      // Log a message for the administrator to help with debugging the issue.
       $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but could not import it as something is wrong with the filename/FID. More specifically, the case message '" . $validation_result['case'] . "' was reported.");
     }
 
@@ -936,6 +931,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       ];
       $this->logger->info("The user $username uploaded a file to the Traits Importer with file extension \"$file_extension\" and mime type \"$file_mime\"");
     }
+
     elseif ($validation_result['case'] == 'Data file cannot be opened') {
       $message = 'The file provided could not be opened. Please contact your administrator for help.';
       $filename = $validation_result['failedItems']['filename'];
