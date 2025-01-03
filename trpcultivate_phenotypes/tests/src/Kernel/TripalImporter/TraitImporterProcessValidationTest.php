@@ -271,7 +271,6 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       [
         'expected_message' => 'A problem occurred in between uploading the file and submitting it for validation.',
         'expected_item_count' => 0,
-        'expected_item' => '',
       ],
     ];
 
@@ -371,11 +370,14 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
 
     // Next, check for expected items.
     $selected_list_items = $this->cssSelect('div.form-item ul li');
-    $this->assertCount($expectations['expected_item_count'], $selected_list_items, 'We expect only one list item in the render array from processing ValidDataFile failures.');
-    // Grab the contents of 'SimpleXMLElement Object' and assert it matches
-    // what we expect.
-    $provided_item = (string) $selected_list_items[0];
-    $this->assertEquals($expectations['expected_item'], $provided_item, 'The render array from processing ValidDataFile failures did not contain the expected failed item.');
+    $list_item_count = count($selected_list_items);
+    $this->assertEquals($expectations['expected_item_count'], $list_item_count, 'We expected ' . $expectations['expected_item_count'] . ' list items in the render array from processing ValidDataFile failures, but instead found ' . $list_item_count . '.');
+    // If this is a case where we expect an item, grab the contents of
+    // 'SimpleXMLElement Object' and assert it matches what we expect.
+    if (array_key_exists('expected_item', $expectations)) {
+      $provided_item = (string) $selected_list_items[0];
+      $this->assertEquals($expectations['expected_item'], $provided_item, 'The render array from processing ValidDataFile failures did not contain the expected failed item.');
+    }
   }
 
   /**
@@ -499,6 +501,34 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       // rendered provided headers row.
       $this->assertEquals($validation_result['failedItems'], $selected_provided_headers_td, "The header row provided does not match the second row (the \'provided headers\' row) of the rendered table.");
     }
+  }
+
+  /**
+   * Data Provider for testProcessEmptyCellFailures().
+   *
+   * @return array
+   *   Each scenario is an array with the following:
+   *   - The failures array that gets passed to the process method. It contains
+   *     the following keys:
+   *     - The line number that triggered this failed validation status.
+   *       - 'case': a developer-focused string describing the case checked.
+   *       - 'valid': FALSE to indicate that validation failed.
+   *       - 'failedItems': array of items that failed with the following keys:
+   *         - 'empty_indices': A list of column indices in the line which were
+   *           checked and found to be empty.
+   *   - An array of expectations that we want to find in the resulting rendered
+   *     output which has the following keys:
+   *     - 'expected_message': The message expected in the return value of the
+   *       process method for this scenario.
+   *     - 1+ arrays keyed by the line number in the input file that triggered
+   *       the failed validation status, further keyed by:
+   *       - 'expected_columns': A comma-separated list of column headers that
+   *         map to the expected columns with empty values.
+   */
+  public function provideEmptyCellFailedCases() {
+    $scenarios = [];
+
+    return $scenarios;
   }
 
   /**

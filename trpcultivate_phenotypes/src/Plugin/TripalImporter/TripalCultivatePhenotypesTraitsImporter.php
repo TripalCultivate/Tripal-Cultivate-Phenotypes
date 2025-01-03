@@ -901,6 +901,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // message to the administrator.
     $current_user = \Drupal::currentUser();
     $username = $current_user->getAccountName();
+    // Define our items array.
+    $items = [];
 
     if (($validation_result['case'] == 'Invalid file id number') ||
         ($validation_result['case'] == 'File id failed to load a file object')) {
