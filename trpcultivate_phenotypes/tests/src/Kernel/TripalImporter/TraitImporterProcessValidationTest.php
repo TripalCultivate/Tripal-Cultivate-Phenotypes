@@ -528,7 +528,139 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
   public function provideEmptyCellFailedCases() {
     $scenarios = [];
 
+    // #0: One empty required column on line #5
+    $scenarios[] = [
+      [
+        5 => [
+          'case' => 'Empty value found in required column(s)',
+          'valid' => FALSE,
+          'failedItems' => [
+            'empty_indices' => [0],
+          ],
+        ],
+      ],
+      [
+        'expected_message' => 'The following line number and column header combinations were empty, but a value is required.',
+        5 => [
+          'expected_columns' => 'Trait Name',
+        ],
+      ],
+    ];
+
+    // #1: One required column is empty on multiple rows
+    $scenarios[] = [
+      [
+        3 => [
+          'case' => 'Empty value found in required column(s)',
+          'valid' => FALSE,
+          'failedItems' => [
+            'empty_indices' => [5],
+          ],
+        ],
+        8 => [
+          'case' => 'Empty value found in required column(s)',
+          'valid' => FALSE,
+          'failedItems' => [
+            'empty_indices' => [5],
+          ],
+        ],
+      ],
+      [
+        'expected_message' => 'The following line number and column header combinations were empty, but a value is required.',
+        3 => [
+          'expected_columns' => 'Type',
+        ],
+        8 => [
+          'expected_columns' => 'Type',
+        ],
+      ],
+    ];
+
+    // #2: Multiple different required columns on multiple lines
+    $scenarios[] = [
+      [
+        2 => [
+          'case' => 'Empty value found in required column(s)',
+          'valid' => FALSE,
+          'failedItems' => [
+            'empty_indices' => [0, 2, 4],
+          ],
+        ],
+        6 => [
+          'case' => 'Empty value found in required column(s)',
+          'valid' => FALSE,
+          'failedItems' => [
+            'empty_indices' => [4, 5],
+          ],
+        ],
+      ],
+      [
+        'expected_message' => 'The following line number and column header combinations were empty, but a value is required.',
+        2 => [
+          'expected_columns' => 'Trait Name, Method Short Name, Unit',
+        ],
+        6 => [
+          'expected_columns' => 'Unit, Type',
+        ],
+      ],
+    ];
+
     return $scenarios;
+  }
+
+  /**
+   * Tests the message processor method for the EmptyCell validator.
+   *
+   * @param array $failures
+   *   The failures array that gets passed to the process method. It contains
+   *   the following keys:
+   *   - The line number that triggered this failed validation status.
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed with the following keys.
+   *       - 'empty_indices': A list of column indices in the line which were
+   *         checked and found to be empty.
+   * @param array $expectations
+   *   An array of expectations that we want to find in the resulting rendered
+   *   output which has the following keys:
+   *   - 'expected_message': The message expected in the return value of the
+   *       process method for this scenario.
+   *   - 1+ arrays keyed by the line number in the input file that triggered
+   *     the failed validation status, further keyed by:
+   *     - 'expected_columns': A comma-separated list of column headers that
+   *       map to the expected columns with empty values.
+   *
+   * @dataProvider provideEmptyCellFailedCases
+   */
+  public function testProcessEmptyCellFailures(array $failures, array $expectations) {
+    // Process our test failures array.
+    $render_array = $this->importer->processEmptyCellFailures($failures);
+    $rendered_markup = $this->renderer->renderRoot($render_array);
+    $this->setRawContent($rendered_markup);
+
+    // Check the rendered output.
+    // Check the message above this table is correct.
+    $selected_message_markup = $this->cssSelect("ul li div.case-message");
+    $table_message = (string) $selected_message_markup[0];
+    $this->assertStringContainsString($expectations['expected_message'], $table_message, 'The message expected for this scenario did not match the message in the render array.');
+
+    // Select the table rows and check for our expected values.
+    $selected_rows = $this->cssSelect("tbody tr");
+    $current_row_index = 0;
+    foreach ($expectations as $expected_line_no => $expected_values) {
+      if ($expected_line_no == 'expected_message') {
+        continue;
+      }
+      $select_row_cells = (array) $selected_rows[$current_row_index]->td;
+      // 1st Column: Line Number
+      $line_number = $select_row_cells[0];
+      $this->assertEquals($expected_line_no, $line_number, "Did not get the expected line number in the rendered table from processing EmptyCell failures.");
+      // 2nd Column: Column(s) with empty value
+      $empty_columns = $select_row_cells[1];
+      $this->assertEquals($expected_values['expected_columns'], $empty_columns, 'Did not get the expected column names of empty cells in the rendered table from processing EmptyCell failures.');
+      // Move onto the next row.
+      $current_row_index++;
+    }
   }
 
   /**
