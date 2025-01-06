@@ -1275,7 +1275,9 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       '#items' => [
         [
           [
+            '#prefix' => '<div class="case-message">',
             '#markup' => $table['message'],
+            '#suffix' => '</div>',
           ],
           [
             '#type' => 'table',

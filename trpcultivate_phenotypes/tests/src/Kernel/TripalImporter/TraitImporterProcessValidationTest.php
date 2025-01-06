@@ -664,6 +664,60 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
   }
 
   /**
+   * Data Provider for testProcessValueInListFailures().
+   *
+   * @return array
+   *   Each scenario is an array with the following:
+   *   - The failures array that gets passed to the process method. It contains
+   *     the following keys:
+   *     - The line number that triggered this failed validation status.
+   *       - 'case': a developer-focused string describing the case checked.
+   *       - 'valid': FALSE to indicate that validation failed.
+   *       - 'failedItems': array of items that failed, where the key => value
+   *         pairs map to the index => cell value(s) that failed validation.
+   *       - 'valid_values': the list of values that are considered valid by
+   *         this validator.
+   *   - An array of expectations that we want to find in the resulting rendered
+   *     output which has the following keys:
+   *     - 'expected_message': The message expected in the return value of the
+   *       process method for this scenario.
+   *     - 1+ arrays keyed by the line number in the input file that triggered
+   *       the failed validation status, further keyed by the column header name
+   *       of a cell in this row and its value is the invalid value. For
+   *       example:
+   *       - 2 => [ 'Type' => 'Invalid Value' ]
+   */
+  public function provideValueInListFailedCases() {
+    $scenarios = [];
+
+    // #0: An invalid value in a required column on one row.
+    $scenarios[] = [
+      [
+        3 => [
+          'case' => 'Invalid value(s) in required column(s)',
+          'valid' => FALSE,
+          'failedItems' => [
+            // Column 'Type' is at index 5.
+            5 => 'Invalid Type',
+          ],
+          'valid_values' => [
+            'Quantitative',
+            'Qualitative',
+          ],
+        ],
+      ],
+      [
+        'expected_message' => 'The following line number and column combinations did not contain one of the following allowed values: "Quantitative", "Qualitative".',
+        3 => [
+          'Type' => 'Invalid Type',
+        ],
+      ],
+    ];
+
+    return $scenarios;
+  }
+
+  /**
    * Data Provider for testProcessDuplicateTraitsFailures().
    *
    * @return array
