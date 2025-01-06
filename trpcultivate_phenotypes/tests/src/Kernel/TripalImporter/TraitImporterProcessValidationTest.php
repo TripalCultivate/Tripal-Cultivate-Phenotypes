@@ -675,22 +675,27 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
    *       - 'valid': FALSE to indicate that validation failed.
    *       - 'failedItems': array of items that failed, where the key => value
    *         pairs map to the index => cell value(s) that failed validation.
-   *       - 'valid_values': the list of values that are considered valid by
-   *         this validator.
+   *   - The list of values that are considered valid by this validator.
    *   - An array of expectations that we want to find in the resulting rendered
    *     output which has the following keys:
    *     - 'expected_message': The message expected in the return value of the
    *       process method for this scenario.
-   *     - 1+ arrays keyed by the line number in the input file that triggered
-   *       the failed validation status, further keyed by the column header name
-   *       of a cell in this row and its value is the invalid value. For
-   *       example:
+   *     - 'expected_column_count': The number of columns expected in the
+   *       rendered table for this scenario.
+   *     - 'expected_table_rows': 1+ arrays keyed by the line number in the
+   *       input file that triggered the failed validation status, further keyed
+   *       by the column header name of a cell in this row and its value is the
+   *       invalid value. For example:
    *       - 2 => [ 'Type' => 'Invalid Value' ]
    */
   public function provideValueInListFailedCases() {
     $scenarios = [];
 
     // #0: An invalid value in a required column on one row.
+    $valid_values = [
+      'Quantitative',
+      'Qualitative',
+    ];
     $scenarios[] = [
       [
         3 => [
@@ -700,21 +705,92 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
             // Column 'Type' is at index 5.
             5 => 'Invalid Type',
           ],
-          'valid_values' => [
-            'Quantitative',
-            'Qualitative',
-          ],
         ],
       ],
+      $valid_values,
       [
-        'expected_message' => 'The following line number and column combinations did not contain one of the following allowed values: "Quantitative", "Qualitative".',
-        3 => [
-          'Type' => 'Invalid Type',
+        'expected_message' => 'The following line number and column combinations did not contain one of the following allowed values: "' . implode('", "', $valid_values) . '".',
+        'expected_column_count' => 2,
+        'expected_table_rows' => [
+          3 => [
+            'Type' => 'Invalid Type',
+          ],
         ],
       ],
     ];
 
     return $scenarios;
+  }
+
+  /**
+   * Tests the message processor method for the ValueInList validator.
+   *
+   * @param array $failures
+   *   The failures array that gets passed to the process method. It contains
+   *   the following keys:
+   *   - The line number that triggered this failed validation status.
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed with the following keys,
+   *       where the key => value pairs map to the index => cell value(s) that
+   *       failed validation.
+   * @param array $valid_values
+   *   A list of values that would have been considered valid by this validator.
+   * @param array $expectations
+   *   An array of expectations that we want to find in the resulting rendered
+   *   output which has the following keys:
+   *   - 'expected_message': The message expected in the return value of the
+   *     process method for this scenario.
+   *   - 'expected_column_count': The number of columns expected in the
+   *     rendered table for this scenario.
+   *   - 'expected_table_rows': 1+ arrays keyed by the line number in the
+   *     input file that triggered the failed validation status, further keyed
+   *     by the column header name of a cell in this row and its value is the
+   *     invalid value. For example:
+   *     - 2 => [ 'Type' => 'Invalid Value' ].
+   *
+   * @dataProvider provideValueInListFailedCases
+   */
+  public function testProcessValueInListFailures(array $failures, array $valid_values, array $expectations) {
+
+    // Process our test failures array for this scenario.
+    $render_array = $this->importer->processValueInListFailures($failures, $valid_values);
+    $rendered_markup = $this->renderer->renderRoot($render_array);
+    $this->setRawContent($rendered_markup);
+
+    // print_r($rendered_markup);
+    // Check the rendered output.
+    // Check the message above this table is correct.
+    $selected_message_markup = $this->cssSelect("ul li div.case-message");
+    $table_message = (string) $selected_message_markup[0];
+    $this->assertStringContainsString($expectations['expected_message'], $table_message, 'The message expected for this scenario did not match the message in the render array.');
+
+    // Select and save the table header.
+    $selected_table_header = $this->cssSelect("thead tr");
+    $select_column_headers = (array) $selected_table_header[0]->th;
+    // Assert that the number of columns matches the number of we expect.
+    $this->assertCount($expectations['expected_column_count'], $select_column_headers, 'We expected ' . $expectations['expected_column_count'] . 'columns to be in the rendered table for ValueInList failures for this scenario, but instead there are ' . count($select_column_headers) . '.');
+
+    // Select the table rows and check for our expected values.
+    $selected_rows = $this->cssSelect("tbody tr");
+    $current_row_index = 0;
+    foreach ($expectations['expected_table_rows'] as $expected_line_no => $expected_values) {
+      $select_row_cells = (array) $selected_rows[$current_row_index]->td;
+      // 1st Column: Line Number
+      $line_number = $select_row_cells[0];
+      $this->assertEquals($expected_line_no, $line_number, "Did not get the expected line number in the rendered table from processing ValueInList failures.");
+      // 2nd Column and up: Column(s) with invalid value
+      $current_column_index = 1;
+      foreach ($expected_values as $column_header => $invalid_value) {
+        // Check that the column header is what we expect.
+        $this->assertEquals($column_header, $select_column_headers[$current_column_index], "We expected the column header $column_header to be present in the rendered table's header but it was not.");
+        // Chech that the invalid value we expect is in this cell of the table.
+        $this->assertEquals($invalid_value, $select_row_cells[$current_column_index], "We expected an invalid value to be listed for $column_header at line #$expected_line_no.");
+        $current_column_index++;
+      }
+      // Move onto the next row.
+      $current_row_index++;
+    }
   }
 
   /**

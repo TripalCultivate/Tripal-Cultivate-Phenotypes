@@ -1229,8 +1229,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   and column combinations with an invalid value. It has the following
    *   headers:
    *   - 'Line Number'
-   *   - 'Column Header'
-   *   - 'Invalid Value'
+   *   - Column Header(s) of the cell(s) that has/have an invalid value
    */
   public function processValueInListFailures(array $failures, array $expected_values) {
     // Define our table header.
