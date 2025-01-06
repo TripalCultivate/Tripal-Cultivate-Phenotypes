@@ -220,7 +220,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'valid_delimited_file' => [
           'title' => 'Lines are properly delimited',
           'status' => 'fail',
-          'details' => 'Raw row has insufficient number of columns at row',
+          'details' => 'This importer requires a strict number of 6 columns for each line. The following lines do not contain the expected number of columns.',
         ],
         'valid_header' => ['status' => 'todo'],
         'empty_cell' => ['status' => 'todo'],
@@ -240,7 +240,7 @@ class TraitImporterFormValidateTest extends ChadoTestKernelBase {
         'valid_delimited_file' => [
           'title' => 'Lines are properly delimited',
           'status' => 'fail',
-          'details' => 'Raw row has insufficient number of columns at row',
+          'details' => 'This importer requires a strict number of 6 columns for each line. The following lines do not contain the expected number of columns.',
         ],
         // Since the header row has the correct number of columns, validation
         // for valid_header is expected to pass.
