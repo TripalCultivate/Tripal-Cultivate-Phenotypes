@@ -107,22 +107,45 @@ class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
         ],
       ],
 
-      // #2: Not the expected number of columns (strict comparison).
+      // #2: Not the expected number of columns (more and strict comparison).
       [
-        'column number mismatch',
+        'column number mismatch - more',
+        "Data Value One\tData Value Two\tData Value Three\tData Value Four\tData Value Five",
+        [
+          'number_of_columns' => 4,
+          'strict' => TRUE,
+        ],
+        [
+          'case' => 'Raw row exceeds number of strict columns',
+          'valid' => FALSE,
+          'failedItems' => [
+            'raw_row' => "Data Value One\tData Value Two\tData Value Three\tData Value Four\tData Value Five",
+            'expected_columns' => 4,
+            'strict' => TRUE,
+          ],
+        ],
+      ],
+
+      // #3: Not the expected number of columns (less and strict comparison).
+      [
+        'column number mismatch - less',
         "Data Value One\tData Value Two\tData Value Three",
         [
           'number_of_columns' => 4,
           'strict' => TRUE,
         ],
         [
-          'case' => 'Raw row is not delimited',
+          'case' => 'Raw row has insufficient number of columns',
           'valid' => FALSE,
-          'failedItems' => ['raw_row' => "Data Value One\tData Value Two\tData Value Three"],
+          'failedItems' => [
+            'raw_row' => "Data Value One\tData Value Two\tData Value Three",
+            'expected_columns' => 4,
+            'strict' => TRUE,
+          ],
         ],
       ],
 
-      // #3: Not the expected number of columns (not strict comparison).
+      // #4: Not the expected number of columns (not strict comparison).
       [
         'column number failed minimum',
         "Data Value One\tData Value Two\tData Value Three",
@@ -131,13 +154,17 @@ class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
           'strict' => FALSE,
         ],
         [
-          'case' => 'Raw row is not delimited',
+          'case' => 'Raw row has insufficient number of columns',
           'valid' => FALSE,
-          'failedItems' => ['raw_row' => "Data Value One\tData Value Two\tData Value Three"],
+          'failedItems' => [
+            'raw_row' => "Data Value One\tData Value Two\tData Value Three",
+            'expected_columns' => 4,
+            'strict' => FALSE,
+          ],
         ],
       ],
 
-      // #4: Line has 2 different delimiters (tab + comma) where one is used to
+      // #5: Line has 2 different delimiters (tab + comma) where one is used to
       // delimit values and the other exists within the values.
       [
         'two delimiters used',
@@ -153,7 +180,7 @@ class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
         ],
       ],
 
-      // #5: Valid raw row and expecting exactly 4 columns.
+      // #6: Valid raw row and expecting exactly 4 columns.
       [
         'valid raw row with exact columns',
         "Data Value One\tData Value Two\tData Value Three\tData Value Four",
@@ -168,7 +195,7 @@ class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
         ],
       ],
 
-      // #6: Valid raw row and expecting at least 3 columns.
+      // #7: Valid raw row and expecting at least 3 columns.
       [
         'valid raw row with minimum columns',
         "Data Value One\tData Value Two\tData Value Three\tData Value Four",
@@ -183,7 +210,7 @@ class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
         ],
       ],
 
-      // #7: Raw row has one column with strict flag set to FALSE (mininum).
+      // #8: Raw row has one column with strict flag set to FALSE (mininum).
       [
         'one column with strict set to false',
         "Data Value One",
@@ -198,7 +225,7 @@ class ValidatorValidDelimitedFileTest extends ChadoTestKernelBase {
         ],
       ],
 
-      // #8: Raw row has one column with strict flag set to TRUE (exact match).
+      // #9: Raw row has one column with strict flag set to TRUE (exact match).
       [
         'one column with strict flag set to true',
         "Data Value One",
