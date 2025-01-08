@@ -1268,6 +1268,18 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       }
     }
 
+    // If our table has more than 2 columns with failed values, then iterate
+    // through and pad the table with empty strings where necessary.
+    if (count($table_header) > 2) {
+      foreach (array_keys($table['rows']) as $line_no) {
+        foreach (array_keys($table_header) as $column_name) {
+          if (!array_key_exists($column_name, $table['rows'][$line_no])) {
+            $table['rows'][$line_no][$column_name] = '';
+          }
+        }
+      }
+    }
+
     // Build the render array for our table.
     $render_array = [
       '#theme' => 'item_list',

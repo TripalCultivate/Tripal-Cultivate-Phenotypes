@@ -765,16 +765,16 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
           'case' => 'Invalid value(s) in required column(s)',
           'valid' => FALSE,
           'failedItems' => [
-            // Column 'Unit' is at index 4.
-            4 => 'Amy',
+            // Column 'Type' is at index 5.
+            5 => 'Amy',
           ],
         ],
         5 => [
           'case' => 'Invalid value(s) in required column(s)',
           'valid' => FALSE,
           'failedItems' => [
+            // Column 'Unit' is at index 4.
             4 => 'Sam',
-            // Column 'Type' is at index 5.
             5 => 'Ben',
           ],
         ],
@@ -831,6 +831,9 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
 
     // Process our test failures array for this scenario.
     $render_array = $this->importer->processValueInListFailures($failures, $valid_values);
+
+    //print_r($render_array);
+
     $rendered_markup = $this->renderer->renderRoot($render_array);
     $this->setRawContent($rendered_markup);
 
