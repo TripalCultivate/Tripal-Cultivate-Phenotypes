@@ -97,36 +97,33 @@ class ValidDelimitedFile extends TripalCultivatePhenotypesValidatorBase {
       ];
     }
 
-    // With the list of delimiters identified in the raw row, try each delimiter
-    // separately to see if number of values is the expected number of columns.
-    // Store every delimiter that failed into the failed delimiters array.
-    $delimiters_failed = [];
+    $columns = TripalCultivatePhenotypesValidatorBase::splitRowIntoColumns($raw_row, $input_file_mime_type);
+    $no_cols = count($columns);
 
-    foreach ($delimiters_used as $delimiter) {
-      $columns = TripalCultivatePhenotypesValidatorBase::splitRowIntoColumns($raw_row, $input_file_mime_type);
-
+    if ($no_cols > $expected_columns['number_of_columns']) {
+      // The line has more columns than expected.
       if ($expected_columns['strict']) {
-        // A strict comparison - exact match only.
-        if (count($columns) != $expected_columns['number_of_columns']) {
-          array_push($delimiters_failed, $delimiter);
-        }
-      }
-      else {
-        // Not a strict comparison - at least x number of columns.
-        if (count($columns) < $expected_columns['number_of_columns']) {
-          array_push($delimiters_failed, $delimiter);
-        }
+        return [
+          'case' => 'Raw row exceeds number of strict columns',
+          'valid' => FALSE,
+          'failedItems' => [
+            'raw_row' => $raw_row,
+            'expected_columns' => $expected_columns['number_of_columns'],
+            'strict' => $expected_columns['strict'],
+          ],
+        ];
       }
     }
 
-    // If the failed delimiters array contains the same number of delimiters
-    // attempted, then every delimiter failed to split the line as required.
-    if ($delimiters_used == $delimiters_failed) {
+    if ($no_cols < $expected_columns['number_of_columns']) {
+      // The line has less column than expected.
       return [
-        'case' => 'Raw row is not delimited',
+        'case' => 'Raw row has insufficient number of columns',
         'valid' => FALSE,
         'failedItems' => [
           'raw_row' => $raw_row,
+          'expected_columns' => $expected_columns['number_of_columns'],
+          'strict' => $expected_columns['strict'],
         ],
       ];
     }
