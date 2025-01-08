@@ -58,22 +58,27 @@ class TripalCultivatePhenotypesFileTemplateService {
    * @param array $column_headers
    *   An array of column headers to be written into the template file as the
    *   column header row.
+   * @param array $file_properties
+   *   The file extension of the template file. This is taken from the the
+   *   'file_type' plugin annotation definition of the Importer.
+   *
+   *   Only the first item is used as the primary file extension, in case of
+   *   multiple file type values were provided.
    *
    * @return string
    *   Abosolute path to the template file.
    */
-  public function generateFile($importer_id, $column_headers) {
+  public function generateFile($importer_id, $column_headers, $file_properties) {
     // Fetch the configuration relating to directory for housing data collection
     // template file. This directory had been setup during install and had / at
     // the end as defined. @see config install and schema.
     $dir_template_file = $this->config->get('trpcultivate.phenotypes.directory.template_file');
 
-    // @TODO: support for multiple file types.
     // About the template file:
     // File extension.
-    $file_extension = 'tsv';
-    // MIME: TSV type file.
-    $filemime = 'text/tab-separated-values';
+    $file_extension = $file_properties['extension'];
+    // File MIME type.
+    $file_mime_type = $file_properties['mime'];
 
     // Personalize the filename by appending display name of the current user,
     // but first sanitize it by replacing all spaces into a dash character.
@@ -86,7 +91,7 @@ class TripalCultivatePhenotypesFileTemplateService {
     // Create the file.
     $file = File::create([
       'filename' => $filename,
-      'filemime' => $filemime,
+      'filemime' => $file_mime_type,
       'uri' => $dir_template_file . $filename,
     ]);
 
@@ -106,7 +111,8 @@ class TripalCultivatePhenotypesFileTemplateService {
 
     // Convert the headers array into a tsv string value and post into the first
     // line of the file.
-    $fileheaders = implode("\t", $column_headers) . "\n# DELETE THIS LINE --- START DATA HERE AND USE TAB KEY #";
+    $file_delimiter = ($file_properties['extension'] == 'tsv') ? "\t" : $file_properties['delimiter'];
+    $fileheaders = implode($file_delimiter, $column_headers) . "\n# DELETE THIS LINE --- START DATA HERE AND USE TAB KEY #";
     file_put_contents($fileuri, $fileheaders);
 
     // Save.

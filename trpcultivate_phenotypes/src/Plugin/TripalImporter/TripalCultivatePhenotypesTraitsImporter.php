@@ -831,12 +831,24 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   public function describeUploadFileFormat() {
     // A template file has been generated and is ready for download.
     $importer_id = $this->pluginDefinition['id'];
+    // The file extension of the template file.
+    // Define file properties of the template file.
+    $file_properties = [];
+    // Select the first item in the file type plugin definition list and use it
+    // as the primary file extension of the template file.
+    $file_extension = $this->plugin_definition['file_types'][0];
+    $file_properties['extension'] = $file_extension;
+    // Mime type to extension mapping.
+    $file_properties['mime'] = file_mime_type($file_extension);
+    // Delimiter.
+    $file_properties['delimiter'] = self::$mime_to_delimiter_mapping[$file_properties['mime']];
+
     // Only the header names are needed for making the template file, so pull
     // them out into a new array.
     $column_headers = array_column($this->headers, 'name');
 
     $file_link = $this->service_FileTemplate
-      ->generateFile($importer_id, $column_headers);
+      ->generateFile($importer_id, $column_headers, $file_properties);
 
     // Additional notes to the headers.
     $notes = $this->t('The order of the above columns is important and your file must include a header!
