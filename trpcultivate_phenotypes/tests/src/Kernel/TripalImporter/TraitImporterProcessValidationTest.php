@@ -719,6 +719,82 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       ],
     ];
 
+    $valid_values = [
+      'cm',
+      'days',
+      'scale',
+    ];
+    // #1: An invalid value on multiple rows (1 column)
+    $scenarios[] = [
+      [
+        2 => [
+          'case' => 'Invalid value(s) in required column(s)',
+          'valid' => FALSE,
+          'failedItems' => [
+            // Column 'Unit' is at index 4.
+            4 => 'Amy',
+          ],
+        ],
+        5 => [
+          'case' => 'Invalid value(s) in required column(s)',
+          'valid' => FALSE,
+          'failedItems' => [
+            4 => 'Sam',
+          ],
+        ],
+      ],
+      $valid_values,
+      [
+        'expected_message' => 'The following line number and column combinations did not contain one of the following allowed values: "' . implode('", "', $valid_values) . '".',
+        'expected_column_count' => 2,
+        'expected_table_rows' => [
+          2 => [
+            'Unit' => 'Amy',
+          ],
+          5 => [
+            'Unit' => 'Sam',
+          ],
+        ],
+      ],
+    ];
+
+    // #2: Multiple different invalid values in different columns.
+    $scenarios[] = [
+      [
+        2 => [
+          'case' => 'Invalid value(s) in required column(s)',
+          'valid' => FALSE,
+          'failedItems' => [
+            // Column 'Unit' is at index 4.
+            4 => 'Amy',
+          ],
+        ],
+        5 => [
+          'case' => 'Invalid value(s) in required column(s)',
+          'valid' => FALSE,
+          'failedItems' => [
+            4 => 'Sam',
+            // Column 'Type' is at index 5.
+            5 => 'Ben',
+          ],
+        ],
+      ],
+      $valid_values,
+      [
+        'expected_message' => 'The following line number and column combinations did not contain one of the following allowed values: "' . implode('", "', $valid_values) . '".',
+        'expected_column_count' => 3,
+        'expected_table_rows' => [
+          2 => [
+            'Type' => 'Amy',
+          ],
+          5 => [
+            'Unit' => 'Sam',
+            'Type' => 'Ben',
+          ],
+        ],
+      ],
+    ];
+
     return $scenarios;
   }
 
@@ -758,7 +834,8 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     $rendered_markup = $this->renderer->renderRoot($render_array);
     $this->setRawContent($rendered_markup);
 
-    // print_r($rendered_markup);
+    //print_r($rendered_markup);
+
     // Check the rendered output.
     // Check the message above this table is correct.
     $selected_message_markup = $this->cssSelect("ul li div.case-message");
