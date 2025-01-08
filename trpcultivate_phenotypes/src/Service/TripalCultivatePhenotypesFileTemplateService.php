@@ -6,6 +6,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\file\Entity\File;
 use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\ValidatorTraits\FileTypes;
+use Drupal\trpcultivate_phenotypes\TripalCultivateValidator\TripalCultivatePhenotypesValidatorBase;
 
 /**
  * Generate data collection template file used in the importer.
@@ -58,7 +59,7 @@ class TripalCultivatePhenotypesFileTemplateService {
    * @param array $column_headers
    *   An array of column headers to be written into the template file as the
    *   column header row.
-   * @param array $file_properties
+   * @param array $file_extensions
    *   The file extension of the template file. This is taken from the the
    *   'file_type' plugin annotation definition of the Importer.
    *
@@ -68,7 +69,8 @@ class TripalCultivatePhenotypesFileTemplateService {
    * @return string
    *   Abosolute path to the template file.
    */
-  public function generateFile($importer_id, $column_headers, $file_properties) {
+  public function generateFile($importer_id, $column_headers, $file_extensions) {
+
     // Fetch the configuration relating to directory for housing data collection
     // template file. This directory had been setup during install and had / at
     // the end as defined. @see config install and schema.
@@ -76,9 +78,11 @@ class TripalCultivatePhenotypesFileTemplateService {
 
     // About the template file:
     // File extension.
-    $file_extension = $file_properties['extension'];
+    $file_extension = $file_extensions[0];
     // File MIME type.
-    $file_mime_type = $file_properties['mime'];
+    $file_mime_type = FileTypes::$extension_to_mime_mapping[$file_extension];
+    // File delimiter.
+    $file_delimiter = TripalCultivatePhenotypesValidatorBase::$mime_to_delimiter_mapping[$file_mime_type[0]];
 
     // Personalize the filename by appending display name of the current user,
     // but first sanitize it by replacing all spaces into a dash character.
@@ -111,8 +115,7 @@ class TripalCultivatePhenotypesFileTemplateService {
 
     // Convert the headers array into a tsv string value and post into the first
     // line of the file.
-    $file_delimiter = ($file_properties['extension'] == 'tsv') ? "\t" : $file_properties['delimiter'];
-    $fileheaders = implode($file_delimiter, $column_headers) . "\n# DELETE THIS LINE --- START DATA HERE AND USE TAB KEY #";
+    $fileheaders = implode($file_delimiter[0], $column_headers) . "\n# DELETE THIS LINE --- START DATA HERE AND USE TAB KEY #";
     file_put_contents($fileuri, $fileheaders);
 
     // Save.

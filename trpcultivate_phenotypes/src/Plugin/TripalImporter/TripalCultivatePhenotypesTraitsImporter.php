@@ -827,35 +827,34 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
   /**
    * {@inheritdoc}
+   *
+   * @see src/TripalCultivateValidator/TripalCultivatePhenotypesValidatorBase.php
+   * @see src/TripalCultivateValidator/ValidatorTraits/FileTypes.php
    */
   public function describeUploadFileFormat() {
     // A template file has been generated and is ready for download.
     $importer_id = $this->pluginDefinition['id'];
-    // The file extension of the template file.
-    // Define file properties of the template file.
-    $file_properties = [];
-    // Select the first item in the file type plugin definition list and use it
-    // as the primary file extension of the template file.
-    $file_extension = $this->plugin_definition['file_types'][0];
-    $file_properties['extension'] = $file_extension;
-    // Mime type to extension mapping.
-    $file_properties['mime'] = file_mime_type($file_extension);
-    // Delimiter.
-    $file_properties['delimiter'] = self::$mime_to_delimiter_mapping[$file_properties['mime']];
 
     // Only the header names are needed for making the template file, so pull
     // them out into a new array.
     $column_headers = array_column($this->headers, 'name');
 
+    // File types 'file_types' annotation definition of this importer.
+    // The first item in the definition list will be used as the primary
+    // file extension of the template file.
+    // File MIME type and delimiter are based on mapping information defined
+    // in the validator base and file types validator trait.
+    $file_extensions = $this->plugin_definition['file_types'];
+
     $file_link = $this->service_FileTemplate
-      ->generateFile($importer_id, $column_headers, $file_properties);
+      ->generateFile($importer_id, $column_headers, $file_extensions);
 
     // Additional notes to the headers.
     $notes = $this->t('The order of the above columns is important and your file must include a header!
     If you have a single trait measured in more than one way (i.e. with multiple collection
     methods), then you should have one line per collection method with the trait repeated.');
 
-    // Render the header notes/lists template and use the file link as
+    // Render the header and notes/lists in a template and use the file link as
     // the value to href attribute of the link to download a template file.
     $build = [
       '#theme' => 'importer_header',
