@@ -843,24 +843,42 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     // Check the message above this table is correct.
     $selected_message_markup = $this->cssSelect("ul li div.case-message");
     $table_message = (string) $selected_message_markup[0];
-    $this->assertStringContainsString($expectations['expected_message'], $table_message, 'The message expected for this scenario did not match the message in the render array.');
+    $this->assertStringContainsString(
+      $expectations['expected_message'],
+      $table_message,
+      'The message expected for this scenario did not match the message in the render array.'
+    );
 
     // Select and save the table header.
     $selected_table_header = $this->cssSelect("thead tr");
     $select_column_headers = (array) $selected_table_header[0]->th;
     // Assert that the number of columns matches the number of we expect.
-    $this->assertCount($expectations['expected_column_count'], $select_column_headers, 'We expected ' . $expectations['expected_column_count'] . 'columns to be in the rendered table for ValueInList failures for this scenario, but instead there are ' . count($select_column_headers) . '.');
+    $this->assertCount(
+      $expectations['expected_column_count'],
+      $select_column_headers,
+      'We expected ' . $expectations['expected_column_count'] . 'columns to be in the rendered table for ValueInList failures for this scenario, but instead there are ' . count($select_column_headers) . '.'
+    );
 
-    // @todo Assert that the number of rows matches what we expect.
-
-    // Select the table rows and check for our expected values.
+    // Select the table rows.
     $selected_rows = $this->cssSelect("tbody tr");
+    // Assert that the number of rows matches what we expect.
+    $expected_row_count = count($expectations['expected_table_rows']);
+    $this->assertCount(
+      $expected_row_count,
+      $selected_rows,
+      'We expected ' . $expected_row_count . 'rows in the rendered table for ValueInList failures for this scenario, but there are ' . count($selected_rows) . '.'
+    );
+
+    // Now check the cell values.
     $current_row_index = 0;
     foreach ($expectations['expected_table_rows'] as $expected_line_no => $expected_values) {
       $select_row_cells = (array) $selected_rows[$current_row_index]->td;
       // 1st Column: Line Number
       $line_number = $select_row_cells[0];
-      $this->assertEquals($expected_line_no, $line_number, "Did not get the expected line number in the rendered table from processing ValueInList failures.");
+      $this->assertEquals(
+        $expected_line_no,
+        $line_number,
+        "Did not get the expected line number in the rendered table from processing ValueInList failures.");
       // 2nd Column and up: Column(s) with invalid value
       $current_column_index = 1;
       foreach ($expected_values as $column_header => $invalid_value) {
