@@ -1051,6 +1051,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *     - 'failedItems': an array of items that failed:
    *       - 'raw_row': A string indicating the row is empty OR the contents of
    *         the row as it appears in the file.
+   *       - 'expected_columns': The number of columns expected in the input
+   *         file as determined by calling getExpectedColumns().
+   *       - 'strict': A boolean indicating whether the number of expected
+   *         columns by the validator is strict (TRUE) or is the minimum number
+   *         required (FALSE).
    *
    * @return array
    *   A render array of type unordered list which is used to display feedback

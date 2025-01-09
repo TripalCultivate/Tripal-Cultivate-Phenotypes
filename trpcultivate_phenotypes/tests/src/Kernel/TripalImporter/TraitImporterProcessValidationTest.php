@@ -504,6 +504,66 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
   }
 
   /**
+   * Data Provider for testProcessValidDelimitedFileFailures().
+   *
+   * @return array
+   *   Each scenario is an array with the following:
+   *   - The failures array that gets passed to the process method. It contains
+   *     the following keys:
+   *     - The line number that triggered this failed validation status.
+   *       - 'case': a developer-focused string describing the case checked.
+   *       - 'valid': FALSE to indicate that validation failed.
+   *       - 'failedItems': array of items that failed with the following keys:
+   *         - 'raw_row': The raw row or a string indicating the row is empty.
+   *         - 'expected_columns': The number of columns expected in the input
+   *           file as determined by calling getExpectedColumns().
+   *         - 'strict': A boolean indicating whether the number of expected
+   *           columns by the validator is strict (TRUE) or is the minimum
+   *           number required (FALSE).
+   *   - An array of expectations that we want to find in the resulting rendered
+   *     output. This array is nested by the tables expected (keyed by type -
+   *     'unsupported' or 'delimited'), in the order they are expected to show
+   *     up on the page (1 array per table). Each array has the following keys:
+   *     - 'expected_message': The message expected in the return value of the
+   *       process method for this scenario.
+   *     - 1+ arrays keyed by the line number in the input file that triggered
+   *       the failed validation status, further keyed by:
+   *       - 'line_contents': The raw contents of this line that failed.
+   */
+  public function provideValidDelimitedFileFailedCases() {
+    $scenarios = [];
+
+    // #0: The first row is empty.
+    $scenarios[] = [
+      [
+        1 => [
+          'case' => 'Raw row is empty',
+          'valid' => FALSE,
+          'failedItems' => [
+            'raw_row' => 'is an empty string value',
+          ],
+        ],
+      ],
+      [
+        'unsupported' => [
+          'expected_message' => 'The following lines in the input file do not contain a valid delimiter supported by this importer.',
+          1 => [
+            'line_contents' => '',
+          ],
+        ],
+      ],
+    ];
+
+    // #1: No supported delimiters were used.
+
+    // #2: The delimited row contains too few columns.
+
+    // #3: The delimited row contains too many columns (strict = TRUE).
+
+    return $scenarios;
+  }
+
+  /**
    * Data Provider for testProcessEmptyCellFailures().
    *
    * @return array
