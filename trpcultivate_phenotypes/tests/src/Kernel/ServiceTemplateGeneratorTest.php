@@ -185,8 +185,8 @@ class ServiceTemplateGeneratorTest extends ChadoTestKernelBase {
       ->get('trpcultivate.phenotypes.directory.template_file');
 
     $file_system = $this->file_system->realpath($dir_templates);
-
-    $template_file = (string) reset(array_diff(scandir($file_system), ['..', '.']));
+    $files_in_dir = array_diff(scandir($file_system), ['..', '.']);
+    $template_file = (string) reset($files_in_dir);
 
     // Filename is the expected file name.
     $this->assertEquals(
