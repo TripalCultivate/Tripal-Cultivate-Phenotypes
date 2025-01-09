@@ -785,6 +785,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
         'expected_column_count' => 3,
         'expected_table_rows' => [
           2 => [
+            'Unit' => '',
             'Type' => 'Amy',
           ],
           5 => [
@@ -795,6 +796,10 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       ],
     ];
 
+    // Potential @todo scenario: ValueInList is configured for multiple columns,
+    // but at least one of the columns doesn't have any failures. This isn't
+    // testable since this data provider only supplies failures, but it's some-
+    // thing to keep in mind if we have the opportunity to test in the future.
     return $scenarios;
   }
 
@@ -831,13 +836,8 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
 
     // Process our test failures array for this scenario.
     $render_array = $this->importer->processValueInListFailures($failures, $valid_values);
-
-    //print_r($render_array);
-
     $rendered_markup = $this->renderer->renderRoot($render_array);
     $this->setRawContent($rendered_markup);
-
-    //print_r($rendered_markup);
 
     // Check the rendered output.
     // Check the message above this table is correct.
@@ -851,6 +851,8 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     // Assert that the number of columns matches the number of we expect.
     $this->assertCount($expectations['expected_column_count'], $select_column_headers, 'We expected ' . $expectations['expected_column_count'] . 'columns to be in the rendered table for ValueInList failures for this scenario, but instead there are ' . count($select_column_headers) . '.');
 
+    // @todo Assert that the number of rows matches what we expect.
+
     // Select the table rows and check for our expected values.
     $selected_rows = $this->cssSelect("tbody tr");
     $current_row_index = 0;
@@ -862,10 +864,18 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       // 2nd Column and up: Column(s) with invalid value
       $current_column_index = 1;
       foreach ($expected_values as $column_header => $invalid_value) {
-        // Check that the column header is what we expect.
-        $this->assertEquals($column_header, $select_column_headers[$current_column_index], "We expected the column header $column_header to be present in the rendered table's header but it was not.");
-        // Chech that the invalid value we expect is in this cell of the table.
-        $this->assertEquals($invalid_value, $select_row_cells[$current_column_index], "We expected an invalid value to be listed for $column_header at line #$expected_line_no.");
+        // Check that the invalid value is under the correct column header.
+        $this->assertEquals(
+          $column_header,
+          $select_column_headers[$current_column_index],
+          "We expected the column header $column_header to be present in the rendered table's header at index $current_column_index but it was not."
+        );
+        // Check that the invalid value in the table matches what we expect.
+        $this->assertEquals(
+          $invalid_value,
+          (string) $select_row_cells[$current_column_index],
+          "We expected an invalid value to be listed for $column_header at line #$expected_line_no."
+        );
         $current_column_index++;
       }
       // Move onto the next row.

@@ -1237,33 +1237,32 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // We will start with the line number and build the header from there as we
     // go through the failures. There will be a column for each column checked
     // by this validator instance and the column header will be the same as it
-    // is in the file.
-    $table_header = ['lineno' => 'Line Number'];
+    // appears in the file.
+    $table_header = [-1 => 'Line Number'];
     $table['rows'] = [];
 
     foreach ($failures as $line_no => $validation_result) {
       if ($validation_result['case'] == 'Invalid value(s) in required column(s)') {
         $table['message'] = 'The following line number and column combinations did not contain one of the following allowed values: "' . implode('", "', $expected_values) . '". Note that values should be case sensitive. <strong>Empty cells indicate the value given was one of the allowed values.</strong>';
+
+        // Define a new row in our table for this line number.
+        $table['rows'][$line_no][-1] = $line_no;
+
         // For each index with an invalid value, grab the column name from our
-        // $headers property and add it as a row in our table.
+        // $headers property and add it to our table header.
         foreach ($validation_result['failedItems'] as $index => $failed_value) {
           // Grab the column name based on the index of the invalid value
           // and add it to this table header if it's not already there.
           $column_name = $this->headers[$index]['name'];
           if (!array_key_exists($column_name, $table_header)) {
-            $table_header[$column_name] = $column_name;
+            $table_header[$index] = $column_name;
           }
-          // Now add a row to the table to indicate the invalid value.
-          // We use the column name as the key to ensure the invalid value
-          // is added to the right column. We also key the row with the line
+          // Now add a cell to the table to indicate this invalid value.
+          // We reuse the index from the original file as the key to preserve
+          // the same order of the columns. We also key the row with the line
           // number to ensure that a line with more then one failure is
           // compiled into a single row.
-          if (!array_key_exists($line_no, $table['rows'])) {
-            $table['rows'][$line_no] = [
-              'lineno' => $line_no,
-            ];
-          }
-          $table['rows'][$line_no][$column_name] = $failed_value;
+          $table['rows'][$line_no][$index] = $failed_value;
         }
       }
     }
@@ -1272,13 +1271,18 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // through and pad the table with empty strings where necessary.
     if (count($table_header) > 2) {
       foreach (array_keys($table['rows']) as $line_no) {
-        foreach (array_keys($table_header) as $column_name) {
-          if (!array_key_exists($column_name, $table['rows'][$line_no])) {
-            $table['rows'][$line_no][$column_name] = '';
+        foreach (array_keys($table_header) as $index) {
+          if (!array_key_exists($index, $table['rows'][$line_no])) {
+            $table['rows'][$line_no][$index] = '';
           }
         }
+        // Finally, sort the row by keys.
+        ksort($table['rows'][$line_no]);
       }
     }
+
+    // Sort the table header.
+    ksort($table_header);
 
     // Build the render array for our table.
     $render_array = [
