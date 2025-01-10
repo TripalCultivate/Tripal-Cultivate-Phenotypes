@@ -44,7 +44,7 @@ class ValidDelimitedFile extends TripalCultivatePhenotypesValidatorBase {
    *   - 'valid': TRUE if the raw row is properly delimited, FALSE otherwise.
    *   - 'failedItems': an array of items that failed with any of the following
    *      keys. This is an empty array if row is properly delimited.
-   *      - 'raw_row': The raw row or a string indicating the row is empty.
+   *      - 'raw_row': The raw row as it was provided.
    *      - 'expected_columns': The number of columns expected in the input file
    *        as determined by calling getExpectedColumns().
    *      - 'strict': A boolean indicating whether the number of expected
@@ -59,7 +59,7 @@ class ValidDelimitedFile extends TripalCultivatePhenotypesValidatorBase {
         'case' => 'Raw row is empty',
         'valid' => FALSE,
         'failedItems' => [
-          'raw_row' => 'is an empty string value',
+          'raw_row' => $raw_row,
         ],
       ];
     }

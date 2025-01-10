@@ -514,7 +514,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
    *       - 'case': a developer-focused string describing the case checked.
    *       - 'valid': FALSE to indicate that validation failed.
    *       - 'failedItems': array of items that failed with the following keys:
-   *         - 'raw_row': The raw row or a string indicating the row is empty.
+   *         - 'raw_row': The contents of the raw row as it appears in the file.
    *         - 'expected_columns': The number of columns expected in the input
    *           file as determined by calling getExpectedColumns().
    *         - 'strict': A boolean indicating whether the number of expected
@@ -533,14 +533,14 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
   public function provideValidDelimitedFileFailedCases() {
     $scenarios = [];
 
-    // #0: The first row is empty.
+    // #0: The first row is empty (single whitespace).
     $scenarios[] = [
       [
         1 => [
           'case' => 'Raw row is empty',
           'valid' => FALSE,
           'failedItems' => [
-            'raw_row' => 'is an empty string value',
+            'raw_row' => ' ',
           ],
         ],
       ],
@@ -548,19 +548,82 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
         'unsupported' => [
           'expected_message' => 'The following lines in the input file do not contain a valid delimiter supported by this importer.',
           1 => [
-            'line_contents' => '',
+            'line_contents' => ' ',
           ],
         ],
       ],
     ];
 
     // #1: No supported delimiters were used.
-
     // #2: The delimited row contains too few columns.
-
     // #3: The delimited row contains too many columns (strict = TRUE).
-
+    // #4: A mix of unsupported delimiters and insufficient columns.
     return $scenarios;
+  }
+
+  /**
+   * Tests the message processor method for the ValidDelimitedFile validator.
+   *
+   * @param array $failures
+   *   The failures array that gets passed to the process method. It contains
+   *   the following keys:
+   *   - The line number that triggered this failed validation status.
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed with the following keys.
+   *       - 'raw_row': The contents of the row as it appears in the file.
+   *       - 'expected_columns': The number of columns expected in the input
+   *         file as determined by calling getExpectedColumns().
+   *       - 'strict': A boolean indicating whether the number of expected
+   *         columns by the validator is strict (TRUE) or is the minimum number
+   *         required (FALSE).
+   * @param array $expectations
+   *   An array of expectations that we want to find in the resulting rendered
+   *   output. This array is nested by the tables expected (keyed by type -
+   *   'unsupported' or 'delimited'), in the order they are expected to show
+   *   up on the page (1 array per table). Each array has the following keys:
+   *   - 'expected_message': The message expected in the return value of the
+   *     process method for this scenario.
+   *   - 1+ arrays keyed by the line number in the input file that triggered
+   *     the failed validation status, further keyed by:
+   *     - 'line_contents': The raw contents of this line that failed.
+   *
+   * @dataProvider provideValidDelimitedFileFailedCases
+   */
+  public function testProcessValidDelimitedFileFailures(array $failures, array $expectations) {
+    // Process our test failures array.
+    $render_array = $this->importer->processValidDelimitedFileFailures($failures);
+    $rendered_markup = $this->renderer->renderRoot($render_array);
+    $this->setRawContent($rendered_markup);
+
+    //print_r($rendered_markup);
+
+    // Check the rendered output.
+    // Loop through expectations one table at a time.
+    foreach ($expectations as $table_case => $table) {
+      // Check the message above this table is correct.
+      $selected_message_markup = $this->cssSelect("ul li div.case-message.case-$table_case");
+      $table_message = (string) $selected_message_markup[0];
+      $this->assertStringContainsString($expectations[$table_case]['expected_message'], $table_message, 'The message expected for this scenario did not match the message in the render array.');
+
+      // Pull out the table rows for this table case.
+      $selected_rows = $this->cssSelect("table.table-case-$table_case tbody tr");
+      $current_row_index = 0;
+      foreach ($table as $expected_line_no => $expected_values) {
+        if ($expected_line_no == 'expected_message') {
+          continue;
+        }
+        $select_row_cells = (array) $selected_rows[$current_row_index]->td;
+        // 1st Column: Line Number
+        $line_number = $select_row_cells[0];
+        $this->assertEquals($expected_line_no, $line_number, "Did not get the expected line number in the rendered table from processing ValidDelimitedFile failures.");
+        // 2nd Column: The contents of this line in the file
+        $line_contents = (string) $select_row_cells[1];
+        $this->assertEquals($expected_values['line_contents'], $line_contents, 'Did not get the expected line contents in the rendered table from processing ValidDelimitedFile failures.');
+        // Move onto the next row.
+        $current_row_index++;
+      }
+    }
   }
 
   /**
