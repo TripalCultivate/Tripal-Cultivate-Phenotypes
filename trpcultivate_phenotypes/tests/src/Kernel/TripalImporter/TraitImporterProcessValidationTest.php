@@ -558,7 +558,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     $raw_row = "This is one very long string without any supported delimiters in it.";
     $scenarios[] = [
       [
-        1 => [
+        2 => [
           'case' => 'None of the delimiters supported by the file type was used',
           'valid' => FALSE,
           'failedItems' => [
@@ -569,16 +569,89 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       [
         'unsupported' => [
           'expected_message' => 'The following lines in the input file do not contain a valid delimiter supported by this importer.',
-          1 => [
+          2 => [
             'line_contents' => $raw_row,
           ],
         ],
       ],
     ];
 
-    // #2: The delimited row contains too few columns.
-    // #3: The delimited row contains too many columns (strict = TRUE).
-    // #4: A mix of unsupported delimiters and insufficient columns.
+    // #2: 1 row with too few columns, 1 row with too many columns.
+    $raw_row_3 = "Column 1\tColumn 2\tColumn 3\tColumn 4";
+    $raw_row_5 = "Column 1\tColumn 2\tColumn 3\tColumn 4\tColumn 5\tColumn 6\tColumn 7\tColumn 8";
+    $scenarios[] = [
+      [
+        3 => [
+          'case' => 'Raw row has insufficient number of columns',
+          'valid' => FALSE,
+          'failedItems' => [
+            'raw_row' => $raw_row_3,
+            'expected_columns' => 6,
+            'strict' => TRUE,
+          ],
+        ],
+        5 => [
+          'case' => 'Raw row exceeds number of strict columns',
+          'valid' => FALSE,
+          'failedItems' => [
+            'raw_row' => $raw_row_5,
+            'expected_columns' => 6,
+            'strict' => TRUE,
+          ],
+        ],
+      ],
+      [
+        'delimited' => [
+          'expected_message' => 'This importer requires a strict number of 6 columns for each line. The following lines do not contain the expected number of columns.',
+          3 => [
+            'line_contents' => $raw_row_3,
+          ],
+          5 => [
+            'line_contents' => $raw_row_5,
+          ],
+        ],
+      ],
+    ];
+
+    // #3: A mix of unsupported delimiters and insufficient columns.
+    $raw_row_4 = "Column 1 Column 2 Column 3 Column 4";
+    $raw_row_6 = "Column 1\tColumn 2\tColumn 3\tColumn 4\tColumn 5\tColumn 6\tColumn 7";
+    $scenarios[] = [
+      [
+        4 => [
+          'case' => 'None of the delimiters supported by the file type was used',
+          'valid' => FALSE,
+          'failedItems' => [
+            'raw_row' => $raw_row_4,
+            'expected_columns' => 6,
+            'strict' => TRUE,
+          ],
+        ],
+        6 => [
+          'case' => 'Raw row exceeds number of strict columns',
+          'valid' => FALSE,
+          'failedItems' => [
+            'raw_row' => $raw_row_6,
+            'expected_columns' => 6,
+            'strict' => TRUE,
+          ],
+        ],
+      ],
+      [
+        'unsupported' => [
+          'expected_message' => 'The following lines in the input file do not contain a valid delimiter supported by this importer.',
+          4 => [
+            'line_contents' => $raw_row_4,
+          ],
+        ],
+        'delimited' => [
+          'expected_message' => 'This importer requires a strict number of 6 columns for each line. The following lines do not contain the expected number of columns.',
+          6 => [
+            'line_contents' => $raw_row_6,
+          ],
+        ],
+      ],
+    ];
     return $scenarios;
   }
 
@@ -624,7 +697,11 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       // Check the message above this table is correct.
       $selected_message_markup = $this->cssSelect("ul li div.case-message.case-$table_case");
       $table_message = (string) $selected_message_markup[0];
-      $this->assertStringContainsString($expectations[$table_case]['expected_message'], $table_message, 'The message expected for this scenario did not match the message in the render array.');
+      $this->assertStringContainsString(
+        $expectations[$table_case]['expected_message'],
+        $table_message,
+        'The message expected for this scenario did not match the message in the render array.'
+      );
 
       // Pull out the table rows for this table case.
       $selected_rows = $this->cssSelect("table.table-case-$table_case tbody tr");

@@ -1092,6 +1092,9 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       elseif (($validation_result['case'] == 'Raw row exceeds number of strict columns') ||
             ($validation_result['case'] == 'Raw row has insufficient number of columns')) {
         $table_case = 'delimited';
+        // @todo Wrap in an if
+        $num_expected_columns = $validation_result['failedItems']['expected_columns'];
+        $strict = $validation_result['failedItems']['strict'];
       }
 
       // Checked all cases, now add a row to our appropriate table.
@@ -1099,10 +1102,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         // Declare the array storing rows for this table, if not already.
         $table[$table_case]['rows'] = [];
       }
-      array_push($table[$table_case]['rows'], [
+      $table[$table_case]['rows'][] = [
         $line_no,
         $validation_result['failedItems']['raw_row'],
-      ]);
+      ];
     }
     // Check which tables were created, and assign the correct message.
     // Note that both tables can exist at the same time.
@@ -1110,14 +1113,21 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       $table['unsupported']['message'] = 'The following lines in the input file do not contain a valid delimiter supported by this importer.';
     }
     if (array_key_exists('delimited', $table)) {
-      $num_expected_columns = count($this->headers);
-      $table['delimited']['message'] = "This importer requires a strict number of $num_expected_columns columns for each line. The following lines do not contain the expected number of columns.";
+      // Check if number of columns is strict, then set the message accordingly.
+      if ($strict) {
+        $strict_or_min = 'strict';
+      }
+      else {
+        $strict_or_min = 'minimum';
+      }
+      $message = "This importer requires a $strict_or_min number of $num_expected_columns columns for each line. The following lines do not contain the expected number of columns.";
+      $table['delimited']['message'] = $message;
     }
 
     // Finally, loop through our tables and build our render array.
     $tables = [];
     foreach ($table as $table_key => $table_case) {
-      array_push($tables, [
+      $tables[] = [
         [
           '#prefix' => '<div class="case-message case-' . $table_key . '">',
           '#markup' => $table_case['message'],
@@ -1134,7 +1144,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
           ],
           '#rows' => $table_case['rows'],
         ],
-      ]);
+      ];
     }
     $render_array = [
       '#theme' => 'item_list',
