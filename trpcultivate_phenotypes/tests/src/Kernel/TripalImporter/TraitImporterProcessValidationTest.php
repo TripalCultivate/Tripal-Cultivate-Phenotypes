@@ -576,7 +576,44 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       ],
     ];
 
-    // #2: 1 row with too few columns, 1 row with too many columns.
+    // #2: Multiple rows with too few columns and strict = FALSE
+    $raw_row_2 = "Column 1\tColumn 2";
+    $raw_row_4 = "Column 1\tColumn 2\tColumn 3";
+    $scenarios[] = [
+      [
+        2 => [
+          'case' => 'Raw row has insufficient number of columns',
+          'valid' => FALSE,
+          'failedItems' => [
+            'raw_row' => $raw_row_2,
+            'expected_columns' => 4,
+            'strict' => FALSE,
+          ],
+        ],
+        4 => [
+          'case' => 'Raw row has insufficient number of columns',
+          'valid' => FALSE,
+          'failedItems' => [
+            'raw_row' => $raw_row_4,
+            'expected_columns' => 4,
+            'strict' => FALSE,
+          ],
+        ],
+      ],
+      [
+        'delimited' => [
+          'expected_message' => 'This importer requires a minimum number of 4 columns for each line. The following lines do not contain the expected number of columns.',
+          2 => [
+            'line_contents' => $raw_row_2,
+          ],
+          4 => [
+            'line_contents' => $raw_row_4,
+          ],
+        ],
+      ],
+    ];
+
+    // #3: 1 row with too few columns, 1 with too many columns, strict = TRUE
     $raw_row_3 = "Column 1\tColumn 2\tColumn 3\tColumn 4";
     $raw_row_5 = "Column 1\tColumn 2\tColumn 3\tColumn 4\tColumn 5\tColumn 6\tColumn 7\tColumn 8";
     $scenarios[] = [
@@ -613,25 +650,25 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       ],
     ];
 
-    // #3: A mix of unsupported delimiters and insufficient columns.
-    $raw_row_4 = "Column 1 Column 2 Column 3 Column 4";
-    $raw_row_6 = "Column 1\tColumn 2\tColumn 3\tColumn 4\tColumn 5\tColumn 6\tColumn 7";
+    // #4: A mix of unsupported delimiters and insufficient columns.
+    $raw_row_6 = "Column 1 Column 2 Column 3 Column 4";
+    $raw_row_7 = "Column 1\tColumn 2\tColumn 3\tColumn 4\tColumn 5\tColumn 6\tColumn 7";
     $scenarios[] = [
       [
-        4 => [
+        6 => [
           'case' => 'None of the delimiters supported by the file type was used',
           'valid' => FALSE,
           'failedItems' => [
-            'raw_row' => $raw_row_4,
+            'raw_row' => $raw_row_6,
             'expected_columns' => 6,
             'strict' => TRUE,
           ],
         ],
-        6 => [
+        7 => [
           'case' => 'Raw row exceeds number of strict columns',
           'valid' => FALSE,
           'failedItems' => [
-            'raw_row' => $raw_row_6,
+            'raw_row' => $raw_row_7,
             'expected_columns' => 6,
             'strict' => TRUE,
           ],
@@ -640,14 +677,14 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       [
         'unsupported' => [
           'expected_message' => 'The following lines in the input file do not contain a valid delimiter supported by this importer.',
-          4 => [
-            'line_contents' => $raw_row_4,
+          6 => [
+            'line_contents' => $raw_row_6,
           ],
         ],
         'delimited' => [
           'expected_message' => 'This importer requires a strict number of 6 columns for each line. The following lines do not contain the expected number of columns.',
-          6 => [
-            'line_contents' => $raw_row_6,
+          7 => [
+            'line_contents' => $raw_row_7,
           ],
         ],
       ],
@@ -705,6 +742,14 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
 
       // Pull out the table rows for this table case.
       $selected_rows = $this->cssSelect("table.table-case-$table_case tbody tr");
+      // Assert that the number of rows matches what we expect.
+      $expected_row_count = (count($table) - 1);
+      $this->assertCount(
+        $expected_row_count,
+        $selected_rows,
+        'We expected ' . $expected_row_count . 'rows in the rendered table for ValueInList failures for this scenario, but there are ' . count($selected_rows) . '.'
+      );
+
       $current_row_index = 0;
       foreach ($table as $expected_line_no => $expected_values) {
         if ($expected_line_no == 'expected_message') {

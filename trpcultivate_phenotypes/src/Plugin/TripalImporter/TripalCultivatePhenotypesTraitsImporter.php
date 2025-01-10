@@ -1092,9 +1092,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       elseif (($validation_result['case'] == 'Raw row exceeds number of strict columns') ||
             ($validation_result['case'] == 'Raw row has insufficient number of columns')) {
         $table_case = 'delimited';
-        // @todo Wrap in an if
-        $num_expected_columns = $validation_result['failedItems']['expected_columns'];
-        $strict = $validation_result['failedItems']['strict'];
+        if (!isset($num_expected_columns)) {
+          $num_expected_columns = $validation_result['failedItems']['expected_columns'];
+          $strict = $validation_result['failedItems']['strict'];
+        }
       }
 
       // Checked all cases, now add a row to our appropriate table.
