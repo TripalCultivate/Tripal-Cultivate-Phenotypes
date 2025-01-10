@@ -555,6 +555,27 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     ];
 
     // #1: No supported delimiters were used.
+    $raw_row = "This is one very long string without any supported delimiters in it.";
+    $scenarios[] = [
+      [
+        1 => [
+          'case' => 'None of the delimiters supported by the file type was used',
+          'valid' => FALSE,
+          'failedItems' => [
+            'raw_row' => $raw_row,
+          ],
+        ],
+      ],
+      [
+        'unsupported' => [
+          'expected_message' => 'The following lines in the input file do not contain a valid delimiter supported by this importer.',
+          1 => [
+            'line_contents' => $raw_row,
+          ],
+        ],
+      ],
+    ];
+
     // #2: The delimited row contains too few columns.
     // #3: The delimited row contains too many columns (strict = TRUE).
     // #4: A mix of unsupported delimiters and insufficient columns.
@@ -596,8 +617,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     $rendered_markup = $this->renderer->renderRoot($render_array);
     $this->setRawContent($rendered_markup);
 
-    //print_r($rendered_markup);
-
+    // print_r($rendered_markup);
     // Check the rendered output.
     // Loop through expectations one table at a time.
     foreach ($expectations as $table_case => $table) {
