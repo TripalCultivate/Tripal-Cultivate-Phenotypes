@@ -144,7 +144,7 @@ class TripalCultivatePhenotypesTermsService {
         $cv_exists = $this->cvterm_buddy->getCv(['cv.name' => $cv_name], []);
         if (empty($cv_exists)) {
           // Create the cv.
-          $this->cvterm_buddy->upsertCv(['cv.name' => $cv], []);
+          $this->cvterm_buddy->upsertCv(['cv.name' => $cv_name], []);
         }
 
         // Check that the db (idspace) exists.
