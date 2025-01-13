@@ -858,6 +858,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $render_array = [
       '#type' => 'item',
       '#title' => $message,
+      '#wrapper_attributes' => [
+        'class' => [
+          'genus-exists-failures',
+        ],
+      ],
       'items' => [
         '#theme' => 'item_list',
         '#type' => 'ul',
@@ -949,6 +954,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $render_array = [
       '#type' => 'item',
       '#title' => $message,
+      '#wrapper_attributes' => [
+        'class' => [
+          'valid-data-file-failures',
+        ],
+      ],
       'items' => [
         '#theme' => 'item_list',
         '#type' => 'ul',
@@ -999,6 +1009,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $render_array = [
       '#theme' => 'item_list',
       '#type' => 'ul',
+      '#attributes' => [
+        'class' => [
+          'valid-headers-failures',
+        ],
+      ],
       '#items' => [
         [
           [
@@ -1150,6 +1165,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $render_array = [
       '#theme' => 'item_list',
       '#type' => 'ul',
+      '#attributes' => [
+        'class' => [
+          'valid-delimited-file-failures',
+        ],
+      ],
       '#items' => $tables,
     ];
 
@@ -1209,6 +1229,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $render_array = [
       '#theme' => 'item_list',
       '#type' => 'ul',
+      '#attributes' => [
+        'class' => [
+          'empty-cell-failures',
+        ],
+      ],
       '#items' => [
         [
           [
@@ -1311,6 +1336,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $render_array = [
       '#theme' => 'item_list',
       '#type' => 'ul',
+      '#attributes' => [
+        'class' => [
+          'value-in-list-failures',
+        ],
+      ],
       '#items' => [
         [
           [
@@ -1437,6 +1467,11 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $render_array = [
       '#theme' => 'item_list',
       '#type' => 'ul',
+      '#attributes' => [
+        'class' => [
+          'duplicate-traits-failures',
+        ],
+      ],
       '#items' => $tables,
     ];
 

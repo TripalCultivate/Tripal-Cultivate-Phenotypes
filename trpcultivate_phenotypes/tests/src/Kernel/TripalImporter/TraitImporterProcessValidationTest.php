@@ -366,7 +366,11 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     // First check that we were given the correct message.
     $selected_message_title = $this->cssSelect('div.form-item label');
     $provided_message = (string) $selected_message_title[0];
-    $this->assertStringContainsString($expectations['expected_message'], $provided_message, 'The message expected from processing ValidDataFile failures for this scenario did not match the one in the rendered output.');
+    $this->assertStringContainsString(
+      $expectations['expected_message'],
+      $provided_message,
+      'The message expected from processing ValidDataFile failures for this scenario did not match the one in the rendered output.'
+    );
 
     // Next, check for expected items.
     $selected_list_items = $this->cssSelect('div.form-item ul li');
@@ -483,13 +487,21 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     // Check the rendered output.
     // First check that we were given the correct message.
     $selected_message_markup = $this->cssSelect('ul li div.case-message');
-    $this->assertStringContainsString($expectations['expected_message'], (string) $selected_message_markup[0], 'The message expected for this scenario for ProcessValidHeadersFailures did not match the message in the render array.');
+    $this->assertStringContainsString(
+      $expectations['expected_message'],
+      (string) $selected_message_markup[0],
+      'The message expected from processing ValidHeaders failures for this scenario did not match the message in the render array.'
+    );
     // Check that we have a table that contains the expected 2 rows.
     $selected_table_rows = $this->cssSelect('tbody tr');
     $this->assertCount(2, $selected_table_rows, 'The rendered table by processValidHeadersFailures does not contain the expected 2 rows for this scenario.');
     // Check for the "Provided Headers" heading on the 2nd row.
     $selected_provided_headers_th = $this->cssSelect('tbody tr.provided-headers th');
-    $this->assertEquals('Provided Headers', (string) $selected_provided_headers_th[0], 'The second row of the rendered table does not contain the "Provided Headers" table header for this scenario.');
+    $this->assertEquals(
+      'Provided Headers',
+      (string) $selected_provided_headers_th[0],
+      'The second row of the rendered table does not contain the "Provided Headers" table header for this scenario.'
+    );
     // Check that the row values are the same as what we provided.
     $selected_provided_headers_td = $this->cssSelect('tbody tr.provided-headers td');
     // If the headers row was empty, check that we have no values in row 2.
@@ -736,7 +748,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       $this->assertStringContainsString(
         $expectations[$table_case]['expected_message'],
         $table_message,
-        'The message expected for this scenario did not match the message in the render array.'
+        'The message expected from processing ValidDelimitedFile failures for this scenario did not match the message in the render array.'
       );
 
       // Pull out the table rows for this table case.
@@ -908,7 +920,11 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     // Check the message above this table is correct.
     $selected_message_markup = $this->cssSelect("ul li div.case-message");
     $table_message = (string) $selected_message_markup[0];
-    $this->assertStringContainsString($expectations['expected_message'], $table_message, 'The message expected for this scenario did not match the message in the render array.');
+    $this->assertStringContainsString(
+      $expectations['expected_message'],
+      $table_message,
+      'The message expected from processing EmptyCell failures for this scenario did not match the message in the render array.'
+    );
 
     // Select the table rows and check for our expected values.
     $selected_rows = $this->cssSelect("tbody tr");
@@ -1122,7 +1138,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     $this->assertStringContainsString(
       $expectations['expected_message'],
       $table_message,
-      'The message expected for this scenario did not match the message in the render array.'
+      'The message expected from processing ValueInList failures for this scenario did not match the message in the render array.'
     );
 
     // Select and save the table header.
@@ -1155,7 +1171,8 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       $this->assertEquals(
         $expected_line_no,
         $line_number,
-        "Did not get the expected line number in the rendered table from processing ValueInList failures.");
+        "Did not get the expected line number in the rendered table from processing ValueInList failures."
+      );
       // 2nd Column and up: Column(s) with invalid value
       $current_column_index = 1;
       foreach ($expected_values as $column_header => $invalid_value) {
@@ -1420,7 +1437,11 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       // Check the message above this table is correct.
       $selected_message_markup = $this->cssSelect("ul li div.case-message.case-$table_case");
       $table_message = (string) $selected_message_markup[0];
-      $this->assertStringContainsString($expectations[$table_case]['expected_message'], $table_message, 'The message expected for this scenario did not match the message in the render array.');
+      $this->assertStringContainsString(
+        $expectations[$table_case]['expected_message'],
+        $table_message,
+        'The message expected from processing DuplicateTraits failures for this scenario did not match the message in the render array.'
+      );
 
       // Pull out the table rows for this table case.
       $selected_rows = $this->cssSelect("table.table-case-$table_case tbody tr");
