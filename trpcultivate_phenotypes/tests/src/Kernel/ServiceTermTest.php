@@ -1,15 +1,15 @@
 <?php
+
 namespace Drupal\Tests\trpcultivate_phenotypes\Kernel;
 
 use Drupal\Tests\tripal_chado\Kernel\ChadoTestKernelBase;
 use Drupal\tripal_chado\Database\ChadoConnection;
-use Drupal\tripal\Services\TripalLogger;
 
- /**
-  * Test Tripal Cultivate Phenotypes Terms service.
-  *
-  * @group trpcultivate_phenotypes
-  */
+/**
+ * Test Tripal Cultivate Phenotypes Terms service.
+ *
+ * @group trpcultivate_phenotypes
+ */
 class ServiceTermTest extends ChadoTestKernelBase {
 
   /**
@@ -23,13 +23,16 @@ class ServiceTermTest extends ChadoTestKernelBase {
    * Modules to enable.
    */
   protected static $modules = [
+    'system',
     'tripal',
+    'tripal_layout',
     'tripal_chado',
-    'trpcultivate_phenotypes'
+    'trpcultivate',
+    'trpcultivate_phenotypes',
   ];
 
   /**
-   * Configuration
+   * Configuration.
    *
    * @var config_entity
    */
@@ -38,7 +41,7 @@ class ServiceTermTest extends ChadoTestKernelBase {
   /**
    * A Database query interface for querying Chado using Tripal DBX.
    *
-   * @var ChadoConnection
+   * @var \Drupal\tripal_chado\Database\ChadoConnection
    */
   protected ChadoConnection $chado_connection;
 
@@ -51,36 +54,25 @@ class ServiceTermTest extends ChadoTestKernelBase {
     // Set test environment.
     \Drupal::state()->set('is_a_test_environment', TRUE);
 
+    // Create a test chado instance and then set it in the container for use by our service.
+    $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
+
     // Install module configuration.
     $this->installConfig(['trpcultivate_phenotypes']);
     $this->config = \Drupal::configFactory()->getEditable('trpcultivate_phenotypes.settings');
 
-    // Install required dependencies.
-    $tripal_chado_path = 'modules/contrib/tripal/tripal_chado/src/api/';
-    $tripal_chado_api = [
-      'tripal_chado.cv.api.php',
-      'tripal_chado.variables.api.php',
-      'tripal_chado.schema.api.php'
-    ];
+    $this->prepareEnvironment(['TripalTerm']);
 
-    if ($handle = opendir($tripal_chado_path)) {
-      while (false !== ($file = readdir($handle))) {
-        if (strlen($file) > 2 && in_array($file, $tripal_chado_api)) {
-          include_once($tripal_chado_path . $file);
-        }
-      }
-
-      closedir($handle);
-    }
-
-    // Create a test chado instance and then set it in the container for use by our service.
-    $this->chado_connection = $this->createTestSchema(ChadoTestKernelBase::PREPARE_TEST_CHADO);
-    $this->container->set('tripal_chado.database', $this->chado_connection);
+    $this->installConfig('trpcultivate');
+    trpcultivate_install_terms();
 
     // Term service.
     $this->service = \Drupal::service('trpcultivate_phenotypes.terms');
   }
 
+  /**
+   *
+   */
   public function testTermService() {
     // Class was created.
     $this->assertNotNull($this->service);
@@ -96,8 +88,8 @@ class ServiceTermTest extends ChadoTestKernelBase {
     // Compare what was defined and the pre-defined terms in the
     // config settings file.
     $term_set = $this->config->get('trpcultivate.default_terms.term_set');
-    foreach($term_set as $id => $terms) {
-      foreach($terms['terms'] as $term) {
+    foreach ($term_set as $id => $terms) {
+      foreach ($terms['terms'] as $term) {
         $this->assertNotNull($term['config_map']);
         $this->assertArrayHasKey($term['config_map'], $define_terms,
           "The config_map retrieved from config should match one of the keys from defineTerms().");
@@ -111,7 +103,7 @@ class ServiceTermTest extends ChadoTestKernelBase {
 
     // Test getTermId().
     $expected = [];
-    foreach($keys as $key) {
+    foreach ($keys as $key) {
       $id = $this->service->getTermId($key);
       $this->assertNotNull($id,
         "We should have been able to retrieve the term based on the config_map value but we were not.");
@@ -120,14 +112,14 @@ class ServiceTermTest extends ChadoTestKernelBase {
 
       // Keep track of our expectations.
       // mapping of config key => [cvterm_id, expected cvterm name].
-      $expected[ $key ] = [
+      $expected[$key] = [
         'cvterm_id' => $id,
-        'name' => $define_terms[ $key ]['name']
+        'name' => $define_terms[$key]['name'],
       ];
     }
 
     $not_valid_keys = [':p', -1, 0, 'abc', 999999, '', 'lorem_ipsum', '.'];
-    foreach($not_valid_keys as $n) {
+    foreach ($not_valid_keys as $n) {
       // Invalid config name key, will return 0 value.
       $v = $this->service->getTermId($n);
       $this->assertEquals($v, 0);
@@ -152,18 +144,17 @@ class ServiceTermTest extends ChadoTestKernelBase {
     // With the loadTerms above, each term configuration was set with
     // a term id number that matches a term in chado.cvterm. This test
     // will set all terms configuration to null (id: 1).
-
     // This would have came from form submit method.
     $config_values = [];
     foreach (array_keys($define_terms) as $key) {
-      $config_values[ $key ] = 1;
+      $config_values[$key] = 1;
     }
 
     $is_saved = $this->service->saveTermConfigValues($config_values);
     $this->assertTrue($is_saved,
       "We expected the saveTermConfigValues() method to return TRUE.");
 
-    foreach($config_values as $key => $set_id) {
+    foreach ($config_values as $key => $set_id) {
       // Test if all config got nulled.
       $retrieved_id = $this->service->getTermId($key);
       $this->assertEquals($set_id, $retrieved_id,
@@ -175,4 +166,5 @@ class ServiceTermTest extends ChadoTestKernelBase {
     $this->assertFalse($not_saved,
       "We should not be able to call saveTermConfigValues() with an empty array.");
   }
+
 }
