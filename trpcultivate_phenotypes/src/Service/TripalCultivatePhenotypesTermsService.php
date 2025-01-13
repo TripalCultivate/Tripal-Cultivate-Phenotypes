@@ -18,6 +18,13 @@ class TripalCultivatePhenotypesTermsService {
   protected object $cvterm_buddy;
 
   /**
+   * The Chado Buddy Dbxref.
+   *
+   * @var object
+   */
+  protected object $dbxref_buddy;
+
+  /**
    * Module configuration.
    */
   protected $config;
@@ -58,6 +65,8 @@ class TripalCultivatePhenotypesTermsService {
 
     // Chado cvterm buddy.
     $this->cvterm_buddy = $buddy_manager->createInstance('chado_cvterm_buddy', []);
+    // Chado dbxref buddy.
+    $this->dbxref_buddy = $buddy_manager->createInstance('chado_dbxref_buddy', []);
 
     // Prepare array of default terms from configuration definition.
     $this->terms = $this->defineTerms();
@@ -129,6 +138,22 @@ class TripalCultivatePhenotypesTermsService {
       foreach ($terms as $config_map => $config_prop) {
         [$idspace, $accession] = explode(':', $config_prop['id']);
 
+        // Insert the cvterm only if both cv and db exist.
+        // Check that the cv name exists.
+        $cv_name = $config_prop['cv']['name'];
+        $cv_exists = $this->cvterm_buddy->getCv(['cv.name' => $cv_name], []);
+        if (empty($cv_exists)) {
+          // Create the cv.
+          $this->cvterm_buddy->upsertCv(['cv.name' => $cv], []);
+        }
+
+        // Check that the db (idspace) exists.
+        $db_exists = $this->dbxref_buddy->getDb(['db.name' => $idspace], []);
+        if (empty($db_exists)) {
+          // Create the db.
+          $this->dbxref_buddy_buddy->upsertDb(['db.name' => $idspace], []);
+        }
+
         $term_values = [
           'db.name' => $idspace,
           'cv.name' => $config_prop['cv']['name'],
@@ -147,7 +172,7 @@ class TripalCultivatePhenotypesTermsService {
 
         if (empty($cvterm_exists)) {
           // Create the cv.
-          $chado_cvterm_record = $this->cvterm_buddy->insertCvterm($term_values, []);
+          $chado_cvterm_record = $this->cvterm_buddy->upsertCvterm($term_values, []);
           $cvterm_id = $chado_cvterm_record->getValue('cvterm.cvterm_id');
         }
         else {
