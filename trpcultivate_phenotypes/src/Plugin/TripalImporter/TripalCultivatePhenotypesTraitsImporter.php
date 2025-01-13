@@ -3,6 +3,7 @@
 namespace Drupal\trpcultivate_phenotypes\Plugin\TripalImporter;
 
 use Drupal\Core\Entity\EntityTypeManager;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\Renderer;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -144,6 +145,13 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   protected Renderer $service_Renderer;
 
   /**
+   * The Drupal Messenger Service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $service_Messenger;
+
+  /**
    * Used to reference the validation result summary in the form.
    *
    * @var string
@@ -173,6 +181,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   The service used to generate the termplate file.
    * @param Drupal\Core\Render\Renderer $renderer
    *   The Drupal renderer service.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The Drupal messenger service.
    */
   public function __construct(
     array $configuration,
@@ -185,6 +195,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     EntityTypeManager $service_entityTypeManager,
     TripalCultivatePhenotypesFileTemplateService $service_FileTemplate,
     Renderer $renderer,
+    MessengerInterface $messenger,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $chado_connection);
 
@@ -196,6 +207,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $this->service_entityTypeManager = $service_entityTypeManager;
     $this->service_FileTemplate = $service_FileTemplate;
     $this->service_Renderer = $renderer;
+    $this->service_Messenger = $messenger;
   }
 
   /**
@@ -213,6 +225,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       $container->get('entity_type.manager'),
       $container->get('trpcultivate_phenotypes.template_generator'),
       $container->get('renderer'),
+      $container->get('messenger'),
     );
   }
 
@@ -353,7 +366,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // This is a reminder to user about expected trait data.
     $phenotypes_minder = $this->t('This importer allows for the upload of phenotypic trait dictionaries in preparation
       for uploading phenotypic data. <br /><strong>This importer Does NOT upload phenotypic measurements.</strong>');
-    \Drupal::messenger()->addWarning($phenotypes_minder);
+    $this->service_Messenger->addWarning($phenotypes_minder);
 
     // Field Genus:
     // Prepare select options with only active genus.
@@ -362,7 +375,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     if (!$active_genus) {
       $phenotypes_minder = $this->t('This module is <strong>NOT configured</strong> to import Traits for analyzed phenotypes.');
-      \Drupal::messenger()->addWarning($phenotypes_minder);
+      $this->service_Messenger->addWarning($phenotypes_minder);
     }
 
     // If there is only one genus, it should be the default.
@@ -398,6 +411,9 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * {@inheritdoc}
    */
   public function formSubmit($form, &$form_state) {
+    // Display successful message to user if file import was without any error.
+    $this->service_Messenger
+      ->addStatus($this->t('<b>Your file import was successful and a Job Process Request has been created to securely save your data.</b>'));
   }
 
   /**
@@ -459,7 +475,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         // Set failures for this validator name to an empty array to signal that
         // this validator has been run.
         $failures[$validator_name] = [];
-        $result = $validator->validateFile('', $file_id);
+        $result = $validator->validateFile($file_id);
 
         // Check if validation failed and save the results if it did.
         if (array_key_exists('valid', $result) && $result['valid'] === FALSE) {
@@ -590,7 +606,26 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     $storage[$this->validation_result] = $validation_feedback;
     $form_state->setStorage($storage);
 
-    if ($failed_validator === TRUE) {
+    // Check if the $validation_feedback contains 'fail' or 'todo' status.
+    // If either is found, prevent form submission.
+    $submit_form = TRUE;
+
+    foreach ($validation_feedback as $feedback_item) {
+      if ($feedback_item['status'] == 'todo' || $feedback_item['status'] == 'fail') {
+        $submit_form = FALSE;
+
+        // No need to inspect other validators, a single instance of fail/todo
+        // is sufficient to prevent form submission.
+        break;
+      }
+    }
+
+    if ($submit_form === FALSE) {
+      // Provide a general error message indicating that input values and/or the
+      // data file may contain one or more errors.
+      $this->service_Messenger
+        ->addError($this->t('Your file import was not successful. Please check the Validation Result Window for errors and try again.'));
+
       // Prevent this form from submitting and reload form with all the
       // validation failures in the storage system.
       $form_state->setRebuild(TRUE);
@@ -601,25 +636,33 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * Configures and processes validation messages for the user.
    *
    * @param array $failures
-   *   An array containing the return values from any failed validators, keyed
-   *   by the unique name assigned to each validator-input type combination, and
-   *   further keyed by row number IF the validator was run on each data row.
+   *   An array containing the return values from any failed validators. If
+   *   validation was run for a validator instance, this is keyed by the unique
+   *   name assigned to each validator-input type combination. This key will
+   *   only contain values IF validation failed at any point that it was run. It
+   *   is further keyed by row number IF the validator failed on that row as a
+   *   row-level validator.
+   *   Specifically:
+   *   - [VALIDATOR INSTANCE NAME]
+   *     - [ROW NUMBER (only if row-level validator)]
+   *       - 'case': a developer-focused string describing the case checked.
+   *       - 'valid': FALSE to indicate that validation failed.
+   *       - 'failedItems': an array of items that failed. Structure of this
+   *         array is dependent on the validator.
    *
    * @return array
    *   An array of feedback to provide to the user. It summarizes the validation
    *   results reported by the validators in formValidate (i.e. $failures). This
-   *   array is keyed by a string that is associated with a line in the validate
-   *   UI. Specifically:
-   *   - 'validation_line': A string associated with a line that will be
-   *     displayed to the user in the validate UI
-   *     - 'title': A user-focussed message describing the validation that took
+   *   array is keyed by a validation line, which is a string that is associated
+   *   with a line in the validate UI dispalyed to the user. Specifically:
+   *   - [VALIDATION LINE]:
+   *     - 'title': A user-focused message describing the validation that took
    *       place.
-   *     - 'details': A user-focussed message describing the failure that
-   *       occurred and any relevant details to help the user fix it.
    *     - 'status': One of: 'todo', 'pass', 'fail'.
-   *     - 'raw_results': A nested array keyed by validator name, which contains
-   *       the raw return values when validation failed. Essentially, the
-   *       contents of $failures['validator_name'].
+   *     - 'details': A render array that will display details of any failures
+   *       to guide the user to fix problems with their input file. The type of
+   *       render array depends on the validator, but the most common types are
+   *       item list and table.
    */
   public function processValidationMessages($failures) {
     // Array to hold all the user feedback. Currently this includes an entry for
@@ -628,12 +671,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // in this array. Everything is set to status of 'todo' to start and will
     // only change to one of 'pass' or 'fail' if the $failures[] array is
     // defined for that validator, indicating that validation did take place.
-    // IMPORTANT: Order matters here and is not necessarily reflective of the
-    // order that validators are run in. Think of these validators as being in 2
-    // groups: Validators that get run once, and ones that get run for every
-    // line in the input file.
     $messages = [
-      // ----------------------- Validators run once ---------------------------
       // ----------------------------- METADATA --------------------------------
       'genus_exists' => [
         'title' => 'The genus is valid',
@@ -646,16 +684,15 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
         'status' => 'todo',
         'details' => '',
       ],
-      // ---------------------------- HEADER ROW -------------------------------
-      'valid_header' => [
-        'title' => 'File has all of the column headers expected',
+      // ----------------------------- RAW ROW ---------------------------------
+      'valid_delimited_file' => [
+        'title' => 'Lines are properly delimited',
         'status' => 'todo',
         'details' => '',
       ],
-      // --------------------- Validators run per row --------------------------
-      // ----------------------------- RAW ROW ---------------------------------
-      'valid_delimited_file' => [
-        'title' => 'Row is properly delimited',
+      // ---------------------------- HEADER ROW -------------------------------
+      'valid_header' => [
+        'title' => 'File has all of the column headers expected',
         'status' => 'todo',
         'details' => '',
       ],
@@ -677,84 +714,693 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       ],
     ];
 
-    // @todo an alternative way to identify the validators input type.
-    $raw_row_validators = [
-      'valid_delimited_file',
-    ];
-
+    // A flag to indicate whether any data row level validation can be set to
+    // pass or remains as 'todo' if there are no failures at that stage. This is
+    // because we don't want to mislead the user to think all data rows pass
+    // validation if there are raw rows that failed, since they haven't been
+    // looked at yet by data row validators.
     $raw_row_failed = FALSE;
 
-    foreach (array_keys($messages) as $validator_name) {
-      // Check if this validator exists in the failures array, which indicates
-      // it was run. If it was not run then continue as it is already marked.
-      // @todo in $messages above.
-      if (!array_key_exists($validator_name, $failures)) {
-        continue;
-      }
-
-      // ----------------------------- PASS ----------------------------------
-      if (empty($failures[$validator_name])) {
-        // Check if $failures[$validator_name] is empty, which indicates there
-        // are no errors to report for this validator.
-        // If raw row validation fails at any point, make sure the data row
-        // validators are not set to 'pass' and remain as 'todo' since they
-        // haven't been run on every line. This approach works because the
-        // order of the validators in the default messages array ensures
-        // that the raw row validators are checked for failures directly
-        // before the data row validators. It also assumes that only data row
-        // validators are after raw row validators in the messages array.
-        if (!$raw_row_failed) {
-          $messages[$validator_name]['status'] = 'pass';
-        }
-      }
-
-      // ----------------------------- FAIL ----------------------------------
-      elseif (array_key_exists('case', $failures[$validator_name])) {
-        // Check if $failures[$validator_name] contains one of the results
-        // keys, indicating that this is not a row-level validator and therefore
-        // doesn't keep track of line numbers.
-        // @todo Update the message to not use the 'case' string by default
-        // and to incorporate the 'failed_details'.
+    // ---------------------- Process Validation Results -----------------------
+    // For each validator:
+    // 1. Check if $failures[$validator_name] exists, which indicates it was
+    // run. If it was not run, then do nothing since it has already been marked
+    // as "todo" in the $messages array.
+    // 2. Check if $failures[$validator_name] is empty, which indicates that
+    // validation passed and there are no errors to report for this validator.
+    // 3. Otherwise, process failures for this validator with a dedicated method
+    // that will build a render array of the feedback for the user.
+    // -------------------------------------------------------------------------
+    // GenusExists.
+    $validator_name = 'genus_exists';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
         $messages[$validator_name]['status'] = 'fail';
-
-        $case_message = $failures[$validator_name]['case'];
-        $messages[$validator_name]['details'] = $case_message;
-        $messages[$validator_name]['raw_results'] = $failures[$validator_name];
+        $messages[$validator_name]['details'] = $this->processGenusExistsFailures($failures[$validator_name]);
       }
       else {
-        // @todo Check if this is a validator that keeps track of line numbers.
-        // @assumption: Only row-level validators enter this else
-        // block since BOTH:
-        // a) $failures[$validator_name] is not empty
-        // b) $failures[$validator_name]['case'] is not set
-        // It would be better to validate that we have line numbers (integers)
-        // then leave the else {} for anything outside of these options to throw
-        // an exception for the developer. Reminder that:
-        // $failures[$validator_name]['valid'] and
-        // $failures[$validator_name]['failures']
-        // also are valid but this scenario should have already been caught by
-        // the previous if block.
-        // @todo Update this current approach to not report only the first
-        // failure, but instead collect all the cases and failedItems and
-        // formulate one concise, helpful feedback message.
-        // phpcs:ignore
-        // foreach ($failures[$validator_name] as $line_no => $validator_results) {
-        $messages[$validator_name]['status'] = 'fail';
-
-        $first_failed_row = array_key_first($failures[$validator_name]);
-
-        // A row failed raw-row validation, therefore data-row validators should
-        // remain set as 'todo' UNLESS failed.
-        if (in_array($validator_name, $raw_row_validators)) {
-          $raw_row_failed = TRUE;
-        }
-        $case_message = $failures[$validator_name][$first_failed_row]['case'] . ' at row #: ' . $first_failed_row;
-        $messages[$validator_name]['details'] = $case_message;
-        $messages[$validator_name]['raw_results'] = $failures[$validator_name];
+        $messages[$validator_name]['status'] = 'pass';
       }
     }
 
+    // ValidDataFile.
+    $validator_name = 'valid_data_file';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processValidDataFileFailures($failures[$validator_name]);
+      }
+      else {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+    }
+
+    // ValidDelimitedFile.
+    $validator_name = 'valid_delimited_file';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
+        // Set this flag so that data row-level validation doesn't pass.
+        $raw_row_failed = TRUE;
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processValidDelimitedFileFailures($failures[$validator_name]);
+      }
+      else {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+    }
+
+    // ValidHeaders.
+    $validator_name = 'valid_header';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processValidHeadersFailures($failures[$validator_name]);
+      }
+      else {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+    }
+
+    // EmptyCell.
+    $validator_name = 'empty_cell';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processEmptyCellFailures($failures[$validator_name]);
+      }
+      // Only pass if raw row validation didn't fail.
+      elseif (!$raw_row_failed) {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+      // Otherwise, leave status as 'todo' since 1+ raw rows failed.
+    }
+
+    // Valid Data Type using the ValueInList validator.
+    $validator_name = 'valid_data_type';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processValueInListFailures(
+          $failures[$validator_name],
+          ['Quantitative', 'Qualitative']
+        );
+      }
+      // Only pass if raw row validation didn't fail.
+      elseif (!$raw_row_failed) {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+      // Otherwise, leave status as 'todo' since 1+ raw rows failed.
+    }
+
+    // DuplicateTraits.
+    $validator_name = 'duplicate_traits';
+    if (array_key_exists($validator_name, $failures)) {
+      if (!empty($failures[$validator_name])) {
+        $messages[$validator_name]['status'] = 'fail';
+        $messages[$validator_name]['details'] = $this->processDuplicateTraitsFailures($failures[$validator_name]);
+      }
+      // Only pass if raw row validation didn't fail.
+      elseif (!$raw_row_failed) {
+        $messages[$validator_name]['status'] = 'pass';
+      }
+      // Otherwise, leave status as 'todo' since 1+ raw rows failed.
+    }
+
     return $messages;
+  }
+
+  /**
+   * Processes failed validation from GenusExists into a render array.
+   *
+   * @param array $validation_result
+   *   An associative array that was returned by the GenusExists validator in
+   *   the event of failed validation. It contains the following keys:
+   *   - 'case': a developer-focused string describing the case checked.
+   *   - 'valid': FALSE to indicate that validation failed.
+   *   - 'failedItems': an array of items that failed with the following keys.
+   *     - 'genus_provided': The name of the genus provided.
+   *
+   * @return array
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case that failed and the failed items from the
+   *   input file. Each item in the list contains the genus that was selected
+   *   in the form which failed validation.
+   */
+  public function processGenusExistsFailures(array $validation_result) {
+    if ($validation_result['case'] == 'Genus does not exist') {
+      $message = 'The selected genus does not exist in this site. Please contact your administrator to have this added.';
+    }
+    elseif ($validation_result['case'] == 'Genus exists but is not configured') {
+      $message = 'The selected genus has not yet been configured for use with phenotypic data. Please contact your administrator to have this set up.';
+    }
+
+    // Build the render array.
+    $render_array = [
+      '#type' => 'item',
+      '#title' => $message,
+      'items' => [
+        '#theme' => 'item_list',
+        '#type' => 'ul',
+        '#items' => [
+          [
+            '#markup' => $validation_result['failedItems']['genus_provided'],
+          ],
+        ],
+      ],
+    ];
+
+    return $render_array;
+  }
+
+  /**
+   * Processes failed validation from ValidDataFile into a render array.
+   *
+   * @param array $validation_result
+   *   An associative array that was returned by the ValidDataFile validator in
+   *   the event of failed validation. It contains the following keys:
+   *   - 'case': a developer-focused string describing the case checked.
+   *   - 'valid': FALSE to indicate that validation failed.
+   *   - 'failedItems': an array of items that failed with one or more of the
+   *     following keys:
+   *     - 'filename': The provided name of the file.
+   *     - 'fid': The fid of the provided file.
+   *     - 'mime': The mime type of the input file if it is not supported.
+   *     - 'extension': The extension of the input file if not supported.
+   *
+   * @return array
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case that failed and the failed items from the
+   *   input file. The one item in the list is either the filename, as below:
+   *   - Filename: $validation_result['failedItems']['filename']
+   *   OR it is a message informing the user that their file's extension and
+   *   mime type are not compatible.
+   */
+  public function processValidDataFileFailures(array $validation_result) {
+    if (($validation_result['case'] == 'Filename is empty string') ||
+        ($validation_result['case'] == 'Invalid file id number') ||
+        ($validation_result['case'] == 'Filename failed to load a file object') ||
+        ($validation_result['case'] == 'File id failed to load a file object')) {
+      $message = 'A problem occurred in between uploading the file and submitting it for validation. Please try uploading and submitting it again, or contact your administrator if the problem persists.';
+      // All but one case returns the filename, so check that it exists before
+      // assigning it to items.
+      if (array_key_exists('filename', $validation_result['failedItems'])) {
+        $items = [
+          'Filename: ' . $validation_result['failedItems']['filename'],
+        ];
+      }
+      // Log a message for the administrator to help with debugging the issue.
+      // Get the current user.
+      $current_user = \Drupal::currentUser();
+      $username = $current_user->getAccountName();
+      // Get the fid of the uploaded file.
+      $fid = $validation_result['failedItems']['fid'];
+      $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but could not import it as something is wrong with the filename/FID. More specifically, the case message '" . $validation_result['case'] . "' was reported.");
+    }
+
+    elseif ($validation_result['case'] == 'The file has no data and is an empty file') {
+      $message = 'The file provided has no contents in it to import. Please ensure your file has the expected header row and at least one row of data.';
+      $items = [
+        'Filename: ' . $validation_result['failedItems']['filename'],
+      ];
+    }
+
+    elseif (($validation_result['case'] == 'Unsupported file MIME type') ||
+            ($validation_result['case'] == 'Unsupported file mime type and unsupported extension')) {
+      $message = "The type of file uploaded is not supported by this importer. Please ensure your file has one of the supported file extensions and was saved using software that supports that type of file. For example, a 'tsv' file should be saved as such by a spreadsheet editor such as Microsoft Excel.";
+      // Give more info to the user AND log a message to the administrator using
+      // these failed items:
+      $file_mime = $validation_result['failedItems']['mime'];
+      $file_extension = $validation_result['failedItems']['extension'];
+      $items = [
+        "The file extension indicates the file is \"$file_extension\" but our system detected the file is of type \"$file_mime\"",
+      ];
+      $this->logger->info("The user $username uploaded a file to the Traits Importer with file extension \"$file_extension\" and mime type \"$file_mime\"");
+    }
+    elseif ($validation_result['case'] == 'Data file cannot be opened') {
+      $message = 'The file provided could not be opened. Please contact your administrator for help.';
+      $filename = $validation_result['failedItems']['filename'];
+      $fid = $validation_result['failedItems']['fid'];
+      $items = [
+        'Filename: ' . $filename,
+      ];
+      // Log more info for the administrator.
+      $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but the file could not be opened using \'@fopen\'. Filename was '$filename'.");
+    }
+
+    // Build the render array.
+    $render_array = [
+      '#type' => 'item',
+      '#title' => $message,
+      'items' => [
+        '#theme' => 'item_list',
+        '#type' => 'ul',
+        '#items' => $items,
+      ],
+    ];
+
+    return $render_array;
+  }
+
+  /**
+   * Processes failed validation from ValidHeaders into a render array.
+   *
+   * @param array $validation_result
+   *   An associative array that was returned by the ValidHeaders validator in
+   *   the event of failed validation. It contains the following keys:
+   *   - 'case': a developer-focused string describing the case checked.
+   *   - 'valid': FALSE to indicate that validation failed.
+   *   - 'failedItems': an array of items that failed, either:
+   *     - 'headers': A string indicating the header row is empty.
+   *     - an array of column headers that was in the input file.
+   *
+   * @return array
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case that failed and the failed items from the
+   *   input file. This unordered list will include a table with a row of the
+   *   expected headers followed by a row of the provided headers.
+   */
+  public function processValidHeadersFailures(array $validation_result) {
+    if ($validation_result['case'] == 'Header row is an empty value') {
+      $message = 'The file has an empty row where the header was expected.';
+      $provided_headers = [];
+    }
+    elseif ($validation_result['case'] == 'Headers do not match expected headers') {
+      $message = 'One or more of the column headers in the input file does not match what was expected. Please check if your column header is in the correct order and matches the template exactly.';
+      $provided_headers = $validation_result['failedItems'];
+    }
+    elseif ($validation_result['case'] == 'Headers provided does not have the expected number of headers') {
+      $num_expected_columns = count($this->headers);
+      $message = "This importer requires a strict number of $num_expected_columns column headers. Please ensure your column header matches the template exactly and remove any additional column headers from the file.";
+      $provided_headers = $validation_result['failedItems'];
+    }
+    // Get the expected and actual headers to build the rows in our table render
+    // array.
+    $expected_headers = array_column($this->headers, 'name');
+
+    // Build the render array.
+    $render_array = [
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => [
+        [
+          [
+            '#prefix' => '<div class="case-message">',
+            '#markup' => $message,
+            '#suffix' => '</div>',
+          ],
+          [
+            '#type' => 'table',
+            '#attributes' => [],
+            '#rows' => [
+              [
+                'data' => [
+                  'header' => [
+                    'data' => 'Expected Headers',
+                    'header' => TRUE,
+                  ],
+                ] + $expected_headers,
+                'class' => ['expected-headers'],
+              ],
+              [
+                'data' => [
+                  'header' => [
+                    'data' => 'Provided Headers',
+                    'header' => TRUE,
+                  ],
+                ] + $provided_headers,
+                'class' => ['provided-headers'],
+              ],
+            ],
+          ],
+        ],
+      ],
+    ];
+
+    return $render_array;
+  }
+
+  /**
+   * Processes failed validation from ValidDelimitedFile into a render array.
+   *
+   * @param array $failures
+   *   An associative array that stores the validation failures by the
+   *   ValidDelimitedFile validator. It is keyed by the line number of the input
+   *   file where validation failed, and the value is an associative array
+   *   returned by the validator. Here is the overall structure of $failures:
+   *   - [LINE NUMBER]:
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed:
+   *       - 'raw_row': A string indicating the row is empty OR the contents of
+   *         the row as it appears in the file.
+   *
+   * @return array
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case(s) that failed and the failed items from the
+   *   input file. This unordered list will include a table for each potential
+   *   case in the $failures array:
+   *   - A table for lines that are empty or contain unsupported delimiters
+   *   - A table for lines that once delimited, do not contain the expected
+   *     number of columns.
+   *   Both tables contain the following headers:
+   *   - 'Line Number'
+   *   - 'Line Contents'
+   */
+  public function processValidDelimitedFileFailures(array $failures) {
+    // Define our table headers.
+    $table_header = ['Line Number', 'Line Contents'];
+
+    // For this validator there can be up to 2 tables:
+    // - 'table'->'unsupported': Empty rows or no supported delimiters present.
+    // - 'table'->'delimited': Rows that don't delimit to the expected number of
+    //   columns.
+    $table = [];
+    // Loop through each row in the $failures array and piece apart the
+    // different cases into different tables.
+    foreach ($failures as $line_no => $validation_result) {
+      // Keeps track of which table this one line's validation result gets added
+      // to based on the case it triggered.
+      $table_case = '';
+
+      if (($validation_result['case'] == 'Raw row is empty') ||
+          ($validation_result['case'] == 'None of the delimiters supported by the file type was used')) {
+        $table_case = 'unsupported';
+      }
+      elseif (($validation_result['case'] == 'Raw row exceeds number of strict columns') ||
+            ($validation_result['case'] == 'Raw row has insufficient number of columns')) {
+        $table_case = 'delimited';
+      }
+
+      // Checked all cases, now add a row to our appropriate table.
+      if (!array_key_exists($table_case, $table)) {
+        // Declare the array storing rows for this table, if not already.
+        $table[$table_case]['rows'] = [];
+      }
+      array_push($table[$table_case]['rows'], [
+        $line_no,
+        $validation_result['failedItems']['raw_row'],
+      ]);
+    }
+    // Check which tables were created, and assign the correct message.
+    // Note that both tables can exist at the same time.
+    if (array_key_exists('unsupported', $table)) {
+      $table['unsupported']['message'] = 'The following lines in the input file do not contain a valid delimiter supported by this importer.';
+    }
+    if (array_key_exists('delimited', $table)) {
+      $num_expected_columns = count($this->headers);
+      $table['delimited']['message'] = "This importer requires a strict number of $num_expected_columns columns for each line. The following lines do not contain the expected number of columns.";
+    }
+
+    // Finally, loop through our tables and build our render array.
+    $tables = [];
+    foreach ($table as $table_case) {
+      array_push($tables, [
+        [
+          '#markup' => $table_case['message'],
+        ],
+        [
+          '#type' => 'table',
+          '#header' => $table_header,
+          '#attributes' => ['class' => ['tcp-raw-row']],
+          '#rows' => $table_case['rows'],
+        ],
+      ]);
+    }
+    $render_array = [
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => $tables,
+    ];
+
+    return $render_array;
+  }
+
+  /**
+   * Processes failed validation from EmptyCell into a render array.
+   *
+   * @param array $failures
+   *   An associative array that stores the validation failures by the
+   *   EmptyCell validator. It is keyed by the line number of the input
+   *   file where validation failed, and the value is an associative array
+   *   returned by the validator. Here is the overall structure of $failures:
+   *   - [LINE NUMBER]:
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed:
+   *       - 'empty_indices': A list of column indices in the line which were
+   *         checked and found to be empty.
+   *
+   * @return array
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case(s) that failed and the failed items from the
+   *   input file. This unordered list will include a table that lists the row
+   *   and column combinations with empty cells. It has the following headers:
+   *   - 'Line Number'
+   *   - 'Column(s) with empty value'
+   */
+  public function processEmptyCellFailures(array $failures) {
+    // Define our table header.
+    $table_header = ['Line Number', 'Column(s) with empty value'];
+    $table['rows'] = [];
+
+    foreach ($failures as $line_no => $validation_result) {
+      if ($validation_result['case'] == 'Empty value found in required column(s)') {
+        $table['message'] = 'The following line number and column header combinations were empty, but a value is required.';
+        // Convert indices in failedItems to column headers.
+        $failed_indices = $validation_result['failedItems']['empty_indices'];
+        // For each index with an empty value, grab the column name from our
+        // $headers property and add to an array of header names.
+        $empty_headers = [];
+        foreach ($failed_indices as $index) {
+          array_push($empty_headers, $this->headers[$index]['name']);
+        }
+        // Implode the empty headers array into a string and then add it as a
+        // row to our table.
+        $columns_string = implode(", ", $empty_headers);
+        array_push($table['rows'], [
+          $line_no,
+          $columns_string,
+        ]);
+      }
+    }
+
+    // Build the render array for our table.
+    $render_array = [
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => [
+        [
+          [
+            '#markup' => $table['message'],
+          ],
+          [
+            '#type' => 'table',
+            '#header' => $table_header,
+            '#attributes' => [],
+            '#rows' => $table['rows'],
+          ],
+        ],
+      ],
+    ];
+
+    return $render_array;
+  }
+
+  /**
+   * Processes failed validation from ValueInList into a render array.
+   *
+   * @param array $failures
+   *   An associative array that stores the validation failures by the
+   *   ValueinList validator. It is keyed by the line number of the input
+   *   file where validation failed, and the value is an associative array
+   *   returned by the validator. Here is the overall structure of $failures:
+   *   - [LINE NUMBER]:
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed, where the key => value
+   *       pairs map to the index => cell value(s) that failed validation.
+   * @param array $expected_values
+   *   A list of valid values that was provided to the ValueinList validator
+   *   instance that is being processed for feedback to the user.
+   *
+   * @return array
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case(s) that failed and the failed items from the
+   *   input file. This unordered list will include a table that lists the row
+   *   and column combinations with an invalid value. It has the following
+   *   headers:
+   *   - 'Line Number'
+   *   - 'Column Header'
+   *   - 'Invalid Value'
+   */
+  public function processValueInListFailures(array $failures, array $expected_values) {
+    // Define our table header.
+    // We will start with the line number and build the header from there as we
+    // go through the failures. There will be a column for each column checked
+    // by this validator instance and the column header will be the same as it
+    // is in the file.
+    $table_header = ['lineno' => 'Line Number'];
+    $table['rows'] = [];
+
+    foreach ($failures as $line_no => $validation_result) {
+      if ($validation_result['case'] == 'Invalid value(s) in required column(s)') {
+        $table['message'] = 'The following line number and column combinations did not contain one of the following allowed values: "' . implode('", "', $expected_values) . '". Note that values should be case sensitive. <strong>Empty cells indicate the value given was one of the allowed values.</strong>';
+        // For each index with an invalid value, grab the column name from our
+        // $headers property and add it as a row in our table.
+        foreach ($validation_result['failedItems'] as $index => $failed_value) {
+          // Grab the column name based on the index of the invalid value
+          // and add it to this table header if it's not already there.
+          $column_name = $this->headers[$index]['name'];
+          if (!array_key_exists($column_name, $table_header)) {
+            $table_header[$column_name] = $column_name;
+          }
+          // Now add a row to the table to indicate the invalid value.
+          // We use the column name as the key to ensure the invalid value
+          // is added to the right column. We also key the row with the line
+          // number to ensure that a line with more then one failure is
+          // compiled into a single row.
+          if (!array_key_exists($line_no, $table['rows'])) {
+            $table['rows'][$line_no] = [
+              'lineno' => $line_no,
+            ];
+          }
+          $table['rows'][$line_no][$column_name] = $failed_value;
+        }
+      }
+    }
+
+    // Build the render array for our table.
+    $render_array = [
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => [
+        [
+          [
+            '#markup' => $table['message'],
+          ],
+          [
+            '#type' => 'table',
+            '#header' => $table_header,
+            '#attributes' => [],
+            '#rows' => $table['rows'],
+          ],
+        ],
+      ],
+    ];
+
+    return $render_array;
+  }
+
+  /**
+   * Processes failed validation from DuplicateTraits into a render array.
+   *
+   * @param array $failures
+   *   An associative array that stores the validation failures by the
+   *   DuplicateTraits validator. It is keyed by the line number of the input
+   *   file where validation failed, and the value is an associative array
+   *   returned by the validator. Here is the overall structure of $failures:
+   *   - [LINE NUMBER]:
+   *     - 'case': a developer-focused string describing the case checked.
+   *     - 'valid': FALSE to indicate that validation failed.
+   *     - 'failedItems': an array of items that failed, keyed by:
+   *       - 'combo_provided': The combination of trait, method, and unit
+   *         provided in the file. The keys used are the same name of the column
+   *         header for the cell containing the failed value.
+   *         - 'Trait Name': The trait name provided in the file.
+   *         - 'Method Short Name': The method name provided in the file.
+   *         - 'Unit': The unit provided in the file.
+   *
+   * @return array
+   *   A render array of type unordered list which is used to display feedback
+   *   to the user about the case(s) that failed and the failed items from the
+   *   input file. This unordered list will include a table for each potential
+   *   case in the $failures array:
+   *   - A table for duplicate trait-method-unit combos seen in the input file
+   *   - A table for duplicate trait-method-unit combos found in the database
+   *   Both tables contain the following headers:
+   *   - 'Line Number'
+   *   - 'Trait Name'
+   *   - 'Method Short Name'
+   *   - 'Unit'
+   */
+  public function processDuplicateTraitsFailures(array $failures) {
+    // Define our table headers.
+    $trait = 'Trait Name';
+    $method = 'Method Short Name';
+    $unit = 'Unit';
+    $table_header = ['Line Number', $trait, $method, $unit];
+
+    // For this validator there are can be up to 2 tables:
+    // - 'table'->'file': Duplicates found within the input file.
+    // - 'table'->'database': Duplicates found within the database.
+    $table = [];
+    // Loop through each row in the $failures array and piece apart the
+    // different cases into different tables.
+    foreach ($failures as $line_no => $validation_result) {
+      // Keeps track of which table this one line's validation result gets added
+      // to based on the case it triggered.
+      $table_case = [];
+      if ($validation_result['case'] == 'A duplicate trait was found within the input file') {
+        $table_case = ['file'];
+      }
+      elseif ($validation_result['case'] == 'A duplicate trait was found in the database') {
+        $table_case = ['database'];
+      }
+      elseif ($validation_result['case'] == 'A duplicate trait was found within both the input file and the database') {
+        $table_case = ['file', 'database'];
+      }
+      // Now set values that should appear for this row in the table(s) for this
+      // particular case.
+      foreach ($table_case as $case) {
+        // Declare the array storing rows for this table, if not already.
+        if (!array_key_exists($case, $table)) {
+          $table[$case]['rows'] = [];
+        }
+        array_push($table[$case]['rows'], [
+          $line_no,
+          $validation_result['failedItems']['combo_provided'][$trait],
+          $validation_result['failedItems']['combo_provided'][$method],
+          $validation_result['failedItems']['combo_provided'][$unit],
+        ]);
+      }
+    }
+    // Check which tables were created, and assign the correct message.
+    // Note that both tables can exist at the same time, hence not an 'elseif'.
+    if (array_key_exists('file', $table)) {
+      $table['file']['message'] = 'These trait-method-unit combinations occurred multiple times within your input file. The line number indicates the duplicated occurrence(s).';
+    }
+    if (array_key_exists('database', $table)) {
+      $table['database']['message'] = 'These trait-method-unit combinations have already been imported into this site. Please confirm the existing version fully represents your data. If it does, then you can remove it from your input file. If not then you need to make the names more specific.';
+    }
+
+    // Finally, loop through our tables and build our render array.
+    $tables = [];
+    foreach ($table as $table_key => $table_case) {
+      array_push($tables, [
+        [
+          '#prefix' => '<div class="case-message case-' . $table_key . '">',
+          '#markup' => $table_case['message'],
+          '#suffix' => '</div>',
+        ],
+        [
+          '#type' => 'table',
+          '#header' => $table_header,
+          '#attributes' => [
+            'class' => [
+              'table-case-' . $table_key,
+            ],
+          ],
+          '#rows' => $table_case['rows'],
+        ],
+      ]);
+    }
+    $render_array = [
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => $tables,
+    ];
+
+    return $render_array;
   }
 
   /**
