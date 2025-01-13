@@ -151,7 +151,7 @@ class TripalCultivatePhenotypesTermsService {
         $db_exists = $this->dbxref_buddy->getDb(['db.name' => $idspace], []);
         if (empty($db_exists)) {
           // Create the db.
-          $this->dbxref_buddy_buddy->upsertDb(['db.name' => $idspace], []);
+          $this->dbxref_buddy->upsertDb(['db.name' => $idspace], []);
         }
 
         $term_values = [
