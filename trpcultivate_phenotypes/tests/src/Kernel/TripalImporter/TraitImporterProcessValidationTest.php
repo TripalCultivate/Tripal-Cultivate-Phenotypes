@@ -727,7 +727,6 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     $rendered_markup = $this->renderer->renderRoot($render_array);
     $this->setRawContent($rendered_markup);
 
-    // print_r($rendered_markup);
     // Check the rendered output.
     // Loop through expectations one table at a time.
     foreach ($expectations as $table_case => $table) {
@@ -747,14 +746,16 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       $this->assertCount(
         $expected_row_count,
         $selected_rows,
-        'We expected ' . $expected_row_count . 'rows in the rendered table for ValueInList failures for this scenario, but there are ' . count($selected_rows) . '.'
+        'We expected ' . $expected_row_count . 'rows in the rendered table for ValidDelimitedFile failures for this scenario, but there are ' . count($selected_rows) . '.'
       );
 
       $current_row_index = 0;
+      // Loop through expectations for each row of a table.
       foreach ($table as $expected_line_no => $expected_values) {
         if ($expected_line_no == 'expected_message') {
           continue;
         }
+        // Select our current row as an array.
         $select_row_cells = (array) $selected_rows[$current_row_index]->td;
         // 1st Column: Line Number
         $line_number = $select_row_cells[0];
@@ -911,11 +912,21 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
 
     // Select the table rows and check for our expected values.
     $selected_rows = $this->cssSelect("tbody tr");
+    // Assert that the number of rows matches what we expect.
+    $expected_row_count = (count($expectations) - 1);
+    $this->assertCount(
+      $expected_row_count,
+      $selected_rows,
+      'We expected ' . $expected_row_count . 'rows in the rendered table for EmptyCell failures for this scenario, but there are ' . count($selected_rows) . '.'
+    );
+
     $current_row_index = 0;
+    // Loop through expectations for each row in the table.
     foreach ($expectations as $expected_line_no => $expected_values) {
       if ($expected_line_no == 'expected_message') {
         continue;
       }
+      // Select our current row as an array.
       $select_row_cells = (array) $selected_rows[$current_row_index]->td;
       // 1st Column: Line Number
       $line_number = $select_row_cells[0];
@@ -1136,6 +1147,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
 
     // Now check the cell values.
     $current_row_index = 0;
+    // Loop through expectations for each row in the table.
     foreach ($expectations['expected_table_rows'] as $expected_line_no => $expected_values) {
       $select_row_cells = (array) $selected_rows[$current_row_index]->td;
       // 1st Column: Line Number
@@ -1151,13 +1163,13 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
         $this->assertEquals(
           $column_header,
           $select_column_headers[$current_column_index],
-          "We expected the column header $column_header to be present in the rendered table's header at index $current_column_index but it was not."
+          "We expected the column header $column_header to be present in the rendered table's header for ValueInList failures at index $current_column_index but it was not."
         );
         // Check that the invalid value in the table matches what we expect.
         $this->assertEquals(
           $invalid_value,
           (string) $select_row_cells[$current_column_index],
-          "We expected an invalid value to be listed for $column_header at line #$expected_line_no."
+          "We expected an invalid value to be listed for $column_header at line #$expected_line_no in the rendered table for ValueInList failures."
         );
         $current_column_index++;
       }
@@ -1411,35 +1423,38 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
       $this->assertStringContainsString($expectations[$table_case]['expected_message'], $table_message, 'The message expected for this scenario did not match the message in the render array.');
 
       // Pull out the table rows for this table case.
-      $selected_table_rows = $this->cssSelect("table.table-case-$table_case tbody tr td");
-      // Keep track of the index in $selected_table_rows. This is necessary
-      // since there's no way to distinguish different rows in a table.
-      // ie:
-      // Row 1: $selected_table_rows[0], ..[1], ..[2], ..[3]
-      // Row 2: $selected_table_rows[4], ..[5], ..[6], ..[7]
-      // etc...
-      $str_index = 0;
+      $selected_rows = $this->cssSelect("table.table-case-$table_case tbody tr");
+      // Assert that the number of rows matches what we expect.
+      $expected_row_count = (count($table) - 1);
+      $this->assertCount(
+        $expected_row_count,
+        $selected_rows,
+        'We expected ' . $expected_row_count . 'rows in the rendered table for DuplicateTraits failures for this scenario, but there are ' . count($selected_rows) . '.'
+      );
+
+      $current_row_index = 0;
       // Loop through expectations for each row of a table.
-      foreach ($table as $expected_line_no => $validation_status) {
+      foreach ($table as $expected_line_no => $expected_values) {
         if ($expected_line_no == 'expected_message') {
           continue;
         }
-        // Line Number.
-        $line_number = (string) $selected_table_rows[$str_index];
+        // Select our current row as an array.
+        $select_row_cells = (array) $selected_rows[$current_row_index]->td;
+        // 1st Column: Line Number
+        $line_number = (string) $select_row_cells[0];
         $this->assertEquals($expected_line_no, $line_number, "Did not get the expected line number in the rendered $table_case table from processing DuplicateTraits failures.");
-        // Trait Name.
-        $trait_name = (string) $selected_table_rows[$str_index + 1];
-        $this->assertEquals($table[$expected_line_no]['expected_trait'], $trait_name, "Did not get the expected trait name in the rendered $table_case table from processing DuplicateTraits failures.");
-        // Method Short Name.
-        $method_name = (string) $selected_table_rows[$str_index + 2];
-        $this->assertEquals($table[$expected_line_no]['expected_method'], $method_name, "Did not get the expected method name in the rendered $table_case table from processing DuplicateTraits failures.");
-        // Unit.
-        $unit_name = (string) $selected_table_rows[$str_index + 3];
-        $this->assertEquals($table[$expected_line_no]['expected_unit'], $unit_name, "Did not get the expected unit in the rendered $table_case table from processing DuplicateTraits failures.");
+        // 2nd Column: Trait Name
+        $trait_name = (string) $select_row_cells[1];
+        $this->assertEquals($expected_values['expected_trait'], $trait_name, "Did not get the expected trait name in the rendered $table_case table from processing DuplicateTraits failures.");
+        // 3rd Column: Method Short Name
+        $method_name = (string) $select_row_cells[2];
+        $this->assertEquals($expected_values['expected_method'], $method_name, "Did not get the expected method name in the rendered $table_case table from processing DuplicateTraits failures.");
+        // 4th Column: Unit
+        $unit_name = (string) $select_row_cells[3];
+        $this->assertEquals($expected_values['expected_unit'], $unit_name, "Did not get the expected unit in the rendered $table_case table from processing DuplicateTraits failures.");
 
-        // Increase the selected_table_rows count by 4 so that we can pull
-        // values for the next row.
-        $str_index = $str_index + 4;
+        // Move onto the next row.
+        $current_row_index++;
       }
     }
   }
