@@ -1086,7 +1086,8 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
           ($validation_result['case'] == 'None of the delimiters supported by the file type was used')) {
         $table_case = 'unsupported';
       }
-      elseif ($validation_result['case'] == 'Raw row is not delimited') {
+      elseif (($validation_result['case'] == 'Raw row exceeds number of strict columns') ||
+            ($validation_result['case'] == 'Raw row has insufficient number of columns')) {
         $table_case = 'delimited';
       }
 
