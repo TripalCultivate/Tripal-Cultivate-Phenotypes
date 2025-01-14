@@ -60,7 +60,7 @@ class TripalCultivatePhenotypesFileTemplateService {
    *   An array of column headers to be written into the template file as the
    *   column header row.
    * @param array $file_extensions
-   *   The file extension of the template file. This is taken from the the
+   *   The file extension of the template file. This is taken from the
    *   'file_type' plugin annotation definition of the Importer.
    *
    *   NOTE: Only the first item is used as the primary file extension, in case
