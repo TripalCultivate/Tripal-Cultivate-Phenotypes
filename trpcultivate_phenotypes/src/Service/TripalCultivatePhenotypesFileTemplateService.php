@@ -63,8 +63,8 @@ class TripalCultivatePhenotypesFileTemplateService {
    *   The file extension of the template file. This is taken from the the
    *   'file_type' plugin annotation definition of the Importer.
    *
-   *   Only the first item is used as the primary file extension, in case of
-   *   multiple file type values were provided.
+   *   NOTE: Only the first item is used as the primary file extension, in case
+   *   of multiple file type values were provided.
    *
    * @return string
    *   Abosolute path to the template file.
