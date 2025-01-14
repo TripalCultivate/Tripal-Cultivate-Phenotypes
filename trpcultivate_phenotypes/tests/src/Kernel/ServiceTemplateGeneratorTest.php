@@ -166,8 +166,10 @@ class ServiceTemplateGeneratorTest extends ChadoTestKernelBase {
    *   The 'file_types' plugin annotation definition of the importer.
    * @param array $expected
    *   An array of expected values, with the following keys:
-   *     - 'file_filename': the expected filename of the template file.
-   *     - 'file_content': the expected content (header row) of the file.
+   *     - 'filename': the expected filename of the template file.
+   *     - 'extension': the expected file extension of the template file.
+   *     - 'delimiter': the expected delimiter used to encode the header row.
+   *     - 'header_row': the expected content (header row) of the file.
    *
    * @dataProvider provideParametersForFileTemplateGenerator
    */
