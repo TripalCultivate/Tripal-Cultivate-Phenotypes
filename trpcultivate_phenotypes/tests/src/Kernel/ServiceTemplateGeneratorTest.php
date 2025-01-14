@@ -181,7 +181,7 @@ class ServiceTemplateGeneratorTest extends ChadoTestKernelBase {
     // Assert a link has been created.
     $this->assertNotNull($link, 'Failed to generate template file link in scenario ' . $scenario);
 
-    // Assert that a file has been created in the the configured directory
+    // Assert that a file has been created in the configured directory
     // for template files.
     $dir_templates = $this->config->get('trpcultivate_phenotypes.settings')
       ->get('trpcultivate.phenotypes.directory.template_file');
