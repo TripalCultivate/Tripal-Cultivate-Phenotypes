@@ -477,7 +477,6 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
    * @dataProvider provideValidHeadersFailedCases
    */
   public function testProcessValidHeadersFailures(array $validation_result, array $expectations) {
-
     // Call the process method on our validation result.
     $render_array = $this->importer->processValidHeadersFailures($validation_result);
     // Render the array we were returned.
@@ -1125,7 +1124,6 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
    * @dataProvider provideValueInListFailedCases
    */
   public function testProcessValueInListFailures(array $failures, array $valid_values, array $expectations) {
-
     // Process our test failures array for this scenario.
     $render_array = $this->importer->processValueInListFailures($failures, $valid_values);
     $rendered_markup = $this->renderer->renderRoot($render_array);
@@ -1425,7 +1423,6 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
    * @dataProvider provideDuplicateTraitsFailedCases
    */
   public function testProcessDuplicateTraitsFailures(array $failures, array $expectations) {
-
     // Process our test failures array.
     $render_array = $this->importer->processDuplicateTraitsFailures($failures);
     $rendered_markup = $this->renderer->renderRoot($render_array);

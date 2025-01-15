@@ -901,7 +901,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    *   mime type are not compatible.
    */
   public function processValidDataFileFailures(array $validation_result) {
-
     // Get the current user in case we trigger a case that needs to log a
     // message to the administrator.
     $current_user = \Drupal::currentUser();
@@ -918,14 +917,12 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       // Log a message for the administrator to help with debugging the issue.
       $this->logger->info("The user $username uploaded a file with FID $fid using the Traits Importer, but could not import it as something is wrong with the filename/FID. More specifically, the case message '" . $validation_result['case'] . "' was reported.");
     }
-
     elseif ($validation_result['case'] == 'The file has no data and is an empty file') {
       $message = 'The file provided has no contents in it to import. Please ensure your file has the expected header row and at least one row of data.';
       $items = [
         'Filename: ' . $validation_result['failedItems']['filename'],
       ];
     }
-
     elseif (($validation_result['case'] == 'Unsupported file MIME type') ||
             ($validation_result['case'] == 'Unsupported file mime type and unsupported extension')) {
       $message = "The type of file uploaded is not supported by this importer. Please ensure your file has one of the supported file extensions and was saved using software that supports that type of file. For example, a 'tsv' file should be saved as such by a spreadsheet editor such as Microsoft Excel.";
@@ -938,7 +935,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       ];
       $this->logger->info("The user $username uploaded a file to the Traits Importer with file extension \"$file_extension\" and mime type \"$file_mime\"");
     }
-
     elseif ($validation_result['case'] == 'Data file cannot be opened') {
       $message = 'The file provided could not be opened. Please contact your administrator for help.';
       $filename = $validation_result['failedItems']['filename'];
@@ -1099,7 +1095,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       // Keeps track of which table this one line's validation result gets added
       // to based on the case it triggered.
       $table_case = '';
-
       if (($validation_result['case'] == 'Raw row is empty') ||
           ($validation_result['case'] == 'None of the delimiters supported by the file type was used')) {
         $table_case = 'unsupported';
@@ -1291,11 +1286,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     foreach ($failures as $line_no => $validation_result) {
       if ($validation_result['case'] == 'Invalid value(s) in required column(s)') {
-        $table['message'] = 'The following line number and column combinations did not contain one of the following allowed values: "' . implode('", "', $expected_values) . '". Note that values should be case sensitive. <strong>Empty cells indicate the value given was one of the allowed values.</strong>';
+        $table['message'] = 'The following line number and column combinations did not contain one of the following allowed values: "' . implode('", "', $expected_values) . '". Note that values should be case sensitive. <strong>If any cell in the table below is empty, then the value given in the file for that cell was one of the allowed values.</strong>';
 
         // Define a new row in our table for this line number.
         $table['rows'][$line_no][-1] = $line_no;
-
         // For each index with an invalid value, grab the column name from our
         // $headers property and add it to our table header.
         foreach ($validation_result['failedItems'] as $index => $failed_value) {
