@@ -1498,7 +1498,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
     // Additional notes to the headers.
     $notes = $this->t('The order of the above columns is important and your file must include a header!
     If you have a single trait measured in more than one way (i.e. with multiple collection
-    methods), then you should have one line per collection method with the trait repeated.');
+    methods), then you should have one line per collection method with the trait name/description repeated.');
 
     // Render the header and notes/lists in a template and use the file link as
     // the value to href attribute of the link to download a template file.
