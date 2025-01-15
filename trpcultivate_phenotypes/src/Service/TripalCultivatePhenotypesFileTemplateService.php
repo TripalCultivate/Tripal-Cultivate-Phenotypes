@@ -67,7 +67,7 @@ class TripalCultivatePhenotypesFileTemplateService {
    *   of multiple file type values were provided.
    *
    * @return string
-   *   Relative path to the generated template file.
+   *   The relative path to the generated template file.
    *
    * @see src/TripalCultivateValidator/TripalCultivatePhenotypesValidatorBase.php
    * @see src/TripalCultivateValidator/ValidatorTraits/FileTypes.php
