@@ -111,14 +111,14 @@ class TripalCultivatePhenotypesFileTemplateService {
     // download a template file. File uri of the created file.
     $fileuri = $file->getFileUri();
 
-    // Before we can write contents, we need to ensure the upper level folders
-    // exist.
+    // Before we can write contents, we need to ensure the upper level
+    // folders exist.
     if (!file_exists($dir_template_file)) {
       mkdir($dir_template_file, 0777, TRUE);
     }
 
-    // Convert the headers array into a tsv string value and post into the first
-    // line of the file.
+    // Convert the headers array into a delimited string value and post into the
+    // first line of the file.
     $fileheaders = implode($file_delimiter[0], $column_headers) . "\n# DELETE THIS LINE --- START DATA HERE AND USE APPROPRIATE DELIMITER/VALUE SEPARATOR KEY #";
     file_put_contents($fileuri, $fileheaders);
 
