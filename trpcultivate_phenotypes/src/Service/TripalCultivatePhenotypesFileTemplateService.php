@@ -67,7 +67,10 @@ class TripalCultivatePhenotypesFileTemplateService {
    *   of multiple file type values were provided.
    *
    * @return string
-   *   Abosolute path to the template file.
+   *   Relative path to the generated template file.
+   *
+   * @see src/TripalCultivateValidator/TripalCultivatePhenotypesValidatorBase.php
+   * @see src/TripalCultivateValidator/ValidatorTraits/FileTypes.php
    */
   public function generateFile($importer_id, $column_headers, $file_extensions) {
 
@@ -79,6 +82,7 @@ class TripalCultivatePhenotypesFileTemplateService {
     // About the template file:
     // File extension.
     $file_extension = $file_extensions[0];
+    // See referenced file in the doc block about the mapping variables used.
     // File MIME type.
     $file_mime_type = FileTypes::$extension_to_mime_mapping[$file_extension];
     // File delimiter.
@@ -115,7 +119,7 @@ class TripalCultivatePhenotypesFileTemplateService {
 
     // Convert the headers array into a tsv string value and post into the first
     // line of the file.
-    $fileheaders = implode($file_delimiter[0], $column_headers) . "\n# DELETE THIS LINE --- START DATA HERE AND USE TAB KEY #";
+    $fileheaders = implode($file_delimiter[0], $column_headers) . "\n# DELETE THIS LINE --- START DATA HERE AND USE APPROPRIATE DELIMITER/VALUE SEPARATOR KEY #";
     file_put_contents($fileuri, $fileheaders);
 
     // Save.

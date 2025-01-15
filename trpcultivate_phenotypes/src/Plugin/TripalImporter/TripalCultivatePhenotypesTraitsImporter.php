@@ -1472,10 +1472,20 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   }
 
   /**
-   * {@inheritdoc}
+   * Provide a more informative description about the template file.
    *
-   * @see src/TripalCultivateValidator/TripalCultivatePhenotypesValidatorBase.php
-   * @see src/TripalCultivateValidator/ValidatorTraits/FileTypes.php
+   * Class TripalImporterBase is the parent class of this method and additional
+   * documentation is available in reference link below.
+   *
+   * NOTE: This method supports full HTML markup output.
+   *
+   * All relevant information relating to expected column headers and usage
+   * notes are laid out using the theme 'importer_header'. A template geneartor
+   * service is utilized to provide a downloadable file template, pre-configured
+   * to contain all headers required.
+   *
+   * @see Tripal\src\TripalImporter\TripalImporterBase.php
+   * @see templates\trpcultivate-phenotypes-template-importer-header.html.twig
    */
   public function describeUploadFileFormat() {
     // A template file has been generated and is ready for download.
