@@ -1472,7 +1472,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   }
 
   /**
-   * Provide a more informative description about the template file.
+   * Describe the upload format including column descriptions + template file.
    *
    * Class TripalImporterBase is the parent class of this method and additional
    * documentation is available in reference link below.
