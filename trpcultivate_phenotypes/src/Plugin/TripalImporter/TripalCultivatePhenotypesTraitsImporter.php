@@ -1483,6 +1483,10 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * notes are laid out using the theme 'importer_header'. This is rendered
    * using the referenced TWIG file below.
    *
+   * @return string
+   *   The fully rendered HTML string produced by the 'importer_header' theme
+   *   with the pertinent variables supplied by this method.
+   *
    * A template geneartor service is utilized to provide a downloadable file
    * template, pre-configured to contain all headers required. The link to
    * this template file is also formatted using the theme 'importer_header'.
