@@ -1472,7 +1472,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
   }
 
   /**
-   * Provide a more informative description about the template file.
+   * Describe the upload format including column descriptions + template file.
    *
    * Class TripalImporterBase is the parent class of this method and additional
    * documentation is available in reference link below.
@@ -1480,11 +1480,18 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * NOTE: This method supports full HTML markup output.
    *
    * All relevant information relating to expected column headers and usage
-   * notes are laid out using the theme 'importer_header'. A template geneartor
-   * service is utilized to provide a downloadable file template, pre-configured
-   * to contain all headers required.
+   * notes are laid out using the theme 'importer_header'. This is rendered
+   * using the referenced TWIG file below.
    *
-   * @see Tripal\src\TripalImporter\TripalImporterBase.php
+   * @return string
+   *   The fully rendered HTML string produced by the 'importer_header' theme
+   *   with the pertinent variables supplied by this method.
+   *
+   * A template geneartor service is utilized to provide a downloadable file
+   * template, pre-configured to contain all headers required. The link to
+   * this template file is also formatted using the theme 'importer_header'.
+   *
+   * @see Drupal\tripal\TripalImporter\TripalImporterBase::describeUploadFileFormat()
    * @see templates\trpcultivate-phenotypes-template-importer-header.html.twig
    */
   public function describeUploadFileFormat() {
