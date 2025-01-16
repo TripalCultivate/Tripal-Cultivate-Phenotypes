@@ -1484,7 +1484,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * service is utilized to provide a downloadable file template, pre-configured
    * to contain all headers required.
    *
-   * @see Tripal\src\TripalImporter\TripalImporterBase.php
+   * @see Drupal\tripal\TripalImporter\TripalImporterBase::describeUploadFileFormat()
    * @see templates\trpcultivate-phenotypes-template-importer-header.html.twig
    */
   public function describeUploadFileFormat() {
