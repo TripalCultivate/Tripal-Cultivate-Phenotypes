@@ -1483,13 +1483,13 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
    * notes are laid out using the theme 'importer_header'. This is rendered
    * using the referenced TWIG file below.
    *
-   * @return string
-   *   The fully rendered HTML string produced by the 'importer_header' theme
-   *   with the pertinent variables supplied by this method.
-   *
    * A template geneartor service is utilized to provide a downloadable file
    * template, pre-configured to contain all headers required. The link to
    * this template file is also formatted using the theme 'importer_header'.
+   *
+   * @return string
+   *   The fully rendered HTML string produced by the 'importer_header' theme
+   *   with the pertinent variables supplied by this method.
    *
    * @see Drupal\tripal\TripalImporter\TripalImporterBase::describeUploadFileFormat()
    * @see templates\trpcultivate-phenotypes-template-importer-header.html.twig
@@ -1519,7 +1519,6 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     // Render the header and notes/lists in a template and use the file link as
     // the value to href attribute of the link to download a template file.
-
     $supported_file_extensions = implode(', ', $file_extensions);
 
     $build = [
