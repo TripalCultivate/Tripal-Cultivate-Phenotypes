@@ -26,7 +26,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   label = @Translation("Tripal Cultivate: Phenotypic Trait Importer"),
  *   description = @Translation("Loads Traits for phenotypic data into the system. This is useful for large phenotypic datasets to ease the upload process."),
  *   file_types = {"tsv"},
- *   upload_description = @Translation("Please provide a txt or tsv data file."),
+ *   upload_description = @Translation("Please provide a data file."),
  *   upload_title = @Translation("Phenotypic Trait Data File*"),
  *   use_analysis = FALSE,
  *   require_analysis = FALSE,
@@ -1512,10 +1512,14 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
 
     // Render the header and notes/lists in a template and use the file link as
     // the value to href attribute of the link to download a template file.
+
+    $supported_file_extensions = implode(', ', $file_extensions);
+
     $build = [
       '#theme' => 'importer_header',
       '#data' => [
         'headers' => $this->headers,
+        'file_extensions' => $supported_file_extensions,
         'notes' => $notes,
         'template_file' => $file_link,
       ],
