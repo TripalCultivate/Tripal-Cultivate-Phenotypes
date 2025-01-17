@@ -185,20 +185,20 @@ class TripalCultivatePhenotypesTermsService {
    *
    * @param string $term_key
    *   The unique identifier for the term of interest. This should be one of:
-   *   data_collector: Data Collector.
-   *   entry: Entry Number/Information.
-   *   genus: Organism.
-   *   location: Location.
-   *   method: Collection Method.
-   *   name: Name/Germplasm line.
-   *   experiment_container: Plot.
-   *   unit_to_method_relationship_type: Related - create relationships
-   *   (unit - method).
-   *   method_to_trait_relationship_type: Related - create relationships
-   *   (method - trait).
-   *   experiment_replicate: Planting replicate.
-   *   unit: Unit of measurement.
-   *   experiment_year: Year.
+   *   - data_collector: Data Collector.
+   *   - entry: Entry Number/Information.
+   *   - genus: Organism.
+   *   - location: Location.
+   *   - name: Name/Germplasm line.
+   *   - experiment_container: Plot.
+   *   - unit_to_method_relationship_type: Related - create relationships
+   *     (unit - method).
+   *   - method_to_trait_relationship_type: Related - create relationships
+   *     (method - trait).
+   *   - experiment_replicate: Planting replicate.
+   *   - unit_type: Unit of measurement.
+   *   - experiment_year: Year.
+   *   - trait_to_synonym_relationship_type: Prefered term.
    *
    * @see schema/trpcultivate_phenotypes.schema.yml
    *
