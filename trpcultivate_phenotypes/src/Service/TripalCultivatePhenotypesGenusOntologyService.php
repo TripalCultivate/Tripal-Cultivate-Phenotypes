@@ -14,7 +14,7 @@ class TripalCultivatePhenotypesGenusOntologyService {
   /**
    * Configuration.
    *
-   * @var config_entity
+   * @var \Drupal\Core\Config\Config
    */
   private $config;
 
