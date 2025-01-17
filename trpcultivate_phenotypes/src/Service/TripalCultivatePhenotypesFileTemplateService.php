@@ -18,6 +18,9 @@ class TripalCultivatePhenotypesFileTemplateService {
    *
    * - FileTypes: Gets an array of all supported MIME types the importer is
    *   configured to process.
+   *
+   * @todo Update when/if $extension_to_mime_mapping is moved to a more generic
+   * class (ie. not validator specific).
    */
   use FileTypes;
 
@@ -84,7 +87,10 @@ class TripalCultivatePhenotypesFileTemplateService {
     $file_extension = $file_extensions[0];
     // See referenced file in the doc block about the mapping variables used.
     // File MIME type.
-    $file_mime_type = FileTypes::$extension_to_mime_mapping[$file_extension];
+    // @todo Should move the following 2 methods to a more generic class
+    // instead of keeping them in FileTypes and ValidatorBase which are meant
+    // for validators.
+    $file_mime_type = self::$extension_to_mime_mapping[$file_extension];
     // File delimiter.
     $file_delimiter = TripalCultivatePhenotypesValidatorBase::$mime_to_delimiter_mapping[$file_mime_type[0]];
 
