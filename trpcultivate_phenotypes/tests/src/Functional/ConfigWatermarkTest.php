@@ -66,20 +66,22 @@ class ConfigWatermarkTest extends BrowserTestBase {
     $session->statusCodeEquals(200);
     $session->pageTextContains('Configure Tripal Cultivate Phenotypes: Watermark Chart');
 
+    // Fields and default value.
+    // Field option to watermark which chart is default to 0 - Do not watermark.
+    $session->fieldExists('charts');
+    $session->fieldValueEquals('charts', '0');
+
+    // Watermark image file field is default to empty string.
+    $session->fieldExists('files[file]');
+    $session->elementTextContains('css', '#edit-file-upload', '');
+
     // Update configuration settings.
     // Do not watermark any charts.
     $update_watermark = [
       'charts' => '0',
-      // 'file' => '' test could not detect file field. ??
+      'files[file]' => '',
     ];
 
-    // Fields and default value.
-    $session->fieldExists('charts');
-    $session->fieldValueEquals('charts', '0');
-
-    // Could not seem to find this field in the form.
-    // $session->fieldExists('file');
-    // $session->fieldValueEquals('file', '');.
     // Submit form.
     $this->submitForm($update_watermark, 'Save configuration');
 
