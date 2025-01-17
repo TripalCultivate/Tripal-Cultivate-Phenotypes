@@ -162,14 +162,11 @@ class TripalCultivatePhenotypesTraitsService {
    * @param array $trait
    *   Trait added to this module has the following data keys:
    *   - Trait Name: the name of the trait (e.g. Plant Height).
-   *   - Trait Description: the description of the trait (e.g. the height of the
-   *     plant from the
-   *     ground to it's tallest point without stretching the plant.)
-   *   - Method Short Name: a short name for the method
-   *     (e.g. Average of 5 plants)
+   *   - Trait Description: the description of the trait (eg. The height of the
+   *     plant from ground to it's tallest point without stretching the plant.)
+   *   - Method Short Name: a short name of the method (eg. Average of 5 plants)
    *   - Collection Method: a description of the method used to collect the
-   *     phenotypic data
-   *     (e.g. measured 5 plants from the plot and then averaged them.)
+   *     phenotypic data (eg. Measure 5 plants from the plot and average them.)
    *   - Unit: the full word describing the unit used in the method
    *     (e.g. centimeters)
    *   - Type: Quantitative or Qualitative.
