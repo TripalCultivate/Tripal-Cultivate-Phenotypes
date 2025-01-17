@@ -110,7 +110,10 @@ class TripalCultivatePhenotypesGenusOntologyService {
   /**
    * Register a configuration entry.
    *
-   * Each genus ontology configuration values to a default value of 0 (not set).
+   * Uses the template created by self::defineGenusOntology() to set each
+   * configuration value (e.g. trait, method, unit) to its
+   * default value (i.e. 0 which indicates not set) for all unique genus
+   * in the chado.organism table.
    *
    * @return bool
    *   True if all genus ontology configuration entries were created and set to
