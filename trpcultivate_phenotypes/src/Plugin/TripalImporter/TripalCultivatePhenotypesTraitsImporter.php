@@ -860,7 +860,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       '#title' => $message,
       '#wrapper_attributes' => [
         'class' => [
-          'genus-exists-failures',
+          'tcp-genus-exists-failures',
         ],
       ],
       'items' => [
@@ -952,7 +952,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       '#title' => $message,
       '#wrapper_attributes' => [
         'class' => [
-          'valid-data-file-failures',
+          'tcp-valid-data-file-failures',
         ],
       ],
       'items' => [
@@ -1007,7 +1007,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       '#type' => 'ul',
       '#attributes' => [
         'class' => [
-          'valid-headers-failures',
+          'tcp-valid-headers-failures',
         ],
       ],
       '#items' => [
@@ -1162,7 +1162,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       '#type' => 'ul',
       '#attributes' => [
         'class' => [
-          'valid-delimited-file-failures',
+          'tcp-valid-delimited-file-failures',
         ],
       ],
       '#items' => $tables,
@@ -1226,7 +1226,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       '#type' => 'ul',
       '#attributes' => [
         'class' => [
-          'empty-cell-failures',
+          'tcp-empty-cell-failures',
         ],
       ],
       '#items' => [
@@ -1332,7 +1332,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       '#type' => 'ul',
       '#attributes' => [
         'class' => [
-          'value-in-list-failures',
+          'tcp-value-in-list-failures',
         ],
       ],
       '#items' => [
@@ -1463,7 +1463,7 @@ class TripalCultivatePhenotypesTraitsImporter extends ChadoImporterBase implemen
       '#type' => 'ul',
       '#attributes' => [
         'class' => [
-          'duplicate-traits-failures',
+          'tcp-duplicate-traits-failures',
         ],
       ],
       '#items' => $tables,

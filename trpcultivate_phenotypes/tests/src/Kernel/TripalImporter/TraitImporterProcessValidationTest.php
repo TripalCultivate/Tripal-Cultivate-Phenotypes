@@ -223,11 +223,11 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     $this->setRawContent($rendered_markup);
 
     // Check the render array here.
-    $selected_message_title = $this->cssSelect('div.form-item label');
+    $selected_message_title = $this->cssSelect('div.tcp-genus-exists-failures label');
     $provided_message = (string) $selected_message_title[0];
     $this->assertStringContainsString($expectations['expected_message'], $provided_message, 'The message expected from processing GenusExists failures for this scenario did not match the one in the rendered output.');
     // Check for an unordered list with one item in it - the genus provided.
-    $selected_list_items = $this->cssSelect('div.form-item ul li');
+    $selected_list_items = $this->cssSelect('div.tcp-genus-exists-failures ul li');
     $this->assertCount(1, $selected_list_items, 'We expect only one list item in the render array from processing GenusExists failures.');
     // Grab the contents of 'SimpleXMLElement Object' and assert it is our
     // genus.
@@ -364,7 +364,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
 
     // Check the rendered output.
     // First check that we were given the correct message.
-    $selected_message_title = $this->cssSelect('div.form-item label');
+    $selected_message_title = $this->cssSelect('div.tcp-valid-data-file-failures label');
     $provided_message = (string) $selected_message_title[0];
     $this->assertStringContainsString(
       $expectations['expected_message'],
@@ -373,7 +373,7 @@ class TraitImporterProcessValidationTest extends ChadoTestKernelBase {
     );
 
     // Next, check for expected items.
-    $selected_list_items = $this->cssSelect('div.form-item ul li');
+    $selected_list_items = $this->cssSelect('div.tcp-valid-data-file-failures ul li');
     $list_item_count = count($selected_list_items);
     $this->assertEquals($expectations['expected_item_count'], $list_item_count, 'We expected ' . $expectations['expected_item_count'] . ' list items in the render array from processing ValidDataFile failures, but instead found ' . $list_item_count . '.');
     // If this is a case where we expect an item, grab the contents of
