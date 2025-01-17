@@ -43,10 +43,12 @@ class TripalCultivatePhenotypesSettingsController extends ControllerBase {
   }
 
   /**
-   * Returns a markup of details (fieldset).
+   * Provides an administrative list of phenotypes configuration pages.
    *
-   * The title of the element is the configuration section and expanding each
-   * item will reveal a short description.
+   * @return array
+   *   A render array consisting of a details element for each configuration
+   *   page where the title is the configuration section and the contents
+   *   include a short description plus a link.
    */
   public function loadPage() {
     // Quick enabled or disabled status of sub-phenotypes modules and report
