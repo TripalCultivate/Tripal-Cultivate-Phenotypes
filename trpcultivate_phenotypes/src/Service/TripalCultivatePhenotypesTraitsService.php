@@ -293,8 +293,8 @@ class TripalCultivatePhenotypesTraitsService {
 
         if (!$ins_rel) {
           throw new \Exception('A database error occurred while inserting a term relationship.
-            Failed to create term relationship ' . $type . ' : subject id - ' .
-            $subject . ' object id - ' . $object);
+          Failed to create term relationship ' . $type . ' : subject id - ' .
+          $subject . ' object id - ' . $object);
         }
       }
     }
