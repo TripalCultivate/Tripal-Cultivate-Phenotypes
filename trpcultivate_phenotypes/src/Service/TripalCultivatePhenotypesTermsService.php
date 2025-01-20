@@ -229,9 +229,12 @@ class TripalCultivatePhenotypesTermsService {
    *   variable name and the value being the value as set in
    *   corresponding form field resolved to id number.
    *
-   *   ie: $config_values[name] = 1;
-   *   Name configuration variable name is set to Null term with the Null term
-   *   resolved to the cvterm id number.
+   * For example, the following indicates that the chado.cvterm.cvterm_id for the
+   * `name` configuration variable is `1`. This resolves to the `Null` cvterm
+   * when that cvterm_id is looked up in the cvterm table.
+   * @code
+   * $config_values['name'] = 1;
+   * @endcode
    *
    * @return bool
    *   True if configuration saved successfully and False on error.
