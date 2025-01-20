@@ -125,7 +125,7 @@ class TripalCultivatePhenotypesFileTemplateService {
 
     // Convert the headers array into a delimited string value and post into the
     // first line of the file.
-    $fileheaders = implode($file_delimiter[0], $column_headers) . "\n# DELETE THIS LINE --- START DATA HERE AND USE APPROPRIATE DELIMITER/VALUE SEPARATOR KEY #";
+    $fileheaders = implode($file_delimiter[0], $column_headers) . "\n# DELETE THIS LINE --- START DATA HERE AND USE APPROPRIATE DELIMITER/VALUE SEPARATOR #";
     file_put_contents($fileuri, $fileheaders);
 
     // Save.
